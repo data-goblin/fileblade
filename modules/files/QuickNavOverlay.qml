@@ -118,6 +118,10 @@ FocusScope {
 
   Connections {
     target: overlay.controller
+    function onQuickNavSelectionRevisionChanged() {
+      list.currentIndex = list.count > 0 ? 0 : -1
+      list.positionViewAtBeginning()
+    }
     function onSearchQueryChanged() {
       if (input.text !== overlay.controller.searchQuery) input.text = overlay.controller.searchQuery
     }
@@ -270,7 +274,6 @@ FocusScope {
         var count = overlay.controller.searchModel.count
         if (count === 0) return "No matches"
         return count + (count === 1 ? " match" : " matches")
-          + (overlay.channel === "folders" ? " (ranked by frequency)" : "")
       }
       color: overlay.controller.searchError ? Color.urgent : overlay.secondaryTextColor
       elide: Text.ElideRight
@@ -280,6 +283,7 @@ FocusScope {
 
     ListView {
       id: list
+      objectName: "quickNavResults"
       reuseItems: true
       anchors.top: statusLine.bottom
       anchors.topMargin: Style.space(4)

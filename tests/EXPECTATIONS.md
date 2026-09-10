@@ -303,6 +303,18 @@ keeps the bars visible. The choice survives a shell restart.
 82. **E-10-04** If I press `Escape`, quick navigation closes and I remain in my
     current folder.
 
+This file was written by an agent.
+
+- **E-10-05** With View hidden off, Quick Nav, the file tree, search and Recent
+  omit cache directories carrying a valid `CACHEDIR.TAG`, their contents, and
+  FileBlade's private configuration, state and thumbnail cache. Remembered
+  visits do not bring them back. View hidden reveals them; ordinary projects,
+  including FileBlade's source checkout, remain visible either way.
+- **E-10-06** Changing the Quick Nav query selects the first new result, even
+  when existing rows move. Arrow keys still select another result, and a
+  refresh of the same query preserves that choice. My current folder stays
+  excluded from Quick Nav.
+
 ## 11. The actions menu
 
 `tests/vm/expectations/11-actions-menu.sh`

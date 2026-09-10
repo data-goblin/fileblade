@@ -60,6 +60,7 @@ src/command.rs, src/secure/:        running external tools safely; descriptor-re
 src/filesystem/, src/operations.rs: copy, move, rename, delete with staging and no-replace publish
 src/listing.rs, src/index.rs:        directory listing and the gitignore-aware index
 src/search/, src/grep.rs, src/frecency.rs, src/quicknav.rs: search, ranking, and quick navigation
+src/visibility.rs: shared hidden, tagged-cache and private-state visibility
 src/git.rs, src/git/:                git status snapshots, batching, cache, and gitignore state
 src/journal/, src/audit.rs:          undo/redo journal and the append-only audit log
 src/trash/, src/artifact_bin/:       Freedesktop Trash and per-module bins for disabled items

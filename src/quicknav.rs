@@ -87,6 +87,11 @@ pub fn quicknav_cancellable(
             frequencies.entry(path).or_insert(0.0);
         }
     }
+    let visibility_root = match parse_path(root) {
+        Ok(path) => path,
+        Err(error) => return quicknav_error(needle, &error.to_string()),
+    };
+    let mut visibility = crate::visibility::Visibility::new(&visibility_root, show_hidden);
     let candidates = frequencies.into_iter();
     let mut ranked = if needle.is_empty() {
         candidates
@@ -112,6 +117,8 @@ pub fn quicknav_cancellable(
     });
     let entries = ranked
         .into_iter()
+        .take_while(|_| !cancelled.load(Ordering::Relaxed))
+        .filter(|(path, _, _, _)| parse_path(path).is_ok_and(|path| visibility.path(&path)))
         .filter_map(|(path, frequency, _, indices)| quicknav_row(&path, frequency, &indices))
         .take(limit.clamp(1, 200))
         .collect::<Vec<_>>();

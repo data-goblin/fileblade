@@ -163,13 +163,17 @@ fn module_line(module: &Value) -> String {
 }
 
 pub(super) fn recent(options: RecentArgs) -> AppResult<PublicResult> {
-    let document = backend_json(&[
+    let mut arguments = vec![
         "frecency-list".to_string(),
         "--limit".to_string(),
         options.limit.to_string(),
         "--query".to_string(),
         options.query,
-    ])?;
+    ];
+    if options.show_hidden {
+        arguments.push("--show-hidden".to_string());
+    }
+    let document = backend_json(&arguments)?;
     let lines = document["entries"]
         .as_array()
         .map(|entries| {

@@ -22,7 +22,9 @@ Item {
     busy = true
     generation++
     var requestGeneration = generation
-    activeRequestId = service.backendRequest("frecency-list", ["--limit", String(limit), "--query", ""], requestGeneration, function(response) {
+    var arguments = ["--limit", String(limit), "--query", ""]
+    if (service.showHidden) arguments.push("--show-hidden")
+    activeRequestId = service.backendRequest("frecency-list", arguments, requestGeneration, function(response) {
       if (requestGeneration !== controller.generation) return
       controller.activeRequestId = ""
       controller.finish(response || { ok: false, error: "Recent files request failed", entries: [] })
@@ -44,6 +46,7 @@ Item {
 
   Connections {
     target: service
+    function onShowHiddenChanged() { controller.refresh() }
     function onRecentModeChanged() {
       if (service.recentMode) controller.refresh()
       else recentModel.clear()
