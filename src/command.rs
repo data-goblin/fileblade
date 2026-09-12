@@ -171,6 +171,49 @@ impl CommandSpec {
         Ok(pid)
     }
 
+    pub fn spawn_detached_with_stdin(&self, cancelled: &AtomicBool) -> AppResult<u32> {
+        let Some(input) = self.stdin_data.clone() else {
+            return self.spawn_detached();
+        };
+        let reaper = detached_reaper()?;
+        reserve_detached_child()?;
+        let mut command = self.command();
+        command
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        let mut child = match command.spawn() {
+            Ok(child) => child,
+            Err(error) => {
+                release_detached_child();
+                return Err(AppError::command(format!(
+                    "could not start {}: {error}",
+                    self.program.display()
+                )));
+            }
+        };
+        let pid = child.id();
+        if let Err(error) = write_detached_stdin(&mut child, &input, self.timeout, cancelled)
+            .and_then(|()| settle_detached(&mut child))
+        {
+            terminate_group(&mut child);
+            release_detached_child();
+            return Err(error);
+        }
+        if let Err(error) = reaper.try_send(child) {
+            let (mut child, message) = match error {
+                mpsc::TrySendError::Full(child) => (child, "detached child reaper is saturated"),
+                mpsc::TrySendError::Disconnected(child) => {
+                    (child, "detached child reaper is unavailable")
+                }
+            };
+            terminate_group(&mut child);
+            release_detached_child();
+            return Err(AppError::command(message));
+        }
+        Ok(pid)
+    }
+
     fn command(&self) -> Command {
         let mut command = Command::new(&self.program);
         command.args(&self.arguments);
@@ -269,6 +312,82 @@ fn executable(path: &Path) -> bool {
     path.metadata()
         .map(|metadata| metadata.is_file() && metadata.permissions().mode() & 0o111 != 0)
         .unwrap_or(false)
+}
+
+fn settle_detached(child: &mut Child) -> AppResult<()> {
+    let deadline = Instant::now() + Duration::from_millis(200);
+    while Instant::now() < deadline {
+        match child.try_wait() {
+            Ok(Some(status)) if status.success() => return Ok(()),
+            Ok(Some(status)) => {
+                return Err(AppError::command(format!(
+                    "the detached command exited with {status}"
+                )));
+            }
+            Ok(None) => thread::sleep(Duration::from_millis(5)),
+            Err(error) => {
+                return Err(AppError::command(format!(
+                    "could not check the detached command: {error}"
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn write_detached_stdin(
+    child: &mut Child,
+    input: &[u8],
+    timeout: Duration,
+    cancelled: &AtomicBool,
+) -> AppResult<()> {
+    use std::io::Write;
+    use std::os::fd::AsRawFd;
+
+    let Some(mut pipe) = child.stdin.take() else {
+        return Err(AppError::command("detached child has no standard input"));
+    };
+    if input.is_empty() {
+        return Ok(());
+    }
+    io::nonblocking(&pipe).map_err(|error| {
+        AppError::command(format!("could not prepare the detached input: {error}"))
+    })?;
+    let deadline = Instant::now() + timeout;
+    let mut written = 0;
+    while written < input.len() {
+        if cancelled.load(Ordering::Relaxed) {
+            return Err(AppError::Cancelled);
+        }
+        if Instant::now() >= deadline {
+            return Err(AppError::command("detached input write timed out"));
+        }
+        let mut fds = [io::pollfd(pipe.as_raw_fd(), libc::POLLOUT)];
+        if unsafe { libc::poll(fds.as_mut_ptr(), 1, 50) } < 0 {
+            let error = std::io::Error::last_os_error();
+            if error.kind() == std::io::ErrorKind::Interrupted {
+                continue;
+            }
+            return Err(AppError::command(format!(
+                "could not wait for the detached input: {error}"
+            )));
+        }
+        match pipe.write(&input[written..]) {
+            Ok(0) => return Err(AppError::command("detached child closed its input")),
+            Ok(count) => written += count,
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::WouldBlock | std::io::ErrorKind::Interrupted
+                ) => {}
+            Err(error) => {
+                return Err(AppError::command(format!(
+                    "could not write the detached input: {error}"
+                )));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn terminate_group(child: &mut Child) {

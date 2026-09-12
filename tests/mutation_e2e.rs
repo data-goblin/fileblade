@@ -934,15 +934,85 @@ fn clipboard_text_writes_one_absolute_path_per_line() {
     );
     assert_eq!(payload["ok"], true, "{payload}");
     assert_eq!(payload["paths"], 2);
-    assert_eq!(
-        fs::read_to_string(&capture).unwrap(),
-        format!("{}\n{}", odd.display(), temporary.path().display())
-    );
+    let expected = format!("{}\n{}", odd.display(), temporary.path().display());
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
+    while std::time::Instant::now() < deadline {
+        if fs::read_to_string(&capture).unwrap_or_default() == expected {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert_eq!(fs::read_to_string(&capture).unwrap(), expected);
     assert_eq!(
         fs::read_to_string(format!("{}.args", capture.display()))
             .unwrap()
             .trim(),
         "--type text/plain"
+    );
+}
+
+#[test]
+fn copying_files_reports_a_clipboard_program_that_refuses_to_run() {
+    let temporary = tempdir().unwrap();
+    let tools = temporary.path().join("tools");
+    fs::create_dir(&tools).unwrap();
+    fs::write(tools.join("wl-copy"), "#!/bin/sh\nexit 1\n").unwrap();
+    fs::set_permissions(tools.join("wl-copy"), fs::Permissions::from_mode(0o755)).unwrap();
+    let file = temporary.path().join("one.txt");
+    fs::write(&file, "x").unwrap();
+    let payload = backend_with_tools(
+        temporary.path(),
+        &["clipboard-write", "--path", file.to_str().unwrap()],
+        Some(&tools),
+    );
+    assert_eq!(payload["ok"], false, "{payload}");
+    assert!(
+        payload["error"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("exited with"),
+        "{payload}"
+    );
+}
+
+#[test]
+fn copying_files_hands_the_uri_list_to_the_clipboard_program() {
+    let temporary = tempdir().unwrap();
+    let tools = temporary.path().join("tools");
+    fs::create_dir(&tools).unwrap();
+    let capture = temporary.path().join("uris.txt");
+    fs::write(
+        tools.join("wl-copy"),
+        format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$*\" > '{}.args'\ncat > '{}'\nsleep 2\n",
+            capture.display(),
+            capture.display()
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(tools.join("wl-copy"), fs::Permissions::from_mode(0o755)).unwrap();
+    let file = temporary.path().join("one.txt");
+    fs::write(&file, "x").unwrap();
+    let payload = backend_with_tools(
+        temporary.path(),
+        &["clipboard-write", "--path", file.to_str().unwrap()],
+        Some(&tools),
+    );
+    assert_eq!(payload["ok"], true, "{payload}");
+    let expected = format!("file://{}\r\n", file.display());
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
+    while std::time::Instant::now() < deadline {
+        if fs::read_to_string(&capture).unwrap_or_default() == expected {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert_eq!(fs::read_to_string(&capture).unwrap(), expected);
+    assert_eq!(
+        fs::read_to_string(format!("{}.args", capture.display()))
+            .unwrap()
+            .trim(),
+        "--type text/uri-list"
     );
 }
 

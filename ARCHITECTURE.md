@@ -344,7 +344,13 @@ through cleanup, and monitors backend death through a pidfd. The request worker
 polls nonblocking stdin, stdout and stderr without per-pipe threads or a copied
 input buffer. Completion drains remaining output for a bounded interval;
 independent daemons cannot hold the request open. Explicitly detached desktop
-launches retain their separate lifetime.
+launches retain their separate lifetime. A detached launch can also carry input:
+the payload goes through a nonblocking pipe bounded by the spec timeout and
+honouring cancellation, the pipe closes so the child sees end of input, and the
+child is briefly observed so an immediate failure is reported rather than
+answered as success. Such a child belongs to the detached reaper, not to the
+supervisor's group teardown, which is what lets a clipboard daemon outlive the
+request that started it.
 
 Python companion commands share `python/fileblade_process.py`. A Linux
 supervisor drains bounded streams, enforces a deadline and stops the owned

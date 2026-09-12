@@ -1035,7 +1035,7 @@ fn update_check_is_opt_out_bounded_and_manual_in_the_footer() {
         "cargo build",
         "plugin\", \"validate",
         "rescanPlugins",
-        ".spawn_detached()",
+        ".spawn_detached",
     ] {
         assert!(
             !updates.contains(forbidden),

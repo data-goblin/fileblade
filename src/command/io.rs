@@ -69,7 +69,7 @@ fn retryable(error: &io::Error) -> bool {
     )
 }
 
-fn nonblocking(fd: impl AsFd) -> io::Result<()> {
+pub(super) fn nonblocking(fd: impl AsFd) -> io::Result<()> {
     let flags = rustix::fs::fcntl_getfl(&fd)?;
     Ok(rustix::fs::fcntl_setfl(
         fd,
@@ -211,7 +211,7 @@ pub(super) fn run(spec: &CommandSpec, cancelled: &AtomicBool) -> AppResult<Comma
     }
 }
 
-fn pollfd(fd: RawFd, events: i16) -> libc::pollfd {
+pub(super) fn pollfd(fd: RawFd, events: i16) -> libc::pollfd {
     libc::pollfd {
         fd,
         events,

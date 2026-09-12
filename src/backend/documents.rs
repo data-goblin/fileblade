@@ -111,27 +111,12 @@ pub(super) fn wl_copy(mime: &str, input: Vec<u8>, cancelled: &AtomicBool) -> Res
     let Some(program) = crate::command::which("wl-copy") else {
         return Err(json!({"ok": false, "error": "wl-copy is not installed"}));
     };
-    let output = crate::command::CommandSpec::new(program)
+    crate::command::CommandSpec::new(program)
         .args(["--type", mime])
         .stdin(input)
         .timeout(Duration::from_secs(3))
-        .limits(64 * 1024, 64 * 1024)
-        .run_cancellable(cancelled)
+        .spawn_detached_with_stdin(cancelled)
         .map_err(|error| json!({"ok": false, "error": error.to_string()}))?;
-    if output.stdout_truncated || output.stderr_truncated {
-        return Err(json!({"ok": false, "error": "wl-copy exceeded its output limit"}));
-    }
-    if !output.status.success() {
-        let error = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        return Err(json!({
-            "ok": false,
-            "error": if error.is_empty() {
-                format!("wl-copy failed with {}", output.status)
-            } else {
-                error
-            },
-        }));
-    }
     Ok(())
 }
 

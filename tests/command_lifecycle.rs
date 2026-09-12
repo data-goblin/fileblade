@@ -18,6 +18,41 @@ fn detached_children_are_reaped() {
 }
 
 #[test]
+fn a_detached_child_reads_its_input_and_outlives_the_call() {
+    let file = std::env::temp_dir().join(format!("fileblade-detached-{}", std::process::id()));
+    let _ = std::fs::remove_file(&file);
+    let target = file.to_string_lossy().to_string();
+    let pid = CommandSpec::new("/bin/sh")
+        .args([
+            "-c",
+            "cat > \"$0\"; printf closed >> \"$0\"; sleep 5",
+            &target,
+        ])
+        .stdin("clipboard payload")
+        .timeout(Duration::from_secs(3))
+        .spawn_detached_with_stdin(&std::sync::atomic::AtomicBool::new(false))
+        .expect("detached command should start");
+    let deadline = Instant::now() + Duration::from_secs(3);
+    while Instant::now() < deadline {
+        if std::fs::read_to_string(&file).unwrap_or_default() == "clipboard payloadclosed" {
+            break;
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    let written = std::fs::read_to_string(&file).unwrap_or_default();
+    let alive = PathBuf::from(format!("/proc/{pid}")).exists();
+    let _ = std::process::Command::new("/bin/kill")
+        .args(["-KILL", &format!("-{pid}")])
+        .status();
+    let _ = std::fs::remove_file(&file);
+    assert_eq!(
+        written, "clipboard payloadclosed",
+        "detached stdin was not delivered and closed"
+    );
+    assert!(alive, "the detached child was killed with the caller");
+}
+
+#[test]
 fn a_daemonising_child_does_not_hold_the_runner() {
     let started = Instant::now();
     let output = CommandSpec::new("/bin/sh")
