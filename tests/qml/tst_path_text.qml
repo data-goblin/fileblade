@@ -5,6 +5,21 @@ import "../../lib/PathText.js" as PathText
 TestCase {
   name: "PathIdentity"
 
+  function test_dropped_urls_survive_spaces_in_either_form() {
+    compare(PathText.droppedPath("file:///home/user/folder%20test"), "/home/user/folder test")
+    compare(PathText.droppedPath("file:///home/user/folder test"), "/home/user/folder test")
+    compare(PathText.droppedPath("file://localhost/home/user/folder%20test"), "/home/user/folder test")
+    compare(PathText.droppedPath("file:///home/user/a%23b/c%20d.png"), "/home/user/a#b/c d.png")
+  }
+
+  function test_dropped_urls_reject_what_is_not_a_local_file() {
+    compare(PathText.droppedPath(""), "")
+    compare(PathText.droppedPath(undefined), "")
+    compare(PathText.droppedPath("https://example.com/thing.png"), "")
+    compare(PathText.droppedPath("file://server/share/thing.png"), "")
+    compare(PathText.droppedPath("/home/user/plain"), "")
+  }
+
   function test_blank_values_become_empty() {
     compare(PathText.pathText(undefined), "")
     compare(PathText.pathText(null), "")

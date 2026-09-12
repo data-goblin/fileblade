@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Settings. Expectations E-17-01 .. E-17-13.
+# Settings. Expectations E-17-01 .. E-17-14.
 source "$(dirname "$0")/lib.sh"
 
 require_guest
@@ -85,5 +85,11 @@ ctl setModeBadge hidden >/dev/null; sleep 1
 expect E-17-11 "and can be hidden" modeBadge hidden
 ctl setModeBadge "${before_badge:-header}" >/dev/null; sleep 1
 expect E-17-11 "and the tree reports its mode" editorMode NORMAL
+
+before_drag=$(field dragOut)
+ctl setDragOut system >/dev/null; sleep 1
+expect E-17-14 "dragging out hands files to the system" dragOut system
+ctl setDragOut "${before_drag:-paste}" >/dev/null; sleep 1
+expect E-17-14 "and paste path comes back" dragOut paste
 
 summary

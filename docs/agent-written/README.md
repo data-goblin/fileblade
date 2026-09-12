@@ -13,6 +13,9 @@ is maintained separately.
   and how data moves through it
 - [Keybindings](keybindings.md): user configuration for pane navigation,
   folding, search and help
+- [Dragging files](dragging-files.md): which mouse gesture keeps a drag inside
+  FileBlade, which one hands the files to another application, and the setting
+  that chooses between them
 - [Git status](git-status.md): status markers and repository summary preferences
 - [Extensions](../../EXTENSIONS.md): the public contract for blade modules and
   other FileBlade extension points

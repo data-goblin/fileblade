@@ -69,7 +69,7 @@ Item {
     var sources = Array.isArray(paths) ? paths : service.selectedPaths
     var uris = []
     for (var i = 0; i < sources.length; i++) uris.push(service.fileUrl(sources[i]))
-    return uris.join("\n")
+    return uris.length === 0 ? "" : uris.join("\r\n") + "\r\n"
   }
 
   function copySelection(cut, paths) {

@@ -61,6 +61,13 @@ Item {
     return ["header", "footer", "hidden"].indexOf(badge) >= 0 ? badge : "header"
   }
 
+  function normalizeDragOut(value) {
+    var mode = String(value || "").toLowerCase()
+    if (mode === "wayland" || mode === "handoff") mode = "system"
+    if (mode === "path" || mode === "type") mode = "paste"
+    return ["paste", "system"].indexOf(mode) >= 0 ? mode : "paste"
+  }
+
   function normalizeMonitorMode(value) {
     return MonitorMode.normalize(value)
   }

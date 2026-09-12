@@ -74,6 +74,15 @@ Column {
     onChosen: function(key) { root.controller.setModeBadge(key) }
   }
 
+  PluginUi.ChoiceRow {
+    width: parent.width
+    glyph: "\uf0c1"
+    label: "Drag out"
+    options: [{ key: "paste", label: "Paste path" }, { key: "system", label: "System drag" }]
+    value: root.controller.dragOut
+    onChosen: function(key) { root.controller.setDragOut(key) }
+  }
+
   PluginUi.SettingsGroup { title: "Git" }
 
   PluginUi.ToggleRow {

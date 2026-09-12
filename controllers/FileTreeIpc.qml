@@ -138,6 +138,7 @@ QtObject {
       drivesMode: service.drivesMode,
       drivesCount: service.drivesController.volumeCount,
       modeBadge: service.modeBadge,
+      dragOut: service.dragOut,
       editorMode: service.editorMode,
       trashCount: service.trashCount,
       trashSelectedId: service.trashSelectedId,
@@ -684,6 +685,10 @@ QtObject {
 
   function setModeBadge(placement: string): string {
     return service.setModeBadge(placement)
+  }
+
+  function setDragOut(mode: string): string {
+    return service.setDragOut(mode)
   }
 
   function focusBlade(edge: string): string {

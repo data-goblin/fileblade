@@ -478,6 +478,11 @@ Dialog keyboard regressions: `tests/vm/trash-dialog-focus.sh`.
      text in every blade grows or shrinks by that amount while the blade widths
      stay where I put them, a value outside the range settles on the nearest
      end, and the choice survives a restart.
+147c. **E-17-14** If I set Drag out to System drag in the Files settings,
+     dragging rows hands the files to the window I drop on, so an application
+     that takes files receives them instead of their typed paths, and the drop
+     wheel stays out of that drag unless I drag with my right button;
+     Paste path restores the old behavior, and the choice survives a restart.
 
 ## 18. Persistence
 
@@ -779,6 +784,18 @@ missing, the same goes for "This nvim", and picking one anyway is refused
 with the reason; New terminal and Review with hunk in a new window still
 work. tmux gives no way to tell such windows apart, so it always counts as
 shared there.
+
+**E-26-13** If I set dragging out to hand files to the system, dragging rows
+gives them to the application I drop on, so a browser upload field receives the
+files themselves. That drag belongs to the compositor, so the drop wheel, its
+keys and the drag scroll do not take part in it; dragging the row with my right
+button keeps that gesture inside FileBlade instead and opens the wheel where I
+release it outside the blade, without pressing the wheel key, and holding shift
+or control as I press keeps it inside too, so the path pastes still work. With
+the default setting every drag stays inside FileBlade, as it always has.
+
+**E-26-14** I can drop files dragged from another application onto a folder row
+in a blade, and a name containing a space arrives intact.
 
 ## 27. Updates and recovery
 

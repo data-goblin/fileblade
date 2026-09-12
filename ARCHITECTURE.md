@@ -270,6 +270,27 @@ from the application opened for the files. Multi-file edits use one editor
 launch; a default-open batch may map several clients, but FileBlade stays out
 of the focus race and Hyprland leaves the last activated client active.
 
+A file drag can also run as a Wayland drag. A compositor drag owns the pointer
+and the keyboard for as long as it lasts, so the drop wheel, its keys and the
+drag scroll cannot run inside one, and the choice has to be made before the
+gesture starts rather than when it leaves the blade. With `dragOut` set to
+`system`, `BrowserRow` starts the gesture as `Drag.Automatic`, the compositor
+offers `text/uri-list`, and any client that accepts files receives the
+selection. Dragging a row with the right button keeps that gesture internal
+and opens the drop wheel where the drag is released outside a blade, without
+waiting for the wheel key; the wheel then owns the pointer and the keyboard as
+usual, because the drag is over. Shift or control at the press also keeps the
+drag internal, so the absolute and relative path pastes work as they always
+have. `dragOut`
+defaults to `paste` and every drag stays internal, which is the behavior
+FileBlade has always had.
+
+Row drop targets accept `text/uri-list` beside the internal drag key, because a
+system offer carries mime types rather than the key. That is what lets a
+promoted drag still land on a folder row, and it also accepts files dragged in
+from other applications. `PathText.droppedPath` resolves an offered url whether
+the compositor percent-encodes it or not, so a name with a space survives.
+
 ![Keybind flow](assets/docs/keybind-flow.svg)
 
 FileBlade does not edit your Hyprland config. The blade-aware binds in the
@@ -391,6 +412,7 @@ pickerResult:   picker dialog flow, answer from the pick blade
 select:         single-path form of selectEntries, which fileblade select uses
 setWelcomeState: Welcome tab flow; VM section 29 resets the first-launch state
 setModeBadge:   Files settings row for the Neovim mode badge (header, footer, hidden); VM section 17 flips it and reads status.modeBadge
+setDragOut:     Files settings row for what a drag leaving a blade does (paste, system); VM section 17 flips it and reads status.dragOut
 welcomeInstall: Welcome tab flow; starts the detached four-extension installer
 welcomeDismiss: Welcome tab flow; closes the tab and records the choice
 resetBladeLayout: applies the default blade layout, which seeds the Welcome tab while it is pending
@@ -484,6 +506,7 @@ folderColorScope:           icon       what a folder color paints: icon, name, o
 trashRetentionDays:         7          days before Trash entries are pruned; 0 keeps them forever
 gitStatusPollIntervalMs:     5000       Git fallback base in ms; 6x while inotify is healthy, 0 disables it
 dropModifier:               space      drop-wheel hold key: space, alt, ctrl, shift, or meta
+dragOut:                    paste      what a drag leaving a blade does: paste the path, or hand it to the system
 monitorMode:                active     invocation monitor; all mirrors, locked uses the saved monitorLock
 animateBlades:              true       slide blades open and closed
 checkUpdates:               true       the six-hourly ref lookup described under Checkout update checks
