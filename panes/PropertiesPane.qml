@@ -19,6 +19,15 @@ FocusScope {
   PluginUi.ActionKeyGuard { id: actionKeys; active: root.activeFocus; shared: root.hostWindow ? root.hostWindow.actionKeys : null }
   PluginUi.TreeKeys { id: treeKeys; active: scroller.activeFocus; scope: "properties"; plan: controller.keybindings.plan }
   Keys.onReleased: function(event) { actionKeys.release(event) }
+  TapHandler {
+    acceptedButtons: Qt.BackButton | Qt.ForwardButton
+    gesturePolicy: TapHandler.ReleaseWithinBounds
+    enabled: root.focusEnabled && root.activeFocus
+    onTapped: function(eventPoint, button) {
+      if (button === Qt.BackButton) root.runKeyAction("back")
+      else if (button === Qt.ForwardButton) root.runKeyAction("forward")
+    }
+  }
 
   function targetScreen() {
     return hostWindow ? hostWindow.screen : null

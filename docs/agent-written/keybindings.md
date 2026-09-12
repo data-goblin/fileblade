@@ -76,6 +76,12 @@ page-up/down, opening and help; `h`/Left returns to the tree. Fold commands
 apply only in a tree. Quick navigation, the picker, search layout and deep
 search are Files-only.
 
+The mouse has one binding of its own, and it is not configurable: the side
+buttons walk the navigation history, matching the `back` and `forward` actions.
+They answer over the files pane, Trash and Drives included, and over the
+properties pane, while that blade has focus and no settings or shortcuts panel
+covers it.
+
 These are pane-navigation bindings, not global Hyprland shortcuts or editor
 input mappings. Text fields, Notes editing, dialogs and module-specific
 mutation commands retain their own keys. The Files shortcut guide displays

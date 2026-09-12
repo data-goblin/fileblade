@@ -161,6 +161,12 @@ Ids never get reused. When behaviour changes, edit the entry in place.
 43. **E-06-03** If I press `Alt+Home`, I move to my home directory.
 44. **E-06-04** If I click the Up, Back, Forward, or Home buttons, they navigate
     to the same places as their keyboard shortcuts.
+44b. **E-06-09** If my mouse has side buttons, pressing them over the files
+    pane or the properties pane walks the same history as `Alt+Left` and
+    `Alt+Right`, Trash and Drives included. They do nothing while a settings or
+    shortcuts panel covers the blade, or while the blade does not have focus.
+    Pressing one while I am dragging cancels the drag, and pressing one with the
+    actions menu open closes the menu and navigates.
 45. **E-06-05** If I enter a path that does not exist, I see an error and remain
     in the current directory.
 46. **E-06-06** If I enter a valid path whose name ends with spaces, FileBlade

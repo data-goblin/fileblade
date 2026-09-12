@@ -21,6 +21,15 @@ FocusScope {
     plan: controller.keybindings.plan
   }
   Keys.onReleased: function(event) { actionKeyGuard.release(event) }
+  TapHandler {
+    acceptedButtons: Qt.BackButton | Qt.ForwardButton
+    gesturePolicy: TapHandler.ReleaseWithinBounds
+    enabled: root.focusEnabled && root.activeFocus
+    onTapped: function(eventPoint, button) {
+      if (button === Qt.BackButton) root.runBrowserAction("back")
+      else if (button === Qt.ForwardButton) root.runBrowserAction("forward")
+    }
+  }
   property var context: null
   property bool focusEnabled: true
   property bool locationEditing: false
