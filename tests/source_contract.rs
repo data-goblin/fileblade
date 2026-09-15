@@ -409,6 +409,24 @@ fn previews_are_bounded_stable_scrollable_and_pointer_scoped() {
 }
 
 #[test]
+fn mount_actions_report_ok_like_every_other_backend_result() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let actions = text(&root.join("src/mounts/actions.rs"));
+    let mut replies = 0;
+    for object in actions.split("json!({").skip(1) {
+        let body = &object[..object.find("})").expect("json object closes")];
+        if body.contains("\"changed\"") {
+            replies += 1;
+            assert!(
+                body.contains("\"ok\": true"),
+                "mount action reply without ok: {body}"
+            );
+        }
+    }
+    assert_eq!(replies, 5);
+}
+
+#[test]
 fn scroll_indicators_are_thin_shared_and_the_trees_carry_a_marked_ruler() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let indicator = text(&root.join("ui/AccentScrollBar.qml"));

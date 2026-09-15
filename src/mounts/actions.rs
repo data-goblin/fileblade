@@ -107,10 +107,16 @@ fn mountpoint_of(source: &str) -> AppResult<Option<String>> {
 pub fn mount(source: &str) -> AppResult<Value> {
     let volume = resolve(source)?;
     if let Some(mountpoint) = volume.mountpoint {
-        return Ok(json!({"source": source, "mountpoint": mountpoint, "changed": false}));
+        return Ok(json!({
+            "ok": true,
+            "source": source,
+            "mountpoint": mountpoint,
+            "changed": false,
+        }));
     }
     let result = authorize("mount", source)?;
     Ok(json!({
+        "ok": true,
         "source": source,
         "mountpoint": mountpoint_of(source)?,
         "authorized": result["authorized"],
@@ -121,10 +127,16 @@ pub fn mount(source: &str) -> AppResult<Value> {
 pub fn unmount(source: &str) -> AppResult<Value> {
     let volume = resolve(source)?;
     if volume.mountpoint.is_none() {
-        return Ok(json!({"source": source, "mountpoint": Value::Null, "changed": false}));
+        return Ok(json!({
+            "ok": true,
+            "source": source,
+            "mountpoint": Value::Null,
+            "changed": false,
+        }));
     }
     let result = authorize("unmount", source)?;
     Ok(json!({
+        "ok": true,
         "source": source,
         "mountpoint": mountpoint_of(source)?,
         "authorized": result["authorized"],
@@ -151,6 +163,7 @@ pub fn eject(source: &str) -> AppResult<Value> {
         source,
     )?;
     Ok(json!({
+        "ok": true,
         "source": source,
         "authorized": result["authorized"],
         "changed": true,
