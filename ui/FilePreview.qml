@@ -17,10 +17,15 @@ Rectangle {
   property string error: ""
   property color surfaceColor: Color.bar.background
   readonly property bool hovered: previewHover.hovered
+  readonly property bool scrollable: previewFade.scrollable
 
   function resetScroll() {
     textScroller.contentX = 0
     textScroller.contentY = 0
+  }
+
+  function page(direction) {
+    previewFade.page(direction)
   }
 
   function clamp(value, contentSize, viewportSize) {
@@ -138,6 +143,7 @@ Rectangle {
   }
 
   ScrollEdgeFade {
+    id: previewFade
     anchors.fill: textScroller
     flickable: textScroller
     surfaceColor: root.boxColor

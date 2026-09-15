@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Properties and previews. Expectations E-08-01 .. E-08-10.
+# Properties and previews. Expectations E-08-01 .. E-08-11.
 source "$(dirname "$0")/lib.sh"
 
 require_guest
@@ -43,6 +43,52 @@ expect_contains E-08-06 "and shows the dangling target" "$broken" "/nonexistent"
 
 ctl select "$ROOT_DIR/long.txt"; sleep 4
 expect_contains E-08-07 "a long text file previews" "$(pane_text)" "line 1"
+
+# Screen y of the first pane word matching a pattern, so the pointer lands on
+# the preview or the path row wherever the properties section starts.
+pane_word_y() {
+  local shot crop result
+  shot=$("$OVM" shot ocr-pane-words 2>/dev/null | tail -1)
+  [[ -f $shot ]] || return 1
+  crop=$(mktemp --suffix=.png)
+  if ! magick "$shot" -crop 378x480+0+600 +repage -colorspace gray -negate -resize 300% "$crop" 2>/dev/null; then
+    rm -f -- "$crop"
+    return 1
+  fi
+  result=$(tesseract "$crop" - --psm 6 tsv 2>/dev/null | awk -F '\t' -v pattern="$1" '$1 == 5 && $12 ~ pattern { print int(($8 + $10 / 2) / 3) + 600; exit }')
+  rm -f -- "$crop"
+  [[ $result =~ ^[0-9]+$ ]] || return 1
+  printf '%s\n' "$result"
+}
+
+# Page keys follow the pointer: over the preview they page the preview, over
+# the property rows they page the pane. The owner row only enters the pane crop
+# once the pane itself has paged. The pointer starts on the tree so the move
+# onto the preview is real travel that hands the pane keyboard focus; the path
+# row is too dim for OCR until then.
+"$OVM" mouse move "$ROW_X" "$(row_y 1)"; sleep 1
+preview_y=$(pane_word_y '^[Ll]ine$')
+[[ $preview_y =~ ^[0-9]+$ ]] && { "$OVM" mouse move 100 $((preview_y + 70)); sleep 1.5; }
+path_y=$(pane_word_y '^/home/.*/long[.]txt$')
+if [[ $preview_y =~ ^[0-9]+$ && $path_y =~ ^[0-9]+$ ]]; then
+  "$OVM" key pgdn; sleep 1.5
+  paged=$(pane_text)
+  expect_contains E-08-11 "Page Down over a long preview shows later lines" "$paged" "line 22"
+  expect_missing E-08-11 "and leaves the pane where it was" "$paged" "omarchy:omarchy"
+  "$OVM" key pgup; sleep 1.5
+  back=$(pane_text)
+  expect_contains E-08-11 "Page Up over the preview returns to the first lines" "$back" "line 3"
+  expect_missing E-08-11 "and the later lines are gone again" "$back" "line 22"
+  "$OVM" mouse move 100 "$path_y"; sleep 1.5
+  "$OVM" key pgdn; sleep 1.5
+  pane=$(pane_text)
+  expect_missing E-08-11 "Page Down over the property rows leaves the preview alone" "$pane" "line 22"
+  expect_contains E-08-11 "and pages the pane instead" "$pane" "omarchy:omarchy"
+  "$OVM" key pgup; sleep 1.5
+  "$OVM" mouse move "$ROW_X" "$(row_y 1)"; sleep 1
+else
+  fail harness "E-08-11 locate the preview" "no preview line or path row in the pane OCR"
+fi
 
 ctl select "$ROOT_DIR/deep"; sleep 3
 dirtext=$(pane_text)

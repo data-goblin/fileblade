@@ -373,6 +373,11 @@ fn previews_are_bounded_stable_scrollable_and_pointer_scoped() {
     assert!(properties.contains("key !== root.textPreviewKey"));
     assert!(properties.contains("interactive: !filePreview.hovered"));
     assert!(properties.contains("visible: !filePreview.hovered && (hasAbove || hasBelow)"));
+    assert!(properties.contains(
+        "if (filePreview.hovered && filePreview.scrollable) filePreview.page(direction)"
+    ));
+    assert!(properties.contains("\"page-up\": function() { page(-1) }"));
+    assert!(properties.contains("\"page-down\": function() { page(1) }"));
     assert!(!properties.contains("Load preview"));
     assert!(!properties.contains("approvedImagePreviewKey"));
     assert!(!properties.contains("previewSource: isImage ?"));
@@ -387,6 +392,8 @@ fn previews_are_bounded_stable_scrollable_and_pointer_scoped() {
     assert!(preview.contains("blocking: true"));
     assert!(preview.contains("event.accepted = true"));
     assert!(preview.contains("ScrollEdgeFade {"));
+    assert!(preview.contains("readonly property bool scrollable: previewFade.scrollable"));
+    assert!(preview.contains("previewFade.page(direction)"));
     let application_icon = text(&root.join("ui/SafeApplicationIcon.qml"));
     assert!(application_icon.contains("FileIcons.safeThemeIconName(iconName)"));
     assert!(application_icon.contains("property string trustedIconSource:"));

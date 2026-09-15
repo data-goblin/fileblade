@@ -72,7 +72,8 @@ bindings that conflict are rejected rather than resolved by file order.
 Navigation, activation, folding, search and help are shared by Files and the
 satellite artifact trees. Inventory `up` selects the enclosing group/folder;
 Files `up` changes the root to its parent. Properties inherits movement,
-page-up/down, opening and help; `h`/Left returns to the tree. Fold commands
+page-up/down, opening and help; page-up/down page a hovered text preview that
+overflows its card, and the pane otherwise; `h`/Left returns to the tree. Fold commands
 apply only in a tree. Quick navigation, the picker, search layout and deep
 search are Files-only.
 

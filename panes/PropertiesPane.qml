@@ -59,6 +59,11 @@ FocusScope {
     return Math.max(0, Math.min(Math.max(0, scroller.contentHeight - scroller.height), value))
   }
 
+  function page(direction) {
+    if (filePreview.hovered && filePreview.scrollable) filePreview.page(direction)
+    else scroller.contentY = clampedContentY(scroller.contentY + direction * scroller.height * 0.8)
+  }
+
   function runKeyAction(action) {
     var actions = {
       help: function() { if (hostWindow) hostWindow.shortcutsOpen = true },
@@ -70,8 +75,8 @@ FocusScope {
       home: function() { controller.goHome() },
       "scroll-up": function() { scroller.contentY = clampedContentY(scroller.contentY - Style.space(34)) },
       "scroll-down": function() { scroller.contentY = clampedContentY(scroller.contentY + Style.space(34)) },
-      "page-up": function() { scroller.contentY = clampedContentY(scroller.contentY - scroller.height * 0.8) },
-      "page-down": function() { scroller.contentY = clampedContentY(scroller.contentY + scroller.height * 0.8) },
+      "page-up": function() { page(-1) },
+      "page-down": function() { page(1) },
       first: function() { scroller.contentY = 0 },
       last: function() { scroller.contentY = clampedContentY(scroller.contentHeight) },
       "focus-next": function() { focusNext() },
