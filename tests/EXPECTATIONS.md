@@ -542,6 +542,9 @@ Automation for this section is pending.
      section or tab back, or by using the layout controls in Settings.
 169. **E-20-12** If I drag the divider between two expanded sections, they resize
      together and reopen at the sizes I chose.
+169b. **E-20-13** If a section holds two Files tabs and I click the second, it
+     stays active and shows its own folder; opening a folder, Recent, Trash or
+     Drives from that tab keeps it active instead of switching to the first tab.
 
 ## 21. Docking, resizing and window behavior
 

@@ -111,6 +111,8 @@ Item {
   function focusModule(moduleId, targetScreen, part) {
     var location = findModule(moduleId)
     if (!location) return false
+    var activeTab = host.slotActiveTab(location.edge, location.index)
+    if (host.slotModuleAt(location.edge, location.index, activeTab) === String(moduleId)) location.tab = activeTab
     host.setSlotTab(location.edge, location.index, location.tab)
     return focusBlade(location.edge, targetScreen, location.index, part, false)
   }
