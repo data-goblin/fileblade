@@ -670,7 +670,13 @@ Item {
       interactive: contentHeight > height
       clip: true
       boundsBehavior: Flickable.StopAtBounds
-      ScrollBar.vertical: PluginUi.AccentScrollBar { }
+      ScrollBar.vertical: PluginUi.AccentScrollBar {
+        parent: card
+        anchors.top: flick.top
+        anchors.bottom: flick.bottom
+        anchors.left: flick.right
+        anchors.leftMargin: Math.round(card.pad / 2)
+      }
 
       Column {
         id: settingsContent

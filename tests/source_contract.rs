@@ -436,6 +436,12 @@ fn scroll_indicators_are_thin_shared_and_the_trees_carry_a_marked_ruler() {
         );
     }
 
+    let settings = text(&root.join("blades/BladeSettings.qml"));
+    assert!(
+        settings.contains("parent: card") && settings.contains("anchors.left: flick.right"),
+        "settings scrollbar must sit in the card padding, not over the rows"
+    );
+
     let ruler = text(&root.join("ui/MarkedScrollBar.qml"));
     assert!(ruler.contains("visible: scrollable"));
     assert!(ruler.contains("width: Style.space(4)"));
