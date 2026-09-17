@@ -3,6 +3,7 @@ import QtQuick.Effects
 import Quickshell
 import qs.Commons
 import "../lib/FileIcons.js" as FileIcons
+import "../theme"
 
 Item {
   id: root
@@ -14,7 +15,7 @@ Item {
   property color iconColor: fallbackColor
   property string fallbackGlyph: ""
   property color fallbackColor: Color.accent
-  property real fallbackSize: Style.font.body
+  property real fallbackSize: Typography.body
   property real iconSize: Style.space(18)
   readonly property string resolvedSource: {
     if (trustedIconSource !== "") return trustedIconSource

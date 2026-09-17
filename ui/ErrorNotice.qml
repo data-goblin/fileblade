@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Item {
   id: notice
@@ -43,7 +44,7 @@ Item {
     color: notice.foreground
     wrapMode: Text.WordWrap
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
   }
 
   Item {
@@ -59,7 +60,7 @@ Item {
       text: "󰅖"
       color: pointer.containsMouse ? Color.accent : Util.alpha(notice.foreground, 0.7)
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
     }
 
     MouseArea {

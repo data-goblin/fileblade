@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Commons
 import "../ui" as PluginUi
+import "../theme"
 
 FloatingWindow {
   id: window
@@ -202,7 +203,7 @@ FloatingWindow {
       text: files ? "\ue6ae " + files.editorMode : ""
       color: files ? files.editorModeColor : Color.muted
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
       font.weight: Font.DemiBold
     }
   }

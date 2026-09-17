@@ -40,5 +40,6 @@ pub mod shell_init;
 pub mod thumbnail;
 pub mod trash;
 pub mod updates;
+mod visibility;
 
 pub use error::{AppError, AppResult};

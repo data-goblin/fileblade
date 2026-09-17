@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
+import "../theme"
 
 QQC.TextField {
   id: field
@@ -23,7 +24,7 @@ QQC.TextField {
   selectionColor: Util.alpha(Color.accent, 0.38)
   selectedTextColor: textColor
   font.family: Style.font.family
-  font.pixelSize: Style.font.bodySmall
+  font.pixelSize: Typography.bodySmall
 
   background: Rectangle {
     radius: Math.min(Style.cornerRadius, Style.space(4))
@@ -55,6 +56,6 @@ QQC.TextField {
     text: "󰍉"
     color: field.activeFocus ? Color.accent : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
   }
 }

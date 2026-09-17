@@ -3,6 +3,7 @@ import QtQuick.Controls as QQC
 import qs.Commons
 import qs.Ui
 import "../lib/Format.js" as Format
+import "../theme"
 
 QQC.Popup {
   id: popup
@@ -107,7 +108,7 @@ QQC.Popup {
     color: Color.popups.text
     placeholderTextColor: Util.alpha(Color.popups.text, 0.4)
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
     background: Rectangle {
       color: Util.alpha(Color.popups.text, input.activeFocus ? 0.10 : 0.06)
       radius: Math.min(Style.cornerRadius, Style.space(4))
@@ -137,7 +138,7 @@ QQC.Popup {
       text: action.label
       color: action.primary ? Color.background : Color.popups.text
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
       font.weight: action.primary ? Font.DemiBold : Font.Normal
     }
 
@@ -165,7 +166,7 @@ QQC.Popup {
         text: "FILTER"
         color: Color.popups.text
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
         font.letterSpacing: 0.6
       }
@@ -178,7 +179,7 @@ QQC.Popup {
         wrapMode: Text.WordWrap
         color: Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
       }
 
       Repeater {
@@ -198,7 +199,7 @@ QQC.Popup {
             text: section.modelData.label
             color: Color.popups.text
             font.family: Style.font.family
-            font.pixelSize: Style.font.bodySmall
+            font.pixelSize: Typography.bodySmall
             font.weight: Font.DemiBold
           }
 
@@ -247,7 +248,7 @@ QQC.Popup {
                   text: chip.modelData.label
                   color: chip.active ? Color.accent : Color.popups.text
                   font.family: Style.font.family
-                  font.pixelSize: Style.font.caption
+                  font.pixelSize: Typography.caption
                 }
 
                 MouseArea {

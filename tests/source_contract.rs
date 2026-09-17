@@ -167,6 +167,7 @@ fn production_runtime_is_rust_with_one_resident_qml_process() {
                 || path.ends_with("tests/test_python_process.py")
                 || path.ends_with("tests/test_python_inventory.py")
                 || path.ends_with("tests/test_python_mutations.py")
+                || path.ends_with("tests/test_version_hook.py")
                 || path.ends_with("tests/companion_readonly.py")
                 || path.ends_with("scripts/fileblade-extension-image.py")
                 || path.ends_with("tests/test_extension_image.py"),
@@ -174,7 +175,7 @@ fn production_runtime_is_rust_with_one_resident_qml_process() {
             path.display()
         );
     }
-    assert_eq!(python_support.len(), 11);
+    assert_eq!(python_support.len(), 12);
 }
 
 #[test]

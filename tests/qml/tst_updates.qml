@@ -102,17 +102,17 @@ TestCase {
   }
 
   function test_failed_check_reports_and_releases_busy() {
-    fakeService.replies = ({ "update-check": { ok: false, error: "fetch failed: offline" } })
+    fakeService.replies = ({ "update-check": { ok: false, error: "remote check failed: offline" } })
     controller.check()
-    compare(controller.error, "fetch failed: offline")
+    compare(controller.error, "remote check failed: offline")
     verify(!controller.busy)
     verify(!controller.available)
   }
 
   function test_report_drives_availability_and_summary() {
     fakeService.replies = checkReply([
-      { id: "data-goblin.fileblade", path: "/plugins/data-goblin.fileblade", updatable: true, behind: 3, ahead: 0, dirty: false, current_version: "0.6.0", upstream_version: "0.7.0", backend_stale: false, backend_version: "0.6.0" },
-      { id: "data-goblin.fileblade-memory", path: "/plugins/data-goblin.fileblade-memory", updatable: true, behind: 1, ahead: 0, dirty: false, current_version: "1.0.0", upstream_version: "1.0.0" },
+      { id: "data-goblin.fileblade", path: "/plugins/data-goblin.fileblade", updatable: true, behind: 3, ahead: 0, dirty: false, current_version: "0.6.0", upstream_version: "0.7.0", version_change: "newer", backend_stale: false, backend_version: "0.6.0" },
+      { id: "data-goblin.fileblade-memory", path: "/plugins/data-goblin.fileblade-memory", updatable: true, behind: 1, ahead: 0, dirty: false, current_version: "1.0.0", upstream_version: "1.0.0", version_change: "same" },
       { id: "data-goblin.fileblade-git", path: "/plugins/data-goblin.fileblade-git", updatable: false, behind: 2, ahead: 0, dirty: true, error: "" }
     ])
     controller.check()
@@ -122,8 +122,9 @@ TestCase {
     compare(controller.chipText, "Update available")
     verify(!controller.upToDateNotice)
     compare(controller.summaryLines(), [
-      "FileBlade: 3 commits (0.6.0 → 0.7.0)",
-      "data-goblin.fileblade-memory: 1 commit",
+      "Version 0.7.0 of FileBlade is now available!",
+      "Companion updates:",
+      "• Memory 1.0.0 (same version)",
       "Skipped data-goblin.fileblade-git: local changes"
     ])
     compare(controller.dialogLines().slice(-2), [
@@ -132,9 +133,53 @@ TestCase {
     ])
   }
 
+  function test_unknown_version_does_not_guess_or_list_commits() {
+    controller.report = { repositories: [
+      { id: "data-goblin.fileblade", updatable: true, behind: 51, current_version: "0.1.1", upstream_version: "", version_change: "unknown" },
+      { id: "data-goblin.fileblade-skills", updatable: true, behind: null, upstream_version: "" }
+    ] }
+    compare(controller.summaryLines(), [
+      "An update for FileBlade is available; its version could not be determined.",
+      "Companion updates:",
+      "• Skills (version unknown)"
+    ])
+  }
+
+  function test_companions_have_sorted_bullets_without_claiming_a_core_release() {
+    controller.report = { repositories: [
+      { id: "data-goblin.fileblade", updatable: false },
+      { id: "data-goblin.fileblade-memory", updatable: true, upstream_version: "0.1.2", version_change: "newer" },
+      { id: "data-goblin.fileblade-skills", updatable: true, upstream_version: "0.1.3", version_change: "newer" },
+      { id: "data-goblin.fileblade-mcp", updatable: true, upstream_version: "0.1.2", version_change: "newer" },
+      { id: "data-goblin.fileblade-hooks", updatable: true, upstream_version: "0.1.2", version_change: "newer" }
+    ] }
+    compare(controller.summaryLines(), [
+      "Companion updates:",
+      "• Hooks 0.1.2",
+      "• MCP 0.1.2",
+      "• Memory 0.1.2",
+      "• Skills 0.1.3"
+    ])
+    compare(controller.repositories[1].id, "data-goblin.fileblade-memory")
+    verify(controller.available)
+    verify(!controller.coreUpdatable)
+    compare(controller.dialogLines().length, 7)
+  }
+
+  function test_same_or_older_version_is_not_announced_as_a_new_release() {
+    controller.report = { repositories: [
+      { id: "data-goblin.fileblade", updatable: true, current_version: "0.1.2", upstream_version: "0.1.2", version_change: "same" }
+    ] }
+    compare(controller.summaryLines(), ["FileBlade has updates available within version 0.1.2."])
+    controller.report = { repositories: [
+      { id: "data-goblin.fileblade", updatable: true, current_version: "0.1.2", upstream_version: "0.1.1", version_change: "older" }
+    ] }
+    compare(controller.summaryLines(), ["FileBlade's upstream changed to version 0.1.1 (installed: 0.1.2)."])
+  }
+
   function test_stale_backend_shows_reinstall_without_updates() {
     fakeService.replies = checkReply([
-      { id: "data-goblin.fileblade", path: "/p", updatable: false, behind: 0, ahead: 0, dirty: false, current_version: "0.7.0", upstream_version: "0.7.0", backend_stale: true, backend_version: "0.6.0" }
+      { id: "data-goblin.fileblade", path: "/p", updatable: false, behind: 0, ahead: 0, dirty: false, current_version: "0.7.0", upstream_version: "0.7.0", version_change: "newer", backend_stale: true, backend_version: "0.6.0" }
     ])
     controller.check()
     verify(!controller.available)

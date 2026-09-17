@@ -26,6 +26,7 @@ pub(super) fn metadata_matches(run: &SearchRun<'_>, relative: &str, flags: &Inde
 pub(super) fn candidate_rows(run: &SearchRun<'_>, hits: Vec<Hit>, ranked: bool) -> Vec<Value> {
     let mut rows = Vec::new();
     let mut retained = 0_usize;
+    let mut visibility = crate::visibility::Visibility::new(run.root, run.show_hidden);
     for hit in hits {
         if run.cancelled.load(Ordering::Relaxed) || run.started.elapsed() >= SEARCH_DEADLINE {
             break;
@@ -34,6 +35,9 @@ pub(super) fn candidate_rows(run: &SearchRun<'_>, hits: Vec<Hit>, ranked: bool) 
             break;
         }
         let path = hit.entry.path(run.root);
+        if !visibility.path(&path) {
+            continue;
+        }
         let Ok(mut item) = entry_for_path_with_git(&path, false, run.git_enabled) else {
             continue;
         };
@@ -365,7 +369,9 @@ pub(super) fn append_deleted_matches(
             continue;
         }
         let relative = relative_text(&status.path, run.root);
-        if relative == "." || (!run.show_hidden && hidden_component(&relative)) {
+        if relative == "."
+            || !crate::visibility::Visibility::new(run.root, run.show_hidden).path(&status.path)
+        {
             continue;
         }
         let mut item = deleted_git_entry(status, repository);
@@ -389,12 +395,6 @@ pub(super) fn append_deleted_matches(
         existing.insert(path);
         rows.push(item);
     }
-}
-
-pub(super) fn hidden_component(relative: &str) -> bool {
-    Path::new(relative)
-        .components()
-        .any(|part| part.as_os_str().as_encoded_bytes().starts_with(b"."))
 }
 
 pub(super) fn sort_rows(

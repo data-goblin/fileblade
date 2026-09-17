@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Item {
   id: row
@@ -24,7 +25,7 @@ Item {
     color: row.heading ? Color.muted : Color.bar.text
     elide: Text.ElideRight
     font.family: Style.font.family
-    font.pixelSize: row.heading ? Style.font.caption : Style.font.bodySmall
+    font.pixelSize: row.heading ? Typography.caption : Typography.bodySmall
     font.letterSpacing: row.heading ? 0.4 : 0
   }
 
@@ -38,7 +39,7 @@ Item {
     text: row.detail
     color: Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 
   Rectangle {

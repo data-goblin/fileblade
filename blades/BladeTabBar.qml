@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
+import "../theme"
 
 Item {
   id: bar
@@ -77,7 +78,7 @@ Item {
     text: bar.context.collapsed ? "›" : "⌄"
     color: disclosurePointer.containsMouse ? Color.accent : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
 
     MouseArea {
       id: disclosurePointer
@@ -112,7 +113,7 @@ Item {
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
 
       MouseArea {
         id: previousTabPointer
@@ -138,7 +139,7 @@ Item {
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
 
       MouseArea {
         id: nextTabPointer
@@ -203,7 +204,7 @@ Item {
             text: "×"
             color: closePointer.containsMouse ? Color.urgent : Color.muted
             font.family: Style.font.family
-            font.pixelSize: Style.font.bodySmall
+            font.pixelSize: Typography.bodySmall
 
             MouseArea {
               id: closePointer
@@ -223,7 +224,7 @@ Item {
               ? (bar.slot.activeFocus ? Color.accent : Color.muted)
               : (pointer.containsMouse ? Color.bar.text : Color.muted)
             font.family: Style.font.family
-            font.pixelSize: Style.font.caption
+            font.pixelSize: Typography.caption
             font.weight: Font.DemiBold
             font.letterSpacing: 0.6
           }
@@ -277,7 +278,7 @@ Item {
         text: "+"
         color: addPointer.containsMouse ? Color.accent : Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.body
+        font.pixelSize: Typography.body
       }
 
       MouseArea {
@@ -430,7 +431,7 @@ Item {
       selectByMouse: true
       clip: true
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
       font.weight: Font.DemiBold
       onAccepted: bar.commitRename()
       Keys.onEscapePressed: function(event) {

@@ -3,6 +3,7 @@ import QtQuick.Effects
 import qs.Commons
 import qs.Ui
 import "../lib/Agents.js" as Agents
+import "../theme"
 
 Item {
   id: icon
@@ -50,7 +51,7 @@ Item {
     text: icon.agent && icon.agent.glyph ? icon.agent.glyph : (icon.label.charAt(0) || "?")
     color: icon.tone
     font.family: Style.font.family
-    font.pixelSize: Style.font.title
+    font.pixelSize: Typography.title
   }
 
   MouseArea {

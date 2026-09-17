@@ -6,6 +6,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../lib/PathText.js" as PathText
+import "../theme"
 
 PanelWindow {
   id: surface
@@ -453,7 +454,7 @@ PanelWindow {
             text: updateChip.updates ? updateChip.updates.chipText : ""
             color: updateChip.tone
             font.family: Style.font.family
-            font.pixelSize: Style.font.caption
+            font.pixelSize: Typography.caption
             font.weight: Font.DemiBold
           }
 
@@ -486,7 +487,7 @@ PanelWindow {
         text: files ? "\ue6ae " + files.editorMode : ""
         color: files ? files.editorModeColor : Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
       }
 
@@ -504,7 +505,7 @@ PanelWindow {
         text: surface.host.services && surface.host.services.files ? PathText.name(surface.host.services.files.contextPath) : ""
         color: contextPointer.containsMouse ? Color.bar.text : Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
         font.letterSpacing: 0.4
 
         MouseArea {

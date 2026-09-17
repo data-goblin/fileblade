@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import qs.Ui
+import "../theme"
 
 FocusScope {
   id: root
@@ -281,7 +282,7 @@ FocusScope {
                 text: String(actionButton.spec.glyph || "")
                 color: actionButton.spec.danger && actionPointer.containsMouse ? Color.urgent : Color.muted
                 font.family: Style.font.family
-                font.pixelSize: Style.font.caption
+                font.pixelSize: Typography.caption
               }
 
               MouseArea {
@@ -356,7 +357,7 @@ FocusScope {
     color: Color.muted
     horizontalAlignment: Text.AlignHCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
   }
 
   Rectangle {
@@ -386,7 +387,7 @@ FocusScope {
       color: controller.trashError ? Color.urgent : (root.displayedNotice !== "" ? Color.accent : Color.muted)
       elide: Text.ElideRight
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
     }
   }
 
@@ -429,7 +430,7 @@ FocusScope {
           color: Color.popups.text
           wrapMode: Text.WordWrap
           font.family: Style.font.family
-          font.pixelSize: Style.font.body
+          font.pixelSize: Typography.body
           font.weight: Font.DemiBold
         }
 
@@ -444,7 +445,7 @@ FocusScope {
           color: root.dialogMode === "restore-to" ? Color.muted : Color.urgent
           wrapMode: Text.WordWrap
           font.family: Style.font.family
-          font.pixelSize: Style.font.bodySmall
+          font.pixelSize: Typography.bodySmall
         }
 
         TextField {
@@ -458,7 +459,7 @@ FocusScope {
           selectedTextColor: Color.popups.text
           selectionColor: Util.alpha(Color.accent, 0.38)
           font.family: Style.font.family
-          font.pixelSize: Style.font.bodySmall
+          font.pixelSize: Typography.bodySmall
           background: Rectangle {
             color: Util.alpha(Color.popups.text, restoreDestination.activeFocus ? 0.10 : 0.06)
             radius: Math.min(Style.cornerRadius, Style.space(4))
@@ -487,7 +488,7 @@ FocusScope {
             text: "Recreate original parent and restore"
             color: recreatePointer.containsMouse ? Color.accent : Color.muted
             font.family: Style.font.family
-            font.pixelSize: Style.font.caption
+            font.pixelSize: Typography.caption
           }
 
           MouseArea {
@@ -529,7 +530,7 @@ FocusScope {
                 text: modelData.text
                 color: modelData.confirm && root.dialogMode !== "restore-to" ? Color.urgent : Color.popups.text
                 font.family: Style.font.family
-                font.pixelSize: Style.font.caption
+                font.pixelSize: Typography.caption
                 font.weight: modelData.confirm ? Font.DemiBold : Font.Normal
               }
 

@@ -32,9 +32,17 @@ This file was written by an agent.
 Ordinary browsing and file operations initiate no network request. The optional
 update check reads remote ref IDs with `git ls-remote`; it downloads no Git objects
 and changes no refs or checkout files. Each remote check has a 20-second deadline,
-64 KiB stdout and 16 KiB stderr caps. Local comparisons use only existing objects;
-missing history is reported as unknown, not a made-up commit count. Checks run at
-most once per six hours; the attempt is saved before requesting the network.
+64 KiB stdout and 16 KiB stderr caps, and at most 512 returned refs. The same
+request includes `v*` release tags; there is no additional endpoint or content
+request. Version strings are valid SemVer, capped at 64 bytes. Existing local
+manifest objects take precedence; otherwise only the highest release tag resolving
+(lightweight or annotated) to the selected remote commit supplies a version.
+Tags rely on the publisher's convention that their version matches the manifest;
+without a local object, FileBlade cannot independently verify that convention.
+Missing or invalid versions stay unknown; same-version and older-version changes
+are distinguished. Local history comparisons use existing objects only, with
+promisor lazy fetching disabled. Automatic checks run at most once per six hours;
+the attempt is saved before requesting the network.
 Set `"checkUpdates": false` in plugin settings to disable automatic checks.
 
 Installation clones the source and bundled static backend from GitHub. There
@@ -71,7 +79,7 @@ releases. A successful run and verified attestation must exist for the exact
 reviewed commit before claiming hosted provenance. The workflow's presence alone
 is not that evidence, and attestations are not a security audit of the code.
 
-The update checker reads ref IDs and local repository state; it never merges, resets,
+The update checker reads branch/tag IDs and local repository state; it never merges, resets,
 validates, builds, or rescans plugins, and it never changes checked-out source.
 Updates happen outside FileBlade with the shell stopped before replacing
 watched plugin files, followed by a fresh shell start. Disabling only a pane

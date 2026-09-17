@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Ui
+import "../theme"
 
 Item {
   id: tip
@@ -16,7 +17,7 @@ Item {
   readonly property color panelBackground: Color.tooltip.background
   readonly property color panelBorder: Color.tooltip.border
   readonly property string fontFamily: Style.font.family
-  readonly property real fontSize: Style.font.bodySmall
+  readonly property real fontSize: Typography.bodySmall
   readonly property var panelBorderSpec: Border.localOrSurfaceSpec(
     "tooltip", "border", panelBorder, Color.tooltip.border, Style.normalBorderWidth)
 

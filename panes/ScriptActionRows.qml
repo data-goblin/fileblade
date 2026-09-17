@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Ui
 import "../lib/ActionRows.js" as ActionRows
 import "../ui" as PluginUi
+import "../theme"
 
 Column {
   id: strip
@@ -60,7 +61,7 @@ Column {
     text: "SCRIPTS"
     color: Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     font.weight: Font.DemiBold
     font.letterSpacing: 0.4
   }

@@ -5,6 +5,7 @@ import qs.Ui
 import "../ui" as PluginUi
 import "../lib/KeyRouter.js" as KeyRouter
 import "../lib/ScrollMarks.js" as ScrollMarks
+import "../theme"
 
 FocusScope {
   id: root
@@ -670,7 +671,7 @@ FocusScope {
       placeholderText: "/path/to/folder"
       placeholderTextColor: Color.muted
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
 
       background: Rectangle {
         color: Util.alpha(Color.bar.text, locationField.activeFocus ? 0.10 : 0.06)
@@ -689,7 +690,7 @@ FocusScope {
         text: ""
         color: controller.locationValidationError ? Color.urgent : Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
       }
 
       Text {
@@ -701,7 +702,7 @@ FocusScope {
         text: "checking…"
         color: Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
       }
 
       onTextEdited: controller.clearLocationValidationError()
@@ -773,7 +774,7 @@ FocusScope {
       : (controller.rootRecoveryNotice ? Color.accent : Color.muted)
     elide: Text.ElideRight
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 
   ListView {
@@ -861,7 +862,7 @@ FocusScope {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
   }
 
   TrashView {
@@ -971,7 +972,7 @@ FocusScope {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
   }
 
   PluginUi.ActionDialog {

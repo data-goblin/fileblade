@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+import json
+import os
+import re
+import selectors
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+import tomllib
+
+NUMBER = r"(?:0|[1-9][0-9]*)"
+IDENTIFIER = rf"(?:{NUMBER}|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
+VERSION = re.compile(
+    rf"{NUMBER}\.{NUMBER}\.{NUMBER}(?:-{IDENTIFIER}(?:\.{IDENTIFIER})*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+)
+RELEASE_BRANCH = re.compile(rf"({NUMBER}\.{NUMBER}\.{NUMBER})(?:n|p)?")
+LIMITS = {
+    "manifest.json": 64 * 1024,
+    "Cargo.toml": 64 * 1024,
+    "Cargo.lock": 4 * 1024 * 1024,
+    "CHANGELOG.md": 256 * 1024,
+    "fileblade-bin": 64 * 1024 * 1024,
+}
+
+
+def fail(message):
+    print(f"pre-commit: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def git(*args):
+    try:
+        result = subprocess.run(["git", *args], capture_output=True, timeout=10)
+    except (OSError, subprocess.SubprocessError) as error:
+        fail(f"Git could not read the staged commit: {error}")
+    if result.returncode:
+        fail(f"Git could not read the staged commit ({args[0]})")
+    return result.stdout
+
+
+def staged(path):
+    records = git("ls-files", "--stage", "-z", "--", path).split(b"\0")[:-1]
+    if len(records) != 1:
+        fail(f"{path} must have exactly one resolved entry in the index")
+    mode, oid, stage = records[0].split(b"\t", 1)[0].split()
+    allowed_modes = [b"100755"] if path == "fileblade-bin" else [b"100644", b"100755"]
+    if stage != b"0" or mode not in allowed_modes:
+        fail(f"{path} must be staged as a regular file" + (" with executable mode 100755" if path == "fileblade-bin" else ""))
+    if int(git("cat-file", "-s", oid.decode())) > LIMITS[path]:
+        fail(f"{path} in the index exceeds {LIMITS[path]} bytes")
+    return git("cat-file", "blob", oid.decode())
+
+
+def version(value, source):
+    if not isinstance(value, str) or len(value) > 128 or not VERSION.fullmatch(value):
+        fail(f"{source} has no valid version number")
+    return value
+
+
+def manifest_version(blob):
+    try:
+        return version(json.loads(blob)["version"], "manifest.json")
+    except (ValueError, KeyError, TypeError):
+        fail("manifest.json in the index is not JSON carrying a version")
+
+
+def toml_table(blob, path):
+    try:
+        return tomllib.loads(blob.decode())
+    except (ValueError, UnicodeDecodeError) as error:
+        fail(f"{path} in the index is not valid TOML: {error}")
+
+
+def cargo_toml_version(blob):
+    package = toml_table(blob, "Cargo.toml").get("package")
+    if not isinstance(package, dict) or package.get("name") != "fileblade":
+        fail("Cargo.toml has no [package] named fileblade")
+    value = package.get("version")
+    if isinstance(value, dict):
+        fail("Cargo.toml must declare its package version directly, without workspace inheritance")
+    return version(value, "Cargo.toml [package]")
+
+
+def cargo_lock_version(blob):
+    packages = toml_table(blob, "Cargo.lock").get("package")
+    if not isinstance(packages, list):
+        fail("Cargo.lock has no package records")
+    records = [p for p in packages if isinstance(p, dict) and p.get("name") == "fileblade"]
+    if len(records) != 1 or "source" in records[0]:
+        fail("Cargo.lock must name exactly one local fileblade package")
+    return version(records[0].get("version"), "the fileblade record in Cargo.lock")
+
+
+def changelog_version(blob):
+    try:
+        lines = blob.decode().splitlines()
+    except UnicodeDecodeError:
+        fail("CHANGELOG.md in the index is not UTF-8")
+    for line in lines:
+        heading = re.fullmatch(r"##[ \t]+(.*)", line)
+        if not heading:
+            continue
+        text = re.sub(r"[ \t]+\(unreleased\)$", "", heading[1].strip())
+        if len(text) <= 128 and VERSION.fullmatch(text):
+            return version(text, "CHANGELOG.md")
+        if not text or text[0].isdigit() or text.lower() == "unreleased":
+            fail(f"the newest CHANGELOG.md release heading {text!r} names no valid version")
+    fail("CHANGELOG.md in the index has no release heading")
+
+
+def binary_version(blob):
+    directory = os.fsdecode(git("rev-parse", "--absolute-git-dir").removesuffix(b"\n"))
+    with tempfile.TemporaryDirectory(prefix="fileblade-version-", dir=directory) as staging:
+        path = os.path.join(staging, "fileblade-bin")
+        with open(path, "wb") as handle:
+            handle.write(blob)
+        os.chmod(path, 0o700)
+        try:
+            with subprocess.Popen([path, "--version"], stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, start_new_session=True) as process:
+                output = bytearray()
+                deadline = time.monotonic() + 5
+                try:
+                    with selectors.DefaultSelector() as selector:
+                        selector.register(process.stdout, selectors.EVENT_READ)
+                        while True:
+                            remaining = deadline - time.monotonic()
+                            if remaining <= 0 or not selector.select(remaining):
+                                fail("the staged fileblade-bin exceeded the 5-second version deadline")
+                            chunk = os.read(process.stdout.fileno(), 4097 - len(output))
+                            if not chunk:
+                                break
+                            output.extend(chunk)
+                            if len(output) > 4096:
+                                fail("the staged fileblade-bin version response exceeds 4096 bytes")
+                    status = process.wait(timeout=max(0.01, deadline - time.monotonic()))
+                finally:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    process.wait()
+        except (OSError, subprocess.SubprocessError) as error:
+            fail(f"the staged fileblade-bin could not report its version: {error}")
+    if status:
+        fail(f"the staged fileblade-bin exited {status} for --version")
+    match = re.fullmatch(rb"fileblade ([^\s]+)\n?", output)
+    if not match:
+        fail("the staged fileblade-bin did not answer --version as 'fileblade <version>'")
+    try:
+        return version(match[1].decode("ascii"), "fileblade-bin")
+    except UnicodeDecodeError:
+        fail("the staged fileblade-bin did not report an ASCII version")
+
+
+def main():
+    os.chdir(git("rev-parse", "--show-toplevel").removesuffix(b"\n"))
+    sources = {
+        "manifest.json": manifest_version(staged("manifest.json")),
+        "Cargo.toml": cargo_toml_version(staged("Cargo.toml")),
+        "Cargo.lock": cargo_lock_version(staged("Cargo.lock")),
+        "CHANGELOG.md": changelog_version(staged("CHANGELOG.md")),
+    }
+    expected = sources["manifest.json"]
+    for name, value in sources.items():
+        if value != expected:
+            fail(f"manifest.json is {expected} but staged {name} is {value}")
+    branch = git("branch", "--show-current").decode().strip()
+    match = RELEASE_BRANCH.fullmatch(branch)
+    if match and match[1] != expected:
+        fail(f"branch {branch} builds {match[1]} but the staged version is {expected}")
+    binary = binary_version(staged("fileblade-bin"))
+    if binary != expected:
+        fail(f"manifest.json is {expected} but staged fileblade-bin is {binary}; run tools/bundle build")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except OSError as error:
+        fail(str(error))

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Settings. Expectations E-17-01 .. E-17-12.
+# Settings. Expectations E-17-01 .. E-17-13.
 source "$(dirname "$0")/lib.sh"
 
 require_guest
@@ -58,6 +58,7 @@ expect_contains E-17-09 "the sheet lists every section tab as its own row" "$she
 expect E-17-08 "and escape closes it again" settingsOpen false
 expect E-17-08 "while the blade stays open" open true
 pending E-17-10 "icon buttons share one tip layout with mouse and keyboard hints" "tooltips are hover-only and not reported over IPC"
+pending E-17-13 "a typed Font size percentage scales blade text and survives a restart" "the status payload reports fontScale but no IPC verb sets it"
 
 # Open from the keyboard so the sheet's search field owns focus for the filter check.
 [[ $(field settingsOpen) == true ]] && { "$OVM" key esc; sleep 2; }

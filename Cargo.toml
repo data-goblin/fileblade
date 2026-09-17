@@ -21,6 +21,7 @@ regex = "1.13.1"
 rustix = "1.1.4"
 serde = "1.0.229"
 serde_json = "1.0.151"
+semver = "1.0.28"
 tempfile = "3.27.0"
 thiserror = "2.0.20"
 url = "2.5.8"
@@ -29,7 +30,7 @@ xattr = "1.6.1"
 
 [package]
 name = "fileblade"
-version = "0.1.2"
+version = "0.1.3"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
@@ -50,6 +51,7 @@ regex.workspace = true
 rustix = { workspace = true, features = ["event", "fs", "process"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+semver.workspace = true
 thiserror.workspace = true
 url.workspace = true
 uuid = { workspace = true, features = ["v4"] }

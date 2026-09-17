@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import "../theme"
 
 TextField {
   id: field
@@ -55,7 +56,7 @@ TextField {
   placeholderText: field.prompt
   placeholderTextColor: Color.muted
   font.family: Style.font.family
-  font.pixelSize: Style.font.body
+  font.pixelSize: Typography.body
 
   Keys.onEscapePressed: function(event) {
     field.dismissed()
@@ -86,7 +87,7 @@ TextField {
     text: field.glyph
     color: field.activeFocus ? Color.accent : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
   }
 
   Row {
@@ -117,7 +118,7 @@ TextField {
           text: toggle.modelData.label
           color: toggle.modelData.active ? Color.accent : (togglePointer.containsMouse ? Color.bar.text : Color.muted)
           font.family: Style.font.family
-          font.pixelSize: Style.font.caption
+          font.pixelSize: Typography.caption
           font.bold: toggle.modelData.active
         }
 
@@ -153,7 +154,7 @@ TextField {
     text: "×"
     color: clearPointer.containsMouse || field.activeFocus ? Color.bar.text : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.title
+    font.pixelSize: Typography.title
 
     MouseArea {
       id: clearPointer

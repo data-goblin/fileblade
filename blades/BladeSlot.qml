@@ -2,6 +2,7 @@ import QtQuick
 import "../lib/TabIdentity.js" as TabIdentity
 import qs.Commons
 import "../ui" as PluginUi
+import "../theme"
 
 FocusScope {
   id: slot
@@ -301,7 +302,7 @@ FocusScope {
         color: slot.loadFailed || slot.contractIncompatible || slot.providerError !== "" ? Color.urgent : Color.muted
         horizontalAlignment: Text.AlignHCenter
         font.family: Style.font.family
-        font.pixelSize: Style.font.title * 1.6
+        font.pixelSize: Typography.title * 1.6
       }
 
       Text {
@@ -322,7 +323,7 @@ FocusScope {
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         font.family: Style.font.family
-        font.pixelSize: Style.font.body
+        font.pixelSize: Typography.body
       }
 
       Text {
@@ -343,7 +344,7 @@ FocusScope {
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
       }
 
       Rectangle {
@@ -360,7 +361,7 @@ FocusScope {
           text: "Choose module"
           color: Color.background
           font.family: Style.font.family
-          font.pixelSize: Style.font.bodySmall
+          font.pixelSize: Typography.bodySmall
           font.weight: Font.DemiBold
         }
 

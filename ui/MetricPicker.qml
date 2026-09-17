@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import qs.Commons
+import "../theme"
 
 Item {
   id: picker
@@ -223,7 +224,7 @@ Item {
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
     font.family: Style.font.family
-    font.pixelSize: picker.adder ? Style.font.bodySmall : Style.font.caption
+    font.pixelSize: picker.adder ? Typography.bodySmall : Typography.caption
     font.weight: picker.pinned ? Font.Normal : Font.DemiBold
     font.letterSpacing: picker.pinned ? 0 : 0.4
   }
@@ -243,7 +244,7 @@ Item {
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
 
     MouseArea {
       id: removePointer

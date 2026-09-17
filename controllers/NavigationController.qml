@@ -151,7 +151,7 @@ Item {
     if (service.showHidden === desired) return service.showHidden
     service.showHidden = desired
     service.resetTree(true)
-    if (service.searchQuery.trim() !== "") service.restartSearch()
+    if (service.quickNavActive || service.searchQuery.trim() !== "") service.restartSearch()
     service.scheduleStateSave()
     return service.showHidden
   }

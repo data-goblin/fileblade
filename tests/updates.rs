@@ -16,6 +16,9 @@ fn scratch(name: &str) -> PathBuf {
 fn git(cwd: &Path, arguments: &[&str]) {
     let status = Command::new("git")
         .args(arguments)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_EDITOR", "true")
         .current_dir(cwd)
         .env("GIT_AUTHOR_NAME", "t")
         .env("GIT_AUTHOR_EMAIL", "t@example.invalid")
@@ -29,6 +32,9 @@ fn git(cwd: &Path, arguments: &[&str]) {
 fn git_stdout(cwd: &Path, arguments: &[&str]) -> String {
     let output = Command::new("git")
         .args(arguments)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_EDITOR", "true")
         .current_dir(cwd)
         .output()
         .unwrap();
@@ -206,4 +212,164 @@ fn a_detached_pin_can_check_and_use_the_omarchy_fast_forward_update_path() {
     );
     assert_eq!(check(&specs, "", &cancelled)["available"], false);
     fs::remove_dir_all(fixture.remote.parent().unwrap()).unwrap();
+}
+
+fn publish_tag(fixture: &Fixture, name: &str, annotated: bool) {
+    if annotated {
+        git(&fixture.author, &["tag", "-a", name, "-m", "release"]);
+    } else {
+        git(&fixture.author, &["tag", name]);
+    }
+    git(&fixture.author, &["push", "-q", "origin", "--tags"]);
+}
+
+fn checked_row(fixture: &Fixture) -> serde_json::Value {
+    check(
+        &[spec("t.plugin", &fixture.installed)],
+        "",
+        &AtomicBool::new(false),
+    )["repositories"][0]
+        .clone()
+}
+
+fn assert_no_remote_objects(fixture: &Fixture) {
+    let remote_head = git_stdout(&fixture.author, &["rev-parse", "HEAD"]);
+    assert!(
+        !Command::new("git")
+            .args(["cat-file", "-e", &remote_head])
+            .current_dir(&fixture.installed)
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
+    assert_eq!(git_stdout(&fixture.installed, &["tag"]), "");
+    assert_eq!(
+        git_stdout(&fixture.installed, &["rev-parse", "HEAD"]),
+        git_stdout(&fixture.installed, &["rev-parse", "@{u}"])
+    );
+}
+
+#[test]
+fn release_tags_name_remote_versions_without_fetching_lightweight_or_annotated_objects() {
+    for annotated in [false, true] {
+        let fixture = fixture(if annotated {
+            "annotated"
+        } else {
+            "lightweight"
+        });
+        publish(&fixture, "1.9.0", "earlier release");
+        publish_tag(&fixture, "v1.9.0", false);
+        publish(&fixture, "1.10.0", "current release");
+        publish_tag(&fixture, "v1.10.0", annotated);
+        publish_tag(&fixture, "v01.99.0", false);
+        let row = checked_row(&fixture);
+        assert_eq!(row["updatable"], true, "{row}");
+        assert_eq!(row["upstream_version"], "1.10.0");
+        assert_eq!(row["version_change"], "newer");
+        assert_no_remote_objects(&fixture);
+        git(&fixture.installed, &["checkout", "--detach", "-q"]);
+        assert_eq!(checked_row(&fixture)["upstream_version"], "1.10.0");
+        fs::remove_dir_all(fixture.remote.parent().unwrap()).unwrap();
+    }
+}
+
+#[test]
+fn an_untagged_tip_or_a_newer_tag_on_another_branch_does_not_borrow_a_release_version() {
+    let fixture = fixture("untagged");
+    publish(&fixture, "1.1.0", "release");
+    publish_tag(&fixture, "v1.1.0", true);
+    publish(&fixture, "1.2.0", "unreleased change");
+    let row = checked_row(&fixture);
+    assert_eq!(row["updatable"], true);
+    assert_eq!(row["upstream_version"], "");
+    publish_tag(&fixture, "v1.2.0", false);
+    git(&fixture.author, &["checkout", "-q", "-b", "next"]);
+    fs::write(fixture.author.join("manifest.json"), manifest("2.0.0")).unwrap();
+    git(&fixture.author, &["commit", "-q", "-am", "next release"]);
+    publish_tag(&fixture, "v2.0.0", true);
+    let row = checked_row(&fixture);
+    assert_eq!(row["updatable"], true);
+    assert_eq!(row["upstream_version"], "");
+    assert_no_remote_objects(&fixture);
+    fs::remove_dir_all(fixture.remote.parent().unwrap()).unwrap();
+}
+
+#[test]
+fn a_local_manifest_takes_precedence_over_tags_and_invalid_versions_stay_unknown() {
+    let fixture = fixture("local-version");
+    publish(&fixture, "1.2.0", "next release");
+    publish_tag(&fixture, "v9.9.9", false);
+    git(&fixture.installed, &["fetch", "-q", "origin"]);
+    assert_eq!(checked_row(&fixture)["upstream_version"], "1.2.0");
+    for version in [
+        "",
+        "01.2.0",
+        "1.2",
+        "1.2.3\nunknown",
+        &format!("1.2.0-{}", "a".repeat(64)),
+    ] {
+        fs::write(
+            fixture.author.join("manifest.json"),
+            serde_json::json!({"version": version}).to_string(),
+        )
+        .unwrap();
+        git(&fixture.author, &["commit", "-q", "-am", "invalid version"]);
+        git(&fixture.author, &["push", "-q", "origin", "main"]);
+        git(&fixture.installed, &["fetch", "-q", "origin"]);
+        assert_eq!(checked_row(&fixture)["upstream_version"], "");
+    }
+    fs::remove_dir_all(fixture.remote.parent().unwrap()).unwrap();
+}
+
+#[test]
+fn version_precedence_distinguishes_prerelease_same_build_metadata_and_older_changes() {
+    for (version, expected) in [
+        ("1.0.0-beta.2", "older"),
+        ("1.0.0+build.2", "same"),
+        ("0.9.9", "older"),
+        ("1.0.1-beta.2", "newer"),
+    ] {
+        let fixture = fixture(&format!("precedence-{expected}-{version}"));
+        publish(&fixture, version, "remote change");
+        publish_tag(&fixture, &format!("v{version}"), false);
+        let row = checked_row(&fixture);
+        assert_eq!(row["upstream_version"], version);
+        assert_eq!(row["version_change"], expected);
+        assert_no_remote_objects(&fixture);
+        fs::remove_dir_all(fixture.remote.parent().unwrap()).unwrap();
+    }
+}
+
+#[test]
+fn remote_ref_count_and_output_limits_refuse_incomplete_release_lists() {
+    for oversized in [false, true] {
+        let fixture = fixture(if oversized { "ref-bytes" } else { "ref-count" });
+        publish(&fixture, "1.1.0", "next release");
+        let head = git_stdout(&fixture.author, &["rev-parse", "HEAD"]);
+        let tags: String = (0..512)
+            .map(|index| {
+                let suffix = if oversized {
+                    format!("-{}.{}", "a".repeat(100), index)
+                } else {
+                    format!("-{index}")
+                };
+                format!("{head} refs/tags/v1.1.0{suffix}\n")
+            })
+            .collect();
+        fs::write(fixture.remote.join("packed-refs"), tags).unwrap();
+        let row = checked_row(&fixture);
+        assert_eq!(row["ok"], false, "{row}");
+        assert_eq!(row["updatable"], false);
+        assert_eq!(
+            row["error"],
+            if oversized {
+                "remote check failed: command exceeded its output limit"
+            } else {
+                "remote reference count exceeded"
+            }
+        );
+        assert_no_remote_objects(&fixture);
+        fs::remove_dir_all(fixture.remote.parent().unwrap()).unwrap();
+    }
 }

@@ -1,6 +1,5 @@
 use fileblade::frecency;
 use std::fs;
-use tempfile::tempdir;
 
 fn paths(payload: &serde_json::Value) -> Vec<String> {
     payload["entries"]
@@ -13,7 +12,10 @@ fn paths(payload: &serde_json::Value) -> Vec<String> {
 
 #[test]
 fn visits_rank_by_decayed_score_follow_renames_and_import_recent_bookmarks() {
-    let temporary = tempdir().unwrap();
+    let temporary = tempfile::Builder::new()
+        .prefix("fileblade-recent-")
+        .tempdir()
+        .unwrap();
     let root = temporary.path();
     unsafe {
         std::env::set_var("XDG_STATE_HOME", root.join("state"));

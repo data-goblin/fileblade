@@ -271,6 +271,8 @@ pub struct LogArgs {
 
 #[derive(Clone, Debug, Args)]
 pub struct RecentArgs {
+    #[arg(long)]
+    pub show_hidden: bool,
     #[arg(long, default_value_t = 50, allow_hyphen_values = true)]
     pub limit: i64,
     #[arg(long, default_value = "")]

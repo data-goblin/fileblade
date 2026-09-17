@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
+import "../theme"
 
 Rectangle {
   id: control
@@ -40,7 +41,7 @@ Rectangle {
     elide: Text.ElideRight
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
     font.weight: control.primary ? Font.DemiBold : Font.Normal
   }
 
@@ -54,7 +55,7 @@ Rectangle {
     text: control.shortcut
     color: control.menuHighlighted ? Color.menu.selectedText : Util.alpha(Color.menu.text, 0.55)
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 
   PluginUi.SafeApplicationIcon {

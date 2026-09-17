@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Ui
+import "../theme"
 
 Item {
   id: root
@@ -51,7 +52,7 @@ Item {
       text: "⌃"
       color: topPointer.containsMouse ? Color.accent : Color.bar.text
       font.family: Style.font.family
-      font.pixelSize: Style.font.title
+      font.pixelSize: Typography.title
       font.weight: Font.DemiBold
 
       MouseArea {
@@ -96,7 +97,7 @@ Item {
       text: "⌄"
       color: bottomPointer.containsMouse ? Color.accent : Color.bar.text
       font.family: Style.font.family
-      font.pixelSize: Style.font.title
+      font.pixelSize: Typography.title
       font.weight: Font.DemiBold
 
       MouseArea {

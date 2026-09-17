@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Text {
   id: group
@@ -14,6 +15,6 @@ Text {
   color: Color.muted
   elide: Text.ElideRight
   font.family: Style.font.family
-  font.pixelSize: Style.font.caption
+  font.pixelSize: Typography.caption
   font.letterSpacing: 0.4
 }

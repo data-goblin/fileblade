@@ -4,6 +4,7 @@ import qs.Commons
 import "../../ui" as PluginUi
 import "NotesState.js" as NotesState
 import "KeyPlan.js" as KeyPlan
+import "../../theme"
 
 FocusScope {
   id: module
@@ -229,7 +230,7 @@ FocusScope {
         : "64 KiB total limit reached. Text beyond the limit was not kept."
       color: Color.urgent
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
     }
   }
 
@@ -262,7 +263,7 @@ FocusScope {
       selectionColor: Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.38)
       selectedTextColor: Color.foreground
       font.family: Style.font.family
-      font.pixelSize: Style.font.body
+      font.pixelSize: Typography.body
       background: null
 
       onTextChanged: module.editorChanged(text)

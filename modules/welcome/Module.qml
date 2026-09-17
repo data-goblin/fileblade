@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import qs.Commons
 import "WelcomePlan.js" as WelcomePlan
+import "../../theme"
 
 FocusScope {
   id: module
@@ -26,7 +27,7 @@ FocusScope {
   TextMetrics {
     id: nameMetrics
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
     text: WelcomePlan.EXTENSIONS.map(function(item) { return item.name }).reduce(function(longest, name) { return name.length > longest.length ? name : longest }, "")
   }
 
@@ -56,7 +57,7 @@ FocusScope {
       color: Color.bar.text
       wrapMode: Text.WordWrap
       font.family: Style.font.family
-      font.pixelSize: Style.font.body
+      font.pixelSize: Typography.body
       font.weight: Font.DemiBold
     }
 
@@ -67,7 +68,7 @@ FocusScope {
       color: Color.muted
       wrapMode: Text.WordWrap
       font.family: Style.font.family
-      font.pixelSize: Style.font.body
+      font.pixelSize: Typography.body
     }
 
     Column {
@@ -103,7 +104,7 @@ FocusScope {
               text: extensionRow.modelData.glyph
               color: Color.accent
               font.family: Style.font.family
-              font.pixelSize: Style.font.body
+              font.pixelSize: Typography.body
             }
             Image {
               id: logo
@@ -133,7 +134,7 @@ FocusScope {
             text: extensionRow.modelData.name
             color: sourcePointer.containsMouse || extensionRow.activeFocus ? Color.accent : Color.bar.text
             font.family: Style.font.family
-            font.pixelSize: Style.font.body
+            font.pixelSize: Typography.body
             font.underline: true
           }
           Text {
@@ -145,7 +146,7 @@ FocusScope {
             text: "installed"
             color: Color.muted
             font.family: Style.font.family
-            font.pixelSize: Style.font.body
+            font.pixelSize: Typography.body
           }
           MouseArea {
             id: sourcePointer
@@ -204,7 +205,7 @@ FocusScope {
             : (module.missingCount === 0 && !module.placementFailed ? "Installed" : "Install")
           color: module.installing || module.placing ? Color.bar.text : (module.installable ? Color.background : Color.muted)
           font.family: Style.font.family
-          font.pixelSize: Style.font.body
+          font.pixelSize: Typography.body
           font.weight: Font.DemiBold
         }
       }
@@ -225,7 +226,7 @@ FocusScope {
       color: module.files ? module.files.themedFolderColor("yellow", "#e5c07b") : Color.accent
       wrapMode: Text.WordWrap
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
     }
 
     Text {
@@ -236,7 +237,7 @@ FocusScope {
       color: Color.urgent
       wrapMode: Text.WordWrap
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
     }
   }
 
@@ -248,7 +249,7 @@ FocusScope {
     text: WelcomePlan.DISMISS
     color: dismissPointer.containsMouse ? Color.bar.text : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     font.underline: true
     MouseArea {
       id: dismissPointer

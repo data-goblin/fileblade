@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../lib/Agents.js" as Agents
+import "../theme"
 
 Row {
   id: strip
@@ -35,7 +36,7 @@ Row {
       text: Agents.ALL_GLYPH
       color: strip.allApplied ? Color.accent : (allPointer.containsMouse ? Qt.lighter(Color.muted, 1.35) : Color.muted)
       font.family: Style.font.family
-      font.pixelSize: Style.font.title
+      font.pixelSize: Typography.title
     }
 
     MouseArea {

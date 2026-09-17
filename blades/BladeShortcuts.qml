@@ -3,6 +3,7 @@ import QtQuick.Controls
 import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
+import "../theme"
 
 Item {
   id: root
@@ -68,7 +69,7 @@ Item {
   TextMetrics {
     id: leadMetrics
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     font.weight: Font.DemiBold
     font.letterSpacing: 0.3
   }
@@ -133,7 +134,7 @@ Item {
             text: "SHORTCUTS"
             color: Color.bar.text
             font.family: Style.font.family
-            font.pixelSize: Style.font.bodySmall
+            font.pixelSize: Typography.bodySmall
             font.weight: Font.DemiBold
             font.letterSpacing: 0.5
           }
@@ -145,7 +146,7 @@ Item {
             text: "×"
             color: closePointer.containsMouse ? Color.bar.text : Color.muted
             font.family: Style.font.family
-            font.pixelSize: Style.font.title
+            font.pixelSize: Typography.title
 
             MouseArea {
               id: closePointer
@@ -172,7 +173,7 @@ Item {
               text: String(modelData.title || "").toUpperCase()
               color: Color.accent
               font.family: Style.font.family
-              font.pixelSize: Style.font.caption
+              font.pixelSize: Typography.caption
               font.letterSpacing: 0.4
             }
 

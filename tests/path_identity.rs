@@ -319,7 +319,7 @@ fn search_paging_preview_and_recent_do_not_reconstruct_paths_from_labels() {
         ],
     );
     assert_eq!(visit["ok"], true, "{visit}");
-    let recent = backend(temp.path(), &["frecency-list"]);
+    let recent = backend(temp.path(), &["frecency-list", "--show-hidden"]);
     let entries = recent["entries"].as_array().unwrap();
     assert!(
         entries.iter().any(|entry| entry["path"] == path_text(&raw)),

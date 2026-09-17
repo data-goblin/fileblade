@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Item {
   id: navigation
@@ -50,7 +51,7 @@ Item {
           text: String(button.spec.glyph || "")
           color: button.spec.active === true ? Color.accent : Color.bar.text
           font.family: Style.font.family
-          font.pixelSize: Style.font.body
+          font.pixelSize: Typography.body
         }
 
         MouseArea {

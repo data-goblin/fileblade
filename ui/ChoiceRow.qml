@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Item {
   id: row
@@ -25,7 +26,7 @@ Item {
     text: (row.glyph !== "" ? row.glyph + "  " : "") + row.label
     color: Color.bar.text
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
   }
 
   Row {
@@ -41,7 +42,7 @@ Item {
         textFormat: Text.PlainText
         text: String(modelData.label !== undefined ? modelData.label : modelData)
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
       }
     }
@@ -59,7 +60,7 @@ Item {
       text: String(modelData.label !== undefined ? modelData.label : modelData)
       color: active ? Color.accent : (optionPointer.containsMouse ? Color.bar.text : Color.muted)
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
       font.weight: active ? Font.DemiBold : Font.Normal
 
       MouseArea {

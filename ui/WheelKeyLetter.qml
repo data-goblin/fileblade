@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Text {
   required property string letter
@@ -14,6 +15,6 @@ Text {
   color: active ? Color.popups.text : Color.muted
   opacity: active ? 0.9 : 0.7
   font.family: Style.font.family
-  font.pixelSize: Style.font.caption
+  font.pixelSize: Typography.caption
   font.weight: Font.DemiBold
 }

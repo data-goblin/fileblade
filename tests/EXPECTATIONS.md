@@ -303,6 +303,18 @@ keeps the bars visible. The choice survives a shell restart.
 82. **E-10-04** If I press `Escape`, quick navigation closes and I remain in my
     current folder.
 
+This file was written by an agent.
+
+- **E-10-05** With View hidden off, Quick Nav, the file tree, search and Recent
+  omit cache directories carrying a valid `CACHEDIR.TAG`, their contents, and
+  FileBlade's private configuration, state and thumbnail cache. Remembered
+  visits do not bring them back. View hidden reveals them; ordinary projects,
+  including FileBlade's source checkout, remain visible either way.
+- **E-10-06** Changing the Quick Nav query selects the first new result, even
+  when existing rows move. Arrow keys still select another result, and a
+  refresh of the same query preserves that choice. My current folder stays
+  excluded from Quick Nav.
+
 ## 11. The actions menu
 
 `tests/vm/expectations/11-actions-menu.sh`
@@ -474,6 +486,10 @@ Dialog keyboard regressions: `tests/vm/trash-dialog-focus.sh`.
      mode badge leaves the header and sits at the bottom-left of the blade, left
      of the folder name; Hidden removes it, Header puts it back, and the choice
      survives a restart.
+147b. **E-17-13** If I type a Font size percentage in the General settings, the
+     text in every blade grows or shrinks by that amount while the blade widths
+     stay where I put them, a value outside the range settles on the nearest
+     end, and the choice survives a restart.
 
 ## 18. Persistence
 
@@ -782,9 +798,21 @@ shared there.
 
 235. **E-27-01** If FileBlade or an enabled companion has an update available, I
      see an Update available chip in the blade footer.
-236. **E-27-02** If I hover over the update chip, I see what can be updated; if I
-     click it, I see safe manual update instructions rather than FileBlade
-     changing its own running files.
+This file was written by an agent.
+
+236. **E-27-02** The update notice names the available FileBlade version, for
+     example "Version 0.1.2 of FileBlade is now available!", followed by a
+     Companion updates heading and one bullet per extension, ordered by name.
+     The version headline, bullets and instructions stay readable at the minimum
+     280-pixel blade width, and both buttons remain visible. It shows no commit
+     counts. If a version cannot
+     be determined, it says so; changes within the same version or to an older
+     version are described accurately. A release tag names the update only when
+     it is the highest valid version and resolves to the checked branch tip;
+     otherwise the checker needs that tip's manifest already stored locally.
+     The notice says FileBlade only checks and does not install while running,
+     tells me to stop the shell, run `omarchy plugin update`, then run
+     `omarchy restart shell`, and keeps Close and Check again.
 237. **E-27-03** If my FileBlade checkout has local work or commits that must
      not be overwritten, the update details tell me it was skipped.
 238. **E-27-04** If FileBlade's interface and native helper are out of sync after

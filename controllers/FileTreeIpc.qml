@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import "../theme"
 
 QtObject {
   id: root
@@ -43,6 +44,7 @@ QtObject {
       monitorMode: String(layout && layout.monitorMode || "active"),
       monitorLock: String(layout && layout.monitorLock || ""),
       animations: !!(layout && layout.animations),
+      fontScale: Typography.clamp(layout && layout.fontScale),
       blades: { left: publicBlade(blades.left), right: publicBlade(blades.right) }
     }
   }
@@ -187,6 +189,7 @@ QtObject {
       focusedBlade: bladeHost.focusedEdge,
       frameWidth: bladeHost.frameWidth,
       bladeAnimations: bladeHost.animateBlades,
+      fontScale: bladeHost.fontScale,
       focusRestoreAddress: bladeHost.restoreFocusAddress,
       focusRestoreClass: bladeHost.restoreFocusClass,
       focusRestoreCount: bladeHost.focusRestoreCount,

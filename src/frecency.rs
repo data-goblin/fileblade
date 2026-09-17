@@ -132,13 +132,19 @@ pub fn scores() -> HashMap<String, f64> {
 }
 
 pub fn list(limit: usize, query: &str) -> Value {
+    list_with_hidden(limit, query, false)
+}
+
+pub fn list_with_hidden(limit: usize, query: &str, show_hidden: bool) -> Value {
     let now = now();
     let mut entries = load();
     for imported in imported_recent(&entries) {
         entries.push(imported);
     }
+    let mut visibility = crate::visibility::Visibility::new(std::path::Path::new("/"), show_hidden);
     entries.retain(|entry| {
-        parse_path(&entry.path).is_ok_and(|path| std::fs::symlink_metadata(path).is_ok())
+        parse_path(&entry.path)
+            .is_ok_and(|path| visibility.path(&path) && std::fs::symlink_metadata(path).is_ok())
     });
     let pattern = (!query.trim().is_empty())
         .then(|| index::parse_pattern(query.trim(), index::case_matching(false)));

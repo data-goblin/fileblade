@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
+import "../theme"
 
 Column {
   id: section
@@ -82,7 +83,7 @@ Column {
     color: Color.muted
     elide: Text.ElideRight
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     font.letterSpacing: 0.4
   }
 

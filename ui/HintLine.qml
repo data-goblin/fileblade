@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Item {
   id: line
@@ -37,7 +38,7 @@ Item {
     color: line.dim
     elide: Text.ElideRight
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     font.weight: line.shortcut !== "" ? Font.DemiBold : Font.Normal
     font.letterSpacing: line.shortcut !== "" ? 0.3 : 0
   }
@@ -55,6 +56,6 @@ Item {
     elide: line.wrap ? Text.ElideNone : Text.ElideMiddle
     wrapMode: line.wrap ? Text.WordWrap : Text.NoWrap
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 }

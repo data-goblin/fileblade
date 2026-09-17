@@ -2,6 +2,7 @@ use crate::AppResult;
 use crate::command::{CommandOutput, CommandSpec, which};
 use crate::common::{parse_path, path_text};
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -13,6 +14,8 @@ const MAX_SUBJECTS: usize = 20;
 const REMOTE_TIMEOUT: Duration = Duration::from_secs(20);
 const LOCAL_TIMEOUT: Duration = Duration::from_secs(5);
 const OUTPUT_LIMIT: usize = 64 * 1024;
+const MAX_REMOTE_REFS: usize = 512;
+const MAX_VERSION_BYTES: usize = 64;
 
 pub struct RepositorySpec {
     pub id: String,
@@ -54,6 +57,7 @@ fn git(
         .args([path])
         .args(arguments)
         .env("GIT_OPTIONAL_LOCKS", "0")
+        .env("GIT_NO_LAZY_FETCH", "1")
         .env("GIT_TERMINAL_PROMPT", "0")
         .env("GIT_ASKPASS", "")
         .env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes")
@@ -73,10 +77,17 @@ fn git_text(path: &Path, arguments: &[&str], cancelled: &AtomicBool) -> Option<S
     Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
+fn parse_version(text: &str) -> Option<semver::Version> {
+    (text.len() <= MAX_VERSION_BYTES)
+        .then(|| semver::Version::parse(text).ok())
+        .flatten()
+}
+
 fn manifest_version(text: &str) -> String {
     serde_json::from_str::<Value>(text)
         .ok()
-        .and_then(|value| value["version"].as_str().map(str::to_string))
+        .and_then(|value| value["version"].as_str().and_then(parse_version))
+        .map(|version| version.to_string())
         .unwrap_or_default()
 }
 
@@ -135,7 +146,58 @@ fn standing(path: &Path, cancelled: &AtomicBool) -> Result<Standing, String> {
     })
 }
 
-fn remote_head(root: &Path, cancelled: &AtomicBool) -> Result<String, String> {
+struct RemoteRefs {
+    head: String,
+    version: String,
+}
+
+fn parse_remote_refs(text: &str, reference: &str) -> Result<RemoteRefs, String> {
+    let mut refs = BTreeMap::new();
+    for (index, line) in text.lines().enumerate() {
+        if index >= MAX_REMOTE_REFS {
+            return Err("remote reference count exceeded".to_string());
+        }
+        let (head, name) = line
+            .split_once('\t')
+            .ok_or_else(|| "invalid remote reference response".to_string())?;
+        if !matches!(head.len(), 40 | 64)
+            || !head.bytes().all(|byte| byte.is_ascii_hexdigit())
+            || name.len() > 1024
+            || (name != reference && !name.starts_with("refs/tags/v"))
+            || refs.insert(name, head.to_ascii_lowercase()).is_some()
+        {
+            return Err("invalid remote reference response".to_string());
+        }
+    }
+    let head = refs
+        .get(reference)
+        .ok_or_else(|| "upstream branch unavailable".to_string())?
+        .clone();
+    let releases: Vec<_> = refs
+        .iter()
+        .filter_map(|(name, target)| {
+            let version = parse_version(name.strip_prefix("refs/tags/v")?)?;
+            let commit = refs.get(format!("{name}^{{}}").as_str()).unwrap_or(target);
+            Some((version, commit))
+        })
+        .collect();
+    let newest = releases
+        .iter()
+        .map(|(version, _)| version)
+        .max_by(|a, b| a.cmp_precedence(b));
+    let version = releases
+        .iter()
+        .filter(|(version, commit)| {
+            **commit == head && newest.is_some_and(|newest| version.cmp_precedence(newest).is_eq())
+        })
+        .map(|(version, _)| version)
+        .max()
+        .map(ToString::to_string)
+        .unwrap_or_default();
+    Ok(RemoteRefs { head, version })
+}
+
+fn remote_refs(root: &Path, cancelled: &AtomicBool) -> Result<RemoteRefs, String> {
     let branch = git_text(
         root,
         &["symbolic-ref", "--quiet", "--short", "HEAD"],
@@ -163,7 +225,14 @@ fn remote_head(root: &Path, cancelled: &AtomicBool) -> Result<String, String> {
     };
     let output = git(
         root,
-        &["ls-remote", "--exit-code", "--", &remote, &reference],
+        &[
+            "ls-remote",
+            "--exit-code",
+            "--",
+            &remote,
+            &reference,
+            "refs/tags/v*",
+        ],
         REMOTE_TIMEOUT,
         cancelled,
     )
@@ -173,19 +242,7 @@ fn remote_head(root: &Path, cancelled: &AtomicBool) -> Result<String, String> {
     }
     let text =
         std::str::from_utf8(&output.stdout).map_err(|_| "invalid remote response".to_string())?;
-    let mut lines = text.lines();
-    let (head, name) = lines
-        .next()
-        .and_then(|line| line.split_once('\t'))
-        .ok_or_else(|| "upstream branch unavailable".to_string())?;
-    if lines.next().is_some()
-        || name != reference
-        || !matches!(head.len(), 40 | 64)
-        || !head.bytes().all(|byte| byte.is_ascii_hexdigit())
-    {
-        return Err("invalid remote response".to_string());
-    }
-    Ok(head.to_ascii_lowercase())
+    parse_remote_refs(text, &reference)
 }
 
 fn repository_root(path: &Path, cancelled: &AtomicBool) -> Result<PathBuf, String> {
@@ -235,13 +292,14 @@ pub fn check(specs: &[RepositorySpec], core: &str, cancelled: &AtomicBool) -> Va
                 continue;
             }
         };
-        let remote_head = match remote_head(&root, cancelled) {
-            Ok(head) => head,
+        let remote = match remote_refs(&root, cancelled) {
+            Ok(remote) => remote,
             Err(error) => {
                 repositories.push(failure(spec, error));
                 continue;
             }
         };
+        let remote_head = &remote.head;
         let standing = match standing(&root, cancelled) {
             Ok(standing) => standing,
             Err(error) => {
@@ -292,10 +350,21 @@ pub fn check(specs: &[RepositorySpec], core: &str, cancelled: &AtomicBool) -> Va
             cancelled,
         )
         .map(|text| manifest_version(&text))
-        .unwrap_or_default();
+        .unwrap_or(remote.version);
+        let version_change = match (
+            parse_version(&current_version),
+            parse_version(&upstream_version),
+        ) {
+            (Some(current), Some(upstream)) => match upstream.cmp_precedence(&current) {
+                std::cmp::Ordering::Greater => "newer",
+                std::cmp::Ordering::Equal => "same",
+                std::cmp::Ordering::Less => "older",
+            },
+            _ => "unknown",
+        };
         let is_core = spec.id == core;
         let backend_stale = is_core && current_version != env!("CARGO_PKG_VERSION");
-        let updatable = remote_head != standing.head && ahead == 0 && !standing.dirty;
+        let updatable = *remote_head != standing.head && ahead == 0 && !standing.dirty;
         available |= updatable;
         repositories.push(json!({
             "id": spec.id,
@@ -311,6 +380,7 @@ pub fn check(specs: &[RepositorySpec], core: &str, cancelled: &AtomicBool) -> Va
             "upstream_head": remote_head,
             "current_version": current_version,
             "upstream_version": upstream_version,
+            "version_change": version_change,
             "subjects": subjects,
             "core": is_core,
             "backend_version": env!("CARGO_PKG_VERSION"),

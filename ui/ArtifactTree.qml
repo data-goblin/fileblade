@@ -10,6 +10,7 @@ import "../lib/KeyBindings.js" as KeyBindings
 import "../lib/KeyedRows.js" as KeyedRows
 import "../lib/ScrollMarks.js" as ScrollMarks
 import "../controllers" as Controllers
+import "../theme"
 
 FocusScope {
   id: tree
@@ -845,7 +846,7 @@ FocusScope {
             color: spec.danger ? Color.urgent : Color.accent
             opacity: actionPointer.containsMouse ? 1 : 0.8
             font.family: Style.font.family
-            font.pixelSize: Style.font.bodySmall
+            font.pixelSize: Typography.bodySmall
           }
 
           MouseArea {

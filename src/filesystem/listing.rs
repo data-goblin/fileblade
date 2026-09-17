@@ -122,6 +122,10 @@ pub(super) fn visible_rows(
 ) -> io::Result<(Vec<Value>, bool)> {
     let mut rows = Vec::new();
     let mut scanned = 0_usize;
+    let mut visibility = crate::visibility::Visibility::new(path, show_hidden);
+    if !visibility.path(path) {
+        return Ok((rows, false));
+    }
     for entry in fs::read_dir(path)? {
         if cancelled.load(Ordering::Relaxed) {
             break;
@@ -143,6 +147,9 @@ pub(super) fn visible_rows(
         };
         let is_link = metadata.file_type().is_symlink();
         let is_dir = path.is_dir();
+        if !visibility.entry(&path, is_dir) {
+            continue;
+        }
         let mut row = basic_entry_with_git(&path, &metadata, is_dir, is_link, git_enabled);
         if include_created {
             row["created"] = json!(creation_timestamp(&path));
@@ -226,11 +233,7 @@ pub(super) fn children_with_cache(
             }
             let status_path = path_text(&status.path);
             if existing.contains(&status_path)
-                || (!show_hidden
-                    && status
-                        .path
-                        .file_name()
-                        .is_some_and(|name| name.as_encoded_bytes().starts_with(b".")))
+                || !crate::visibility::Visibility::new(&path, show_hidden).path(&status.path)
             {
                 continue;
             }

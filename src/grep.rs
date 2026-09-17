@@ -84,10 +84,14 @@ pub fn grep(request: &GrepRequest<'_>, cancelled: &AtomicBool) -> AppResult<Vec<
             output.status.code().unwrap_or(-1)
         )));
     }
-    Ok(parse(&String::from_utf8_lossy(&output.stdout)))
+    let mut visibility = crate::visibility::Visibility::new(request.root, request.show_hidden);
+    Ok(parse(
+        &String::from_utf8_lossy(&output.stdout),
+        &mut |path| visibility.path(&request.root.join(path)),
+    ))
 }
 
-fn parse(text: &str) -> Vec<GrepFile> {
+fn parse(text: &str, visible: &mut dyn FnMut(&Path) -> bool) -> Vec<GrepFile> {
     let mut files: Vec<GrepFile> = Vec::new();
     let mut hits = 0_usize;
     for line in text.lines() {
@@ -106,6 +110,9 @@ fn parse(text: &str) -> Vec<GrepFile> {
             continue;
         };
         let native = native.strip_prefix(".").unwrap_or(&native).to_path_buf();
+        if !visible(&native) {
+            continue;
+        }
         let relative = display_path(&native);
         match message["type"].as_str() {
             Some("begin") => {

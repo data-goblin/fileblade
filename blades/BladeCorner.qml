@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
+import "../theme"
 
 Item {
   id: corner
@@ -22,7 +23,7 @@ Item {
     text: corner.glyph
     color: pointer.containsMouse ? Color.accent : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 
   MouseArea {

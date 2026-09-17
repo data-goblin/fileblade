@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../lib/SettingsForm.js" as Form
+import "../theme"
 
 Column {
   id: form
@@ -117,7 +118,7 @@ Column {
         color: Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
       }
     }
   }

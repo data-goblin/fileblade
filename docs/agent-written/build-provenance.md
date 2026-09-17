@@ -16,6 +16,25 @@ hosted run must exist for the exact source commit a reviewer is asked to accept.
 
 ## Release sequence
 
+The local version hook requires Python 3.11 or newer. Enable it with
+`git config core.hooksPath tools/hooks`. It compares the effective Git index's
+manifest, package, lockfile, newest versioned changelog heading and bundled
+backend against one another and the release branch name. Partial commits use
+Git's temporary index; unstaged work is preserved. Missing, unresolved or
+symlinked sources are refused. Cargo must declare the FileBlade package version
+directly, and the lockfile must identify exactly one local FileBlade package.
+
+The hook runs the staged backend in a private temporary directory inside the
+Git directory, with a five-second deadline and a 4 KiB combined output limit.
+It requires executable mode and a successful `fileblade <version>` response;
+temporary files and any remaining process group are removed afterwards. This
+checks version alignment and does not replace the full local gate or bundle
+verification. The hook's staged-commit regression tests run in `tests/run`.
+
+`core.hooksPath` is shared by this repository's worktrees, but its relative path
+resolves inside each worktree. A branch without `tools/hooks/pre-commit` runs
+no version hook. Other hooks must also live in `tools/hooks` while it is enabled.
+
 1. Finish the candidate, including release versions, companion pins and the
    locally rebuilt bundle. Run the local gate before publishing that candidate.
 2. After the owner authorizes landing it, record the complete core commit SHA.

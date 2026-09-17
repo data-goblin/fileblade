@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Rectangle {
   id: header
@@ -80,7 +81,7 @@ Rectangle {
     text: header.context && header.context.collapsed ? "›" : "⌄"
     color: disclosurePointer.containsMouse ? Color.accent : Color.muted
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
 
     MouseArea {
       id: disclosurePointer
@@ -102,7 +103,7 @@ Rectangle {
     text: header.title.toUpperCase()
     color: header.highlighted ? Color.accent : (handle.containsMouse ? Color.bar.text : Color.muted)
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
     font.weight: Font.DemiBold
     font.letterSpacing: 0.6
   }
@@ -179,7 +180,7 @@ Rectangle {
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
       font.weight: Font.DemiBold
     }
 
@@ -205,7 +206,7 @@ Rectangle {
     text: (header.statusGlyph !== "" ? header.statusGlyph + " " : "") + header.status
     color: header.statusColor
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 
   Rectangle {

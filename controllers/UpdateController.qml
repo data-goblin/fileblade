@@ -42,25 +42,42 @@ Item {
     function onStateReadyChanged() { if (controller.service.stateReady) controller.checkIfStale() }
   }
 
-  function versionSpan(row) {
-    if (!row) return ""
-    var from = String(row.current_version || "")
-    var to = String(row.upstream_version || "")
-    if (from && to && from !== to) return " (" + from + " → " + to + ")"
-    return ""
+  function companionName(row) {
+    var names = {
+      "data-goblin.fileblade-memory": "Memory",
+      "data-goblin.fileblade-skills": "Skills",
+      "data-goblin.fileblade-mcp": "MCP",
+      "data-goblin.fileblade-hooks": "Hooks"
+    }
+    return names[row.id] || row.id
   }
 
-  function commitWord(count) {
-    if (count === null || count === undefined) return "upstream changed; details available after updating"
-    return count === 1 ? "1 commit" : count + " commits"
+  function coreNotice() {
+    var version = String(core.upstream_version || "")
+    if (!version) return "An update for FileBlade is available; its version could not be determined."
+    if (core.version_change === "same") return "FileBlade has updates available within version " + version + "."
+    if (core.version_change === "older") return "FileBlade's upstream changed to version " + version + " (installed: " + core.current_version + ")."
+    return "Version " + version + " of FileBlade is now available!"
+  }
+
+  function companionNotice(row) {
+    var version = String(row.upstream_version || "")
+    var name = companionName(row)
+    if (!version) return name + " (version unknown)"
+    if (row.version_change === "same") return name + " " + version + " (same version)"
+    if (row.version_change === "older") return name + " " + version + " (installed: " + row.current_version + ")"
+    return name + " " + version
   }
 
   function summaryLines() {
     var lines = []
-    if (coreUpdatable) lines.push("FileBlade: " + commitWord(core.behind) + versionSpan(core))
-    for (var i = 0; i < updatableSatellites.length; i++) {
-      var row = updatableSatellites[i]
-      lines.push(row.id + ": " + commitWord(row.behind) + versionSpan(row))
+    if (coreUpdatable) lines.push(coreNotice())
+    if (updatableSatellites.length) {
+      lines.push("Companion updates:")
+      var companions = updatableSatellites.slice().sort(function(a, b) {
+        return companionName(a).localeCompare(companionName(b))
+      })
+      for (var i = 0; i < companions.length; i++) lines.push("• " + companionNotice(companions[i]))
     }
     for (var j = 0; j < blockedSatellites.length; j++) {
       var blocked = blockedSatellites[j]

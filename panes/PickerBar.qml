@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import "../theme"
 
 FocusScope {
   id: root
@@ -37,7 +38,7 @@ FocusScope {
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
-      font.pixelSize: Style.font.bodySmall
+      font.pixelSize: Typography.bodySmall
       font.weight: control.primary ? Font.DemiBold : Font.Normal
     }
     background: Rectangle {
@@ -88,7 +89,7 @@ FocusScope {
           color: Color.bar.text
           elide: Text.ElideRight
           font.family: Style.font.family
-          font.pixelSize: Style.font.bodySmall
+          font.pixelSize: Typography.bodySmall
           font.weight: Font.DemiBold
         }
 
@@ -106,7 +107,7 @@ FocusScope {
           color: controller.operationError || controller.pickerOverwriteArmed ? Color.urgent : Color.muted
           elide: Text.ElideRight
           font.family: Style.font.family
-          font.pixelSize: Style.font.caption
+          font.pixelSize: Typography.caption
         }
       }
 
@@ -149,7 +150,7 @@ FocusScope {
       selectionColor: Util.alpha(Color.accent, 0.38)
       selectedTextColor: Color.bar.text
       font.family: Style.font.family
-      font.pixelSize: Style.font.body
+      font.pixelSize: Typography.body
       background: Rectangle {
         radius: Math.min(Style.cornerRadius, Style.space(4))
         color: Util.alpha(Color.bar.text, nameField.activeFocus ? 0.10 : 0.06)

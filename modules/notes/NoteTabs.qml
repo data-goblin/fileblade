@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../../ui" as PluginUi
+import "../../theme"
 
 Rectangle {
   id: tabs
@@ -84,7 +85,7 @@ Rectangle {
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
 
     MouseArea {
       id: previousPointer
@@ -110,7 +111,7 @@ Rectangle {
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.bodySmall
+    font.pixelSize: Typography.bodySmall
 
     MouseArea {
       id: nextPointer
@@ -194,7 +195,7 @@ Rectangle {
                 ? (moduleRoot.activeFocus ? Color.accent : Color.muted)
                 : (tabPointer.containsMouse ? Color.bar.text : Color.muted)
               font.family: Style.font.family
-              font.pixelSize: Style.font.caption
+              font.pixelSize: Typography.caption
               font.weight: Font.DemiBold
             }
 
@@ -204,7 +205,7 @@ Rectangle {
               textFormat: Text.PlainText
               color: closePointer.containsMouse ? Color.accent : Color.muted
               font.family: Style.font.family
-              font.pixelSize: Style.font.bodySmall
+              font.pixelSize: Typography.bodySmall
 
               MouseArea {
                 id: closePointer
@@ -230,7 +231,7 @@ Rectangle {
           textFormat: Text.PlainText
           color: addPointer.containsMouse && addPointer.enabled ? Color.accent : Color.muted
           font.family: Style.font.family
-          font.pixelSize: Style.font.body
+          font.pixelSize: Typography.body
         }
 
         MouseArea {
@@ -290,7 +291,7 @@ Rectangle {
       selectByMouse: true
       clip: true
       font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+      font.pixelSize: Typography.caption
       onAccepted: tabs.commitRename()
       onActiveFocusChanged: if (!activeFocus && tabs.editIndex >= 0) tabs.commitRename()
       Keys.onEscapePressed: function(event) {

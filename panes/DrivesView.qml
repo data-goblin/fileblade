@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
+import "../theme"
 
 FocusScope {
   id: root
@@ -74,7 +75,7 @@ FocusScope {
         text: root.drives.tierLabel(parent.section)
         color: Color.muted
         font.family: Style.font.family
-        font.pixelSize: Style.font.caption
+        font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
         font.letterSpacing: 0.6
       }
@@ -182,6 +183,6 @@ FocusScope {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
   }
 }

@@ -5,6 +5,7 @@ export FILEBLADE_TEST_STRICT="${FILEBLADE_TEST_STRICT:-1}"
 gate_state=$(mktemp -d "${TMPDIR:-/tmp}/fileblade-tests.XXXXXX")
 trap 'rm -rf -- "$gate_state"' EXIT
 export XDG_STATE_HOME="$gate_state"
+PYTHONDONTWRITEBYTECODE=1 python3 tests/test_version_hook.py
 cargo_flags=(--workspace --all-targets --locked)
 if [[ "${FILEBLADE_OFFLINE:-0}" == "1" ]]; then
   cargo_flags+=(--offline)

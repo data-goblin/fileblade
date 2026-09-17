@@ -102,6 +102,10 @@ fn directory_stamp(path: &Path) -> io::Result<(i64, i64, u64)> {
 fn scan(path: &Path, show_hidden: bool, cancelled: &AtomicBool) -> io::Result<(Vec<Listed>, bool)> {
     let mut entries = Vec::new();
     let mut capped = false;
+    let mut visibility = crate::visibility::Visibility::new(path, show_hidden);
+    if !visibility.path(path) {
+        return Ok((entries, false));
+    }
     for entry in fs::read_dir(path)? {
         if cancelled.load(Ordering::Relaxed) {
             return Err(io::Error::new(
@@ -130,6 +134,9 @@ fn scan(path: &Path, show_hidden: bool, cancelled: &AtomicBool) -> io::Result<(V
         } else {
             kind.is_dir()
         };
+        if !visibility.entry(&child, is_dir) {
+            continue;
+        }
         entries.push(Listed {
             name: crate::common::display_path(Path::new(&raw)),
             path: child,

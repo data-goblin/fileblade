@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "../theme"
 
 Rectangle {
   id: row
@@ -52,14 +53,14 @@ Rectangle {
   TextMetrics {
     id: valueMetrics
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     text: row.valueSample
   }
 
   TextMetrics {
     id: badgeMetrics
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
     text: row.barColumn ? row.badge : ""
   }
   color: current
@@ -81,7 +82,7 @@ Rectangle {
     opacity: row.contentOpacity
     horizontalAlignment: Text.AlignHCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.body
+    font.pixelSize: Typography.body
   }
 
   Text {
@@ -97,7 +98,7 @@ Rectangle {
     opacity: row.contentOpacity
     horizontalAlignment: Text.AlignHCenter
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
 
     HoverHandler {
       id: glyphHover
@@ -131,7 +132,7 @@ Rectangle {
     opacity: row.contentOpacity
     elide: Text.ElideRight
     font.family: Style.font.family
-    font.pixelSize: row.emphasized ? Style.font.bodySmall : Style.font.body
+    font.pixelSize: row.emphasized ? Typography.bodySmall : Typography.body
     font.weight: row.emphasized ? Font.DemiBold : Font.Normal
     font.letterSpacing: row.emphasized ? 0.6 : 0
     font.strikeout: row.struck
@@ -151,7 +152,7 @@ Rectangle {
     opacity: row.contentOpacity
     elide: Text.ElideLeft
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
   }
 
   Text {
@@ -165,7 +166,7 @@ Rectangle {
     color: linkHover.hovered ? Color.accent : Color.muted
     opacity: row.contentOpacity
     font.family: Style.font.family
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Typography.caption
 
     HoverHandler {
       id: linkHover
@@ -240,7 +241,7 @@ Rectangle {
           color: Color.muted
           opacity: row.contentOpacity
           font.family: Style.font.family
-          font.pixelSize: Style.font.caption
+          font.pixelSize: Typography.caption
         }
       }
     }
