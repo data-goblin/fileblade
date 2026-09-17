@@ -570,8 +570,7 @@ fn instruction_files(plan: &mut WatchPlan, directory: &Path) -> Vec<PathBuf> {
         .filter(|candidate| {
             candidate
                 .file_name()
-                .and_then(|name| name.to_str())
-                .is_some_and(|name| name.ends_with(".instructions.md"))
+                .is_some_and(|name| name.as_bytes().ends_with(b".instructions.md"))
         })
         .collect()
 }

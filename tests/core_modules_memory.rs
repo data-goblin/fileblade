@@ -814,3 +814,35 @@ fn a_plain_write_default_file_is_described_from_its_first_line() {
     assert_eq!(field(row, "detail"), "heading");
     assert_eq!(field(row, "activation"), "always");
 }
+
+#[test]
+fn copilot_instruction_files_with_native_bytes_are_claimed() {
+    use std::os::unix::ffi::OsStringExt;
+
+    let fixture = sandbox();
+    let extra_root = fixture.root.join("copilot-extra");
+    let directory = extra_root.join(".github/instructions");
+    fs::create_dir_all(&directory).unwrap();
+    let mut raw = b"\xff-team".to_vec();
+    raw.extend_from_slice(b".instructions.md");
+    let native = directory.join(OsString::from_vec(raw));
+    fs::write(&native, "# native bytes\n").unwrap();
+
+    let document = collect(
+        &fixture.home,
+        &fixture.project,
+        "",
+        environ_with(
+            &fixture.home,
+            &[(
+                "COPILOT_CUSTOM_INSTRUCTIONS_DIRS",
+                extra_root.to_str().unwrap(),
+            )],
+        ),
+    );
+    let row = rows(&document)
+        .into_iter()
+        .find(|row| field(row, "path").ends_with("%FF-team.instructions.md"))
+        .expect("the non-utf8 instructions file is claimed");
+    assert_eq!(readers(row), vec!["copilot-cli".to_string()]);
+}
