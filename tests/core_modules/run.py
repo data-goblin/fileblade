@@ -12,7 +12,6 @@ with tempfile.TemporaryDirectory(prefix="fileblade-core-contracts-") as temporar
                        XDG_STATE_HOME=temporary)
     cases = {
         "skills": ["unit.py"],
-        "memory": ["test_discovery.py", "test_apply.py"],
         "hooks": ["test_discovery.py", "test_apply.py", "test_undo.py"],
         "mcp": ["test_inventory.py", "test_apply.py", "test_undo.py"],
     }

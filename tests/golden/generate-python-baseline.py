@@ -105,10 +105,10 @@ def build_skills(home: Path, project: Path) -> None:
 
 
 def build_memory(home: Path, project: Path) -> None:
-    test_discovery = loaded("baseline_memory_discovery", REPO / "tests/core_modules/memory/test_discovery.py")
-    test_discovery.build_home(home)
-    test_discovery.build_project(project)
-    test_discovery.build_audit_fixtures(home, project)
+    fixtures = loaded("baseline_memory_fixtures", REPO / "tests/core_modules/memory/fixtures.py")
+    fixtures.build_home(home)
+    fixtures.build_project(project)
+    fixtures.build_audit_fixtures(home, project)
 
 
 def build_hooks(home: Path, project: Path) -> None:

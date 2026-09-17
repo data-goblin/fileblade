@@ -2,7 +2,9 @@ pub mod canonical;
 pub mod emit;
 pub mod frontmatter;
 pub mod glob;
+pub mod memory;
 pub mod metrics;
+pub mod path;
 pub mod recovery_store;
 pub mod skills;
 pub mod text;
@@ -51,6 +53,7 @@ impl<'a> Context<'a> {
 pub fn registered(route: CoreRoute, method: &str) -> Option<CoreHandler> {
     match route {
         CoreRoute::Skills => skills::handler(method),
+        CoreRoute::Memory => memory::handler(method),
         _ => None,
     }
 }
