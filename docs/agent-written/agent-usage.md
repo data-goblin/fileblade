@@ -24,14 +24,21 @@ antigravity:  Google Antigravity CLI (agy)
 pi:           Pi
 ```
 
-The code is the Python package `python/agent_usage/`:
+The code is the Rust module `src/core_modules/usage/`:
 
 ```yaml
-records.py:  turns one transcript record of any agent into events
-store.py:    store path, schema, lock, the per-agent sources, the budgeted ingest and the
+records.rs:  turns one transcript record of any agent into events
+store.rs:    store path, schema, lock, the per-agent sources, the budgeted ingest and the
              directories a blade watches for new transcript bytes
-query.py:    name matching, the list totals, the daily history and forget
+query.rs:    name matching, the list totals, the daily history and forget
+mod.rs:      the environment the store reads, the watch-path list and the MCP core routes
 ```
+
+The Skills routes (`list`, `usage`, `usage-counts`, `usage-day`) and the MCP
+`usage` and `usage-forget` routes are answered in this process: `CoreRoute`
+dispatch in `src/module_helpers.rs` routes per method, so the MCP `list` route
+still runs the Python inventory helper, which keeps using `python/agent_usage/`
+until that helper is ported.
 
 ## The store
 
@@ -41,7 +48,8 @@ path:         $XDG_STATE_HOME/omarchy/fileblade/agent-usage.sqlite3
 lock:         agent-usage.sqlite3.lock beside it
 permissions:  directory created 0700, database and lock created 0600; SQLite creates the
               -wal and -shm files with the database's permissions
-engine:       Python standard library sqlite3, WAL journal, busy_timeout 5000
+engine:       rusqlite with the bundled SQLite amalgamation (the shipped binary is static musl,
+              so no system libsqlite3 can be linked), WAL journal, busy_timeout 5000
 version:      PRAGMA user_version = 3. Version 1 gains retention, pending-failure and forgotten-identity
               tables, version 2 gains the agent column on failure, both without losing history.
               Unknown versions are refused; existing tables are never dropped
@@ -226,7 +234,7 @@ lanes and one `usage` request when an activity view is visible.
 
 An open tab keeps up with running agents through the backend's filesystem
 subscription. Every `list` answer carries `usageWatchPaths`, the directories
-`store.watch_paths()` picks: each agent root that exists, the 24 most recently
+`store::watch_paths` picks: each agent root that exists, the 24 most recently
 modified Claude project directories, today's and yesterday's Codex day
 directories, the 16 most recent Copilot sessions, the 8 most recent Antigravity
 conversation log directories and the 8 most recent Pi session directories, at
@@ -288,10 +296,10 @@ helper is killed during a large file.
 
 ## Name matching
 
-Matching lives in `query.py` and is shared by `list` and `usage`.
+Matching lives in `query.rs` and is shared by `list` and `usage`.
 
 ```yaml
-sanitize(name):   re.sub(r"[^a-zA-Z0-9_-]", "_", name); for a name starting with
+sanitize(name):   every character outside [a-zA-Z0-9_-] becomes "_"; for a name starting with
                   "claude.ai " also collapse runs of "_" and strip them from both ends.
                   This is the rule Claude Code 2.1.258 uses to build mcp__ tool names
 skill row:        events of kind skill or command named exactly the row name, or
@@ -335,7 +343,7 @@ Both helpers are core-module inventory helpers, reached through the resident
 backend's `helper-read` and `helper-write` requests. `CoreRoute::permits` in
 `src/module_helpers.rs` admits `usage` as a read for Skills and MCP and
 `usage-forget` as a write for MCP only; both modules' `source.json` declare the
-same methods. A store failure (an `OSError` or `sqlite3.Error`) never fails a
+same methods. A store failure (a SQLite or filesystem error) never fails a
 whole inventory.
 
 ### `list` (both)
@@ -370,8 +378,8 @@ event.
 ### `usage` (both, read)
 
 ```text
-agent-skillsctl usage --json --project PATH [--exact]
-agent-mcpctl usage --json
+skills usage --json --project PATH [--exact] [--items JSON]
+mcp    usage --json
 ```
 
 ```json
@@ -384,7 +392,7 @@ agent-mcpctl usage --json
 kind:           "skill" or "mcp"
 days[]:         [local date, uses, agent, user, scheduled, failed], only days with at least
                 one event, ascending, limited to the 160 weeks (1120 days) ending today
-local date:     date(at / 1000, 'unixepoch', 'localtime'), so TZ in the helper's environment
+local date:     date(at / 1000, 'unixepoch', 'localtime'), so TZ in the backend's environment
                 decides the day
 coverageStart:  local date of the earliest coverage.first_at of the contributing agents
                 (skill: all six; mcp: claude, codex, opencode and copilot), null when nothing
@@ -392,19 +400,47 @@ coverageStart:  local date of the earliest coverage.first_at of the contributing
 until:          today's local date
 skill days:     every skill event of any name, plus command events whose name matches a skill
                 discovered for --project (scope all, same matching as list)
+--items:        skills only. A JSON array of row stubs ({id, name, source}) replaces discovery
+                and scopes the answer to those rows: only skill and command events named by
+                them are counted, and no ingest runs. It is how a blade asks about rows it
+                already holds without walking the filesystem again
 mcp days:       every tool, resource and resource-list event of every agent, plus claude
                 commands named mcp__<server>__<prompt>
 failure:        {"ok": false, "schemaVersion": 1, "kind": ..., "error": "usage store
-                unavailable"}, exit status 1
+                unavailable"}, and the CLI exits 1
 ```
 
 The helper starts in the app root, not the caller's directory, so the skills
 project always arrives through `--project`.
 
+### `usage-counts` and `usage-day` (Skills helper, read)
+
+```text
+skills usage-counts --json --items JSON
+skills usage-day --json --day YYYY-MM-DD [--items JSON]
+```
+
+```yaml
+usage-counts:  answers totals for row stubs without discovery: {"ok": true, "schemaVersion": 1,
+               "counts": {"<row id>": {uses, usesAgent, usesUser, usesScheduled, failed}},
+               usageTranscripts, usageUnreadable, usageIngestPending}. A stub with no id is
+               skipped; an unknown name answers zeroes. At most 1024 stubs are read
+usage-day:     the rows used on one local day: {"ok": true, "schemaVersion": 1, "day": ...,
+               "items": [{id, name, uses, usesAgent, usesUser, usesScheduled, failed}]},
+               rows with no uses and no scheduled runs left out, sorted by uses descending then
+               name. Without --items the rows come from discovery for --project
+day window:    at >= strftime('%s', day, 'utc') * 1000 and below the same for day + 1 day, so the
+               window is the real local day. Using the local midnights rather than comparing
+               formatted dates keeps a daylight-saving day 23 or 25 hours long
+ingest:        neither method ingests; both answer from what is already committed
+refusals:      a --day that is not YYYY-MM-DD answers {"ok": false, "schemaVersion": 1,
+               "error": "day must be YYYY-MM-DD"}
+```
+
 ### `usage-forget` (MCP helper, write)
 
 ```text
-agent-mcpctl usage-forget [--before YYYY-MM-DD] --json
+mcp usage-forget [--before YYYY-MM-DD] --json
 ```
 
 ```yaml
@@ -418,7 +454,7 @@ privacy:        PRAGMA secure_delete = ON overwrites deleted SQLite cells. No po
 kept:           source rows and offsets, plus the monotonic retention cutoff. Replaced,
                 truncated, copied and previously unread transcripts cannot restore older events
 result:         {"ok": true, "schemaVersion": 1, "removed": N}; on a store failure ok false,
-                removed 0, error "usage store unavailable", exit status 1
+                removed 0, error "usage store unavailable", and the CLI exits 1
 audit:          the backend's helper-write audit line records provider, helper and method only
 ```
 
@@ -485,7 +521,7 @@ json:       the global -o json / --output json, before or after the subcommand, 
             +2026-09-01 exit 2 before the helper runs
 errors:     a helper answer with ok false exits 1 with the helper's error
 shell:      not needed. The CLI dispatches the backend request in its own process, and the
-            helper runs under the app root with the caller's environment
+            usage module runs in that process with the caller's environment
 ```
 
 ## Known limits

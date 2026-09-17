@@ -58,7 +58,7 @@ for suite in tests/qml/tst_*.qml; do
   fi
 done
 export PYTHONDONTWRITEBYTECODE=1
-for suite in tests/test_python_{paths,process,inventory,mutations,usage}.py tests/test_extension_image.py tests/core_modules/run.py tests/companion_readonly.py; do
+for suite in tests/test_python_{paths,process,inventory,mutations}.py tests/test_extension_image.py tests/core_modules/run.py tests/companion_readonly.py; do
   python3 "$suite"
 done
 tools/bundle verify

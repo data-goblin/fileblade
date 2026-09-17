@@ -8,6 +8,7 @@ pub mod path;
 pub mod recovery_store;
 pub mod skills;
 pub mod text;
+pub mod usage;
 pub mod watch;
 
 use crate::module_helpers::{CoreRoute, Request};
@@ -54,6 +55,7 @@ pub fn registered(route: CoreRoute, method: &str) -> Option<CoreHandler> {
     match route {
         CoreRoute::Skills => skills::handler(method),
         CoreRoute::Memory => memory::handler(method),
+        CoreRoute::Mcp => usage::handler(method),
         _ => None,
     }
 }
