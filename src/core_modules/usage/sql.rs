@@ -99,6 +99,15 @@ pub fn literal(value: &Bound) -> String {
         Bound::Null => "NULL".to_string(),
         Bound::Integer(number) => number.to_string(),
         Bound::Text(text) => {
+            if text.contains('\0') {
+                let mut out = String::with_capacity(text.len() * 2 + 16);
+                out.push_str("CAST(X'");
+                for byte in text.as_bytes() {
+                    out.push_str(&format!("{byte:02x}"));
+                }
+                out.push_str("' AS TEXT)");
+                return out;
+            }
             let mut out = String::with_capacity(text.len() + 2);
             out.push('\'');
             for character in text.chars() {

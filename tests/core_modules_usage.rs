@@ -808,3 +808,34 @@ fn concurrent_readers_ingest_once_and_agree() {
     let writes: (i64, i64) = (row.integer(0), row.integer(1));
     assert_eq!(writes, (24, 24));
 }
+
+#[test]
+fn a_nul_byte_in_a_record_does_not_break_the_store() {
+    use_utc();
+    let fixture = Fixture::new();
+    let day = fixture.day;
+    fixture.transcript(
+        "nul.jsonl",
+        &[
+            opening(),
+            called(
+                day,
+                "toolu_n\u{0}1",
+                "Skill",
+                json!({"skill": "alpha\u{0}"}),
+            ),
+            skill_call(day, "toolu_n2", "alpha"),
+        ],
+    );
+
+    let items = vec![alpha(), beta()];
+    let document = fixture.counts(&items);
+    assert_eq!(document["ok"], json!(true));
+    assert_eq!(document["counts"]["skill-alpha"]["uses"], json!(2));
+    let row = fixture
+        .open_store()
+        .query_one("SELECT count(*) FROM event")
+        .expect("event rows")
+        .expect("event row");
+    assert_eq!(row.integer(0), 2);
+}
