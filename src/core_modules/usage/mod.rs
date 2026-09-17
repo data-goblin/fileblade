@@ -1,5 +1,6 @@
 pub mod query;
 pub mod records;
+pub mod sql;
 pub mod store;
 
 use crate::core_modules::Context;

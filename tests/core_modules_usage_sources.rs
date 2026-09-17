@@ -2,6 +2,7 @@
 mod usage_fixtures;
 
 use chrono::{DateTime, Duration, Utc};
+use fileblade::core_modules::usage::sql::{Bound, Sql, bind};
 use serde_json::{Value, json};
 use std::path::Path;
 use usage_fixtures::*;
@@ -61,57 +62,60 @@ fn opencode_directory(fixture: &Fixture) -> std::path::PathBuf {
 
 fn opencode_stable(fixture: &Fixture, name: &str, parts: &[(&str, &str, &str, Value)]) {
     let path = opencode_directory(fixture).join(name);
-    let connection = rusqlite::Connection::open(&path).expect("opencode store");
-    connection
-        .execute_batch(
-            "CREATE TABLE session (id TEXT PRIMARY KEY, project_id TEXT, directory TEXT, title TEXT, version TEXT, \
-             time_created INTEGER, time_updated INTEGER);\
-             CREATE TABLE message (id TEXT PRIMARY KEY, session_id TEXT, time_created INTEGER, time_updated INTEGER, data TEXT);\
-             CREATE TABLE part (id TEXT PRIMARY KEY, message_id TEXT, session_id TEXT, time_created INTEGER, time_updated INTEGER, data TEXT);",
-        )
-        .expect("opencode schema");
+    let database = Sql::open(&path).expect("opencode store");
     let at = fixture.day.timestamp_millis();
-    connection
-        .execute(
-            "INSERT INTO session VALUES ('ses_1', 'p', '/work/project', 't', '1.18.30', ?, ?)",
-            rusqlite::params![at, at],
+    let mut script = String::from(
+        "CREATE TABLE session (id TEXT PRIMARY KEY, project_id TEXT, directory TEXT, title TEXT, version TEXT, \
+         time_created INTEGER, time_updated INTEGER);\n\
+         CREATE TABLE message (id TEXT PRIMARY KEY, session_id TEXT, time_created INTEGER, time_updated INTEGER, data TEXT);\n\
+         CREATE TABLE part (id TEXT PRIMARY KEY, message_id TEXT, session_id TEXT, time_created INTEGER, time_updated INTEGER, data TEXT);\n",
+    );
+    script.push_str(
+        &bind(
+            "INSERT INTO session VALUES ('ses_1', 'p', '/work/project', 't', '1.18.30', ?, ?);",
+            &[Bound::Integer(at), Bound::Integer(at)],
         )
-        .expect("session row");
+        .expect("session row"),
+    );
+    script.push('\n');
     for (index, (call, tool, status, arguments)) in parts.iter().enumerate() {
         let data = json!({"type": "tool", "callID": call, "tool": tool,
                           "state": {"status": status, "input": arguments,
                                     "time": {"start": at + index as i64, "end": at + index as i64 + 1}}});
-        connection
-            .execute(
-                "INSERT INTO part VALUES (?, 'msg_1', 'ses_1', ?, ?, ?)",
-                rusqlite::params![
-                    format!("prt_{index}"),
-                    at,
-                    at + index as i64,
-                    serde_json::to_string(&data).expect("part data")
+        script.push_str(
+            &bind(
+                "INSERT INTO part VALUES (?, 'msg_1', 'ses_1', ?, ?, ?);",
+                &[
+                    Bound::Text(format!("prt_{index}")),
+                    Bound::Integer(at),
+                    Bound::Integer(at + index as i64),
+                    Bound::Text(serde_json::to_string(&data).expect("part data")),
                 ],
             )
-            .expect("part row");
+            .expect("part row"),
+        );
+        script.push('\n');
     }
+    database.execute(&script).expect("opencode schema");
 }
 
 fn opencode_beta(fixture: &Fixture, name: &str, items: &[(&str, &str, &str, Value)]) {
     let path = opencode_directory(fixture).join(name);
-    let connection = rusqlite::Connection::open(&path).expect("opencode store");
-    connection
-        .execute_batch(
-            "CREATE TABLE session_v2 (id TEXT PRIMARY KEY, directory TEXT, version TEXT, time_created INTEGER, time_updated INTEGER);\
-             CREATE TABLE session_message (id TEXT PRIMARY KEY, session_id TEXT, type TEXT, seq INTEGER, time_created INTEGER, \
-             time_updated INTEGER, data TEXT);",
-        )
-        .expect("opencode schema");
+    let database = Sql::open(&path).expect("opencode store");
     let at = fixture.day.timestamp_millis();
-    connection
-        .execute(
-            "INSERT INTO session_v2 VALUES ('ses_2', '/work/project', '0.0.0-beta', ?, ?)",
-            rusqlite::params![at, at],
+    let mut script = String::from(
+        "CREATE TABLE session_v2 (id TEXT PRIMARY KEY, directory TEXT, version TEXT, time_created INTEGER, time_updated INTEGER);\n\
+         CREATE TABLE session_message (id TEXT PRIMARY KEY, session_id TEXT, type TEXT, seq INTEGER, time_created INTEGER, \
+         time_updated INTEGER, data TEXT);\n",
+    );
+    script.push_str(
+        &bind(
+            "INSERT INTO session_v2 VALUES ('ses_2', '/work/project', '0.0.0-beta', ?, ?);",
+            &[Bound::Integer(at), Bound::Integer(at)],
         )
-        .expect("session row");
+        .expect("session row"),
+    );
+    script.push('\n');
     let content: Vec<Value> = items
         .iter()
         .map(|(call, tool, status, arguments)| {
@@ -120,17 +124,22 @@ fn opencode_beta(fixture: &Fixture, name: &str, items: &[(&str, &str, &str, Valu
                    "time": {"created": at, "completed": at + 1}})
         })
         .collect();
-    connection
-        .execute(
-            "INSERT INTO session_message VALUES ('msg_2', 'ses_2', 'assistant', 1, ?, ?, ?)",
-            rusqlite::params![
-                at,
-                at,
-                serde_json::to_string(&json!({"content": content, "time": {"created": at}}))
-                    .expect("message data")
+    script.push_str(
+        &bind(
+            "INSERT INTO session_message VALUES ('msg_2', 'ses_2', 'assistant', 1, ?, ?, ?);",
+            &[
+                Bound::Integer(at),
+                Bound::Integer(at),
+                Bound::Text(
+                    serde_json::to_string(&json!({"content": content, "time": {"created": at}}))
+                        .expect("message data"),
+                ),
             ],
         )
-        .expect("message row");
+        .expect("message row"),
+    );
+    script.push('\n');
+    database.execute(&script).expect("opencode schema");
 }
 
 fn copilot_events(fixture: &Fixture, events: &[(&str, Value)]) -> std::path::PathBuf {
@@ -335,17 +344,15 @@ fn every_supported_agent_counts_skill_uses() {
         json!([[fixture.date(day), 11, 8, 3, 0, 2]])
     );
 
-    let connection = fixture.open_store();
-    let mut statement = connection
-        .prepare(
+    let database = fixture.open_store();
+    let agents: Vec<(String, i64)> = database
+        .query(
             "SELECT agent, count(*) FROM event WHERE kind IN ('skill', 'command') GROUP BY agent",
         )
-        .expect("agent tally");
-    let agents: Vec<(String, i64)> = statement
-        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
-        .expect("rows")
-        .collect::<rusqlite::Result<Vec<_>>>()
-        .expect("agent rows");
+        .expect("agent tally")
+        .iter()
+        .map(|row| (row.text(0), row.integer(1)))
+        .collect();
     assert_eq!(
         agents
             .into_iter()
@@ -359,17 +366,17 @@ fn every_supported_agent_counts_skill_uses() {
             ("pi".to_string(), 1),
         ]
     );
-    let projects: i64 = connection
-        .query_row(
+    let projects = database
+        .query_one(
             "SELECT count(DISTINCT project.path) FROM event JOIN project ON project.id = event.project",
-            [],
-            |row| row.get(0),
         )
-        .expect("projects");
+        .expect("projects")
+        .map_or(0, |row| row.integer(0));
     assert_eq!(projects, 1);
-    let failures: i64 = connection
-        .query_row("SELECT count(*) FROM failure", [], |row| row.get(0))
-        .expect("failures");
+    let failures = database
+        .query_one("SELECT count(*) FROM failure")
+        .expect("failures")
+        .map_or(0, |row| row.integer(0));
     assert_eq!(failures, 0);
 }
 
@@ -389,17 +396,19 @@ fn an_opencode_call_that_finishes_later_is_counted_once_it_completes() {
     );
     let at = fixture.day.timestamp_millis();
     let path = fixture.home.join(".local/share/opencode/opencode.db");
-    let connection = rusqlite::Connection::open(&path).expect("opencode store");
+    let database = Sql::open(&path).expect("opencode store");
     let data = json!({"type": "tool", "callID": "call_a", "tool": "skill",
                       "state": {"status": "completed", "input": {"name": "alpha"},
                                 "time": {"start": at, "end": at + 5}}});
-    connection
-        .execute(
-            "UPDATE part SET data = ?, time_updated = ? WHERE id = 'prt_0'",
-            rusqlite::params![serde_json::to_string(&data).expect("data"), at + 5000],
-        )
-        .expect("late completion");
-    drop(connection);
+    let statement = bind(
+        "UPDATE part SET data = ?, time_updated = ? WHERE id = 'prt_0';",
+        &[
+            Bound::Text(serde_json::to_string(&data).expect("data")),
+            Bound::Integer(at + 5000),
+        ],
+    )
+    .expect("late completion");
+    database.execute(&statement).expect("late completion");
     assert_eq!(
         fixture.counts(&items)["counts"]["skill-alpha"]["usesAgent"],
         json!(1)
@@ -641,12 +650,15 @@ fn a_long_transcript_commits_progress_and_finishes_across_chunks() {
 }
 
 fn offset_of(fixture: &Fixture, path: &Path) -> i64 {
+    let statement = bind(
+        "SELECT offset FROM source WHERE path = ?",
+        &[Bound::Text(path.to_string_lossy().to_string())],
+    )
+    .expect("offset statement");
     fixture
         .open_store()
-        .query_row(
-            "SELECT offset FROM source WHERE path = ?",
-            rusqlite::params![path.to_string_lossy()],
-            |row| row.get(0),
-        )
-        .unwrap_or(0)
+        .query_one(&statement)
+        .ok()
+        .flatten()
+        .map_or(0, |row| row.integer(0))
 }

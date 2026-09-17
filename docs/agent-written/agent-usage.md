@@ -48,8 +48,12 @@ path:         $XDG_STATE_HOME/omarchy/fileblade/agent-usage.sqlite3
 lock:         agent-usage.sqlite3.lock beside it
 permissions:  directory created 0700, database and lock created 0600; SQLite creates the
               -wal and -shm files with the database's permissions
-engine:       rusqlite with the bundled SQLite amalgamation (the shipped binary is static musl,
-              so no system libsqlite3 can be linked), WAL journal, busy_timeout 5000
+engine:       the sqlite3 command-line tool over the same file, run as a supervised subprocess
+              with -batch -bail -json and the statements on stdin (-readonly for the foreign
+              opencode database). The shipped binary is a static musl build linked with rust-lld
+              and no C toolchain, so no SQLite library can be linked into it; the file format is
+              unchanged. Packaging requires the sqlite3 command and the sqlite package.
+              WAL journal, busy_timeout 5000 through .timeout on every invocation
 version:      PRAGMA user_version = 3. Version 1 gains retention, pending-failure and forgotten-identity
               tables, version 2 gains the agent column on failure, both without losing history.
               Unknown versions are refused; existing tables are never dropped

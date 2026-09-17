@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use chrono::{DateTime, SecondsFormat, TimeZone, Utc};
+use fileblade::core_modules::usage::sql::Sql;
 use fileblade::core_modules::usage::store::Environment;
 use serde_json::{Map, Value, json};
 use std::collections::HashMap;
@@ -238,8 +239,8 @@ impl Fixture {
         path
     }
 
-    pub fn open_store(&self) -> rusqlite::Connection {
-        rusqlite::Connection::open(&self.store).expect("usage store")
+    pub fn open_store(&self) -> Sql {
+        Sql::open(&self.store).expect("usage store")
     }
 
     pub fn counts(&self, items: &[Value]) -> Value {

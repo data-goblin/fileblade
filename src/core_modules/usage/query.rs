@@ -1,5 +1,5 @@
-use super::store::{self, Environment, MCP_AGENTS, SKILL_AGENTS, Session, identity, pragma};
-use rusqlite::{Connection, params};
+use super::sql::{self, Bound, Sql, literal};
+use super::store::{self, Environment, MCP_AGENTS, SKILL_AGENTS, Session, identity};
 use serde_json::{Map, Value, json};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::OnceLock;
@@ -90,38 +90,35 @@ fn agent_list(agents: &[&str]) -> String {
     serde_json::to_string(agents).unwrap_or_else(|_| "[]".to_string())
 }
 
-fn sources(connection: &Connection, agents: &[&str]) -> rusqlite::Result<i64> {
-    connection.query_row(
+fn sources(database: &Sql, agents: &[&str]) -> sql::Result<i64> {
+    let statement = sql::bind(
         "SELECT count(*) FROM source WHERE agent IN (SELECT value FROM json_each(?))",
-        params![agent_list(agents)],
-        |row| row.get(0),
-    )
+        &[Bound::Text(agent_list(agents))],
+    )?;
+    Ok(database
+        .query_one(&statement)?
+        .map_or(0, |row| row.integer(0)))
 }
 
 type Tallies = HashMap<String, [i64; 4]>;
 
-fn skill_tallies(
-    connection: &Connection,
-    where_clause: &str,
-    parameters: &[&dyn rusqlite::ToSql],
-) -> rusqlite::Result<Tallies> {
-    let statement = format!(
-        "SELECT kind, name, origin, count(*), sum(failed) FROM event WHERE kind IN ('skill', 'command') \
-         {where_clause} GROUP BY kind, name, origin"
-    );
-    let mut prepared = connection.prepare(&statement)?;
-    let rows = prepared.query_map(parameters, |row| {
-        Ok((
-            row.get::<_, String>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, String>(2)?,
-            row.get::<_, i64>(3)?,
-            row.get::<_, Option<i64>>(4)?.unwrap_or(0),
-        ))
-    })?;
+fn skill_tallies(database: &Sql, where_clause: &str, parameters: &[Bound]) -> sql::Result<Tallies> {
+    let statement = sql::bind(
+        &format!(
+            "SELECT kind, name, origin, count(*), sum(failed) FROM event WHERE kind IN ('skill', 'command') \
+             {where_clause} GROUP BY kind, name, origin"
+        ),
+        parameters,
+    )?;
     let mut tallies: Tallies = HashMap::new();
-    for row in rows {
-        let (kind, name, origin, total, failed) = row?;
+    for row in database.query(&statement)? {
+        let (kind, name, origin, total, failed) = (
+            row.text(0),
+            row.text(1),
+            row.text(2),
+            row.integer(3),
+            row.integer(4),
+        );
         let tally = tallies.entry(name).or_insert([0; 4]);
         let slot = if kind == "skill" {
             0
@@ -170,14 +167,14 @@ pub fn attach_skills(environment: &Environment, items: &mut [Value]) -> Map<Stri
 fn attached_skills(
     environment: &Environment,
     items: &mut [Value],
-) -> rusqlite::Result<Map<String, Value>> {
+) -> sql::Result<Map<String, Value>> {
     let session = store::session(environment, true)?;
-    let tallies = skill_tallies(&session.connection, "", &[])?;
+    let tallies = skill_tallies(&session.database, "", &[])?;
     for item in items.iter_mut() {
         let values = item_counts(item, &tallies);
         attach(item, &values);
     }
-    let transcripts = sources(&session.connection, &SKILL_AGENTS)?;
+    let transcripts = sources(&session.database, &SKILL_AGENTS)?;
     let mut document = Map::new();
     document.insert("usageTranscripts".to_string(), json!(transcripts));
     document.insert("usageUnreadable".to_string(), json!(session.unreadable));
@@ -192,9 +189,9 @@ pub fn skill_counts(environment: &Environment, items: &[Value]) -> Value {
     }
 }
 
-fn counted_skills(environment: &Environment, items: &[Value]) -> rusqlite::Result<Value> {
+fn counted_skills(environment: &Environment, items: &[Value]) -> sql::Result<Value> {
     let session = store::session(environment, true)?;
-    let tallies = skill_tallies(&session.connection, "", &[])?;
+    let tallies = skill_tallies(&session.database, "", &[])?;
     let mut counted = Map::new();
     for item in items {
         let id = field(item, "id");
@@ -203,7 +200,7 @@ fn counted_skills(environment: &Environment, items: &[Value]) -> rusqlite::Resul
         }
         counted.insert(id, Value::Object(item_counts(item, &tallies)));
     }
-    let transcripts = sources(&session.connection, &SKILL_AGENTS)?;
+    let transcripts = sources(&session.database, &SKILL_AGENTS)?;
     Ok(json!({
         "ok": true,
         "schemaVersion": SCHEMA_VERSION,
@@ -234,13 +231,13 @@ pub fn skill_day(environment: &Environment, items: &[Value], day: &str) -> Value
     }
 }
 
-fn day_of_skills(environment: &Environment, items: &[Value], day: &str) -> rusqlite::Result<Value> {
+fn day_of_skills(environment: &Environment, items: &[Value], day: &str) -> sql::Result<Value> {
     let session = store::session(environment, false)?;
     let tallies = skill_tallies(
-        &session.connection,
+        &session.database,
         "AND at >= CAST(strftime('%s', ?, 'utc') AS INTEGER) * 1000 \
          AND at < CAST(strftime('%s', ?, '+1 day', 'utc') AS INTEGER) * 1000",
-        &[&day, &day],
+        &[Bound::from(day), Bound::from(day)],
     )?;
     let mut used: Vec<(i64, String, Value)> = Vec::new();
     for item in items {
@@ -325,7 +322,7 @@ pub fn attach_mcp(environment: &Environment, definitions: &mut [Value]) -> Map<S
 fn attached_mcp(
     environment: &Environment,
     definitions: &mut [Value],
-) -> rusqlite::Result<Map<String, Value>> {
+) -> sql::Result<Map<String, Value>> {
     let session = store::session(environment, true)?;
     let keys: Vec<Option<(String, String)>> = definitions.iter().map(mcp_server).collect();
     let mut prefixes: Vec<String> = keys
@@ -345,21 +342,17 @@ fn attached_mcp(
              date(max(at) / 1000, 'unixepoch', 'localtime') FROM event WHERE {MCP_EVENTS} \
              GROUP BY agent, server, kind, name, origin"
         );
-        let mut prepared = session.connection.prepare(&statement)?;
-        let rows = prepared.query_map([], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, String>(2)?,
-                row.get::<_, String>(3)?,
-                row.get::<_, String>(4)?,
-                row.get::<_, i64>(5)?,
-                row.get::<_, Option<i64>>(6)?.unwrap_or(0),
-                row.get::<_, Option<String>>(7)?.unwrap_or_default(),
-            ))
-        })?;
-        for row in rows {
-            let (agent, mut server, mut kind, mut name, origin, total, failed, last) = row?;
+        for row in session.database.query(&statement)? {
+            let (agent, mut server, mut kind, mut name, origin, total, failed, last) = (
+                row.text(0),
+                row.text(1),
+                row.text(2),
+                row.text(3),
+                row.text(4),
+                row.integer(5),
+                row.integer(6),
+                row.text(7),
+            );
             if kind == "command" {
                 let mut parts = name.splitn(3, "__");
                 parts.next();
@@ -447,7 +440,7 @@ fn attached_mcp(
             entries.insert("observed".to_string(), Value::Array(rows));
         }
     }
-    let transcripts = sources(&session.connection, &MCP_AGENTS)?;
+    let transcripts = sources(&session.database, &MCP_AGENTS)?;
     let mut document = Map::new();
     document.insert("usageTranscripts".to_string(), json!(transcripts));
     document.insert("usageUnreadable".to_string(), json!(session.unreadable));
@@ -461,7 +454,7 @@ fn history(
     kind: &str,
     agents: &[&str],
     where_clause: &str,
-    parameters: &[&dyn rusqlite::ToSql],
+    parameters: &[Bound],
     ingest: bool,
 ) -> Value {
     match tallied_history(environment, kind, agents, where_clause, parameters, ingest) {
@@ -477,35 +470,46 @@ fn tallied_history(
     kind: &str,
     agents: &[&str],
     where_clause: &str,
-    parameters: &[&dyn rusqlite::ToSql],
+    parameters: &[Bound],
     ingest: bool,
-) -> rusqlite::Result<Value> {
+) -> sql::Result<Value> {
     let session: Session = store::session(environment, ingest)?;
-    let (start, until): (Option<String>, Option<String>) = session.connection.query_row(
+    let coverage = sql::bind(
         "SELECT date(min(first_at) / 1000, 'unixepoch', 'localtime'), date('now', 'localtime') FROM coverage \
          WHERE agent IN (SELECT value FROM json_each(?))",
-        params![agent_list(agents)],
-        |row| Ok((row.get(0)?, row.get(1)?)),
+        &[Bound::Text(agent_list(agents))],
     )?;
-    let statement = format!(
-        "SELECT date(at / 1000, 'unixepoch', 'localtime') AS day, sum(kind <> 'command' OR origin = 'user'), \
-         sum(kind <> 'command'), sum(kind = 'command' AND origin = 'user'), \
-         sum(kind = 'command' AND origin = 'scheduled'), sum(failed) \
-         FROM event WHERE {where_clause} AND day > date('now', 'localtime', '-{WINDOW_DAYS} days') \
-         AND day <= date('now', 'localtime') GROUP BY day ORDER BY day"
-    );
-    let mut prepared = session.connection.prepare(&statement)?;
-    let rows = prepared.query_map(parameters, |row| {
-        Ok(json!([
-            row.get::<_, String>(0)?,
-            row.get::<_, i64>(1)?,
-            row.get::<_, i64>(2)?,
-            row.get::<_, i64>(3)?,
-            row.get::<_, i64>(4)?,
-            row.get::<_, i64>(5)?,
-        ]))
-    })?;
-    let days: Vec<Value> = rows.collect::<rusqlite::Result<Vec<_>>>()?;
+    let (start, until): (Option<String>, Option<String>) = session
+        .database
+        .query_one(&coverage)?
+        .map_or((None, None), |row| {
+            (row.optional_text(0), row.optional_text(1))
+        });
+    let statement = sql::bind(
+        &format!(
+            "SELECT date(at / 1000, 'unixepoch', 'localtime') AS day, sum(kind <> 'command' OR origin = 'user'), \
+             sum(kind <> 'command'), sum(kind = 'command' AND origin = 'user'), \
+             sum(kind = 'command' AND origin = 'scheduled'), sum(failed) \
+             FROM event WHERE {where_clause} AND day > date('now', 'localtime', '-{WINDOW_DAYS} days') \
+             AND day <= date('now', 'localtime') GROUP BY day ORDER BY day"
+        ),
+        parameters,
+    )?;
+    let days: Vec<Value> = session
+        .database
+        .query(&statement)?
+        .iter()
+        .map(|row| {
+            json!([
+                row.text(0),
+                row.integer(1),
+                row.integer(2),
+                row.integer(3),
+                row.integer(4),
+                row.integer(5),
+            ])
+        })
+        .collect();
     Ok(json!({
         "ok": true,
         "schemaVersion": SCHEMA_VERSION,
@@ -528,7 +532,7 @@ pub fn skill_usage(environment: &Environment, items: &[Value], scoped: bool) -> 
             "skill",
             &SKILL_AGENTS,
             "kind IN ('skill', 'command') AND name IN (SELECT value FROM json_each(?))",
-            &[&encoded],
+            &[Bound::Text(encoded)],
             false,
         );
     }
@@ -537,7 +541,7 @@ pub fn skill_usage(environment: &Environment, items: &[Value], scoped: bool) -> 
         "skill",
         &SKILL_AGENTS,
         "(kind = 'skill' OR (kind = 'command' AND name IN (SELECT value FROM json_each(?))))",
-        &[&encoded],
+        &[Bound::Text(encoded)],
         true,
     )
 }
@@ -555,38 +559,28 @@ pub fn forget(environment: &Environment, before: Option<&str>) -> Value {
     }
 }
 
-fn forgotten(environment: &Environment, before: Option<&str>) -> rusqlite::Result<Value> {
+fn forgotten(environment: &Environment, before: Option<&str>) -> sql::Result<Value> {
     let session = store::session(environment, false)?;
-    let connection = &session.connection;
-    pragma(connection, "PRAGMA secure_delete = ON")?;
-    connection.execute_batch("BEGIN IMMEDIATE")?;
-    let outcome = forget_inner(connection, before);
-    match &outcome {
-        Ok(_) => connection.execute_batch("COMMIT")?,
-        Err(_) => {
-            let _ = connection.execute_batch("ROLLBACK");
-        }
-    }
-    let removed = outcome?;
-    Ok(json!({"ok": true, "schemaVersion": SCHEMA_VERSION, "removed": removed}))
-}
-
-fn forget_inner(connection: &Connection, before: Option<&str>) -> rusqlite::Result<i64> {
-    let (cutoff, removed) = match before {
+    let database = &session.database;
+    let (cutoff, prelude, removal) = match before {
         Some(before) => {
-            let cutoff: i64 = connection.query_row(
+            let statement = sql::bind(
                 "SELECT CAST(strftime('%s', ?, 'utc') AS INTEGER) * 1000",
-                params![before],
-                |row| row.get(0),
+                &[Bound::from(before)],
             )?;
-            let removed =
-                connection.execute("DELETE FROM event WHERE at < ?", params![cutoff])? as i64;
-            connection.execute("DELETE FROM failure WHERE at < ?", params![cutoff])?;
-            connection.execute(
-                "UPDATE coverage SET first_at = max(first_at, ?)",
-                params![cutoff],
-            )?;
-            (cutoff, removed)
+            let cutoff = database
+                .query_one(&statement)?
+                .and_then(|row| row.optional_integer(0))
+                .ok_or_else(|| sql::Error::new("usage cutoff is not a day"))?;
+            let value = literal(&Bound::Integer(cutoff));
+            (
+                cutoff,
+                format!(
+                    "DELETE FROM failure WHERE at < {value};\n\
+                     UPDATE coverage SET first_at = max(first_at, {value});\n"
+                ),
+                format!("DELETE FROM event WHERE at < {value};\n"),
+            )
         }
         None => {
             let cutoff = std::time::SystemTime::now()
@@ -594,32 +588,31 @@ fn forget_inner(connection: &Connection, before: Option<&str>) -> rusqlite::Resu
                 .map(|elapsed| elapsed.as_millis() as i64)
                 .unwrap_or(0)
                 + 1;
-            let future: Vec<(String, String)> = {
-                let mut prepared = connection.prepare(
-                    "SELECT agent, call FROM event WHERE at >= ? UNION \
-                     SELECT agent, call FROM failure WHERE at >= ?",
-                )?;
-                let rows = prepared.query_map(params![cutoff, cutoff], |row| {
-                    Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-                })?;
-                rows.collect::<rusqlite::Result<Vec<_>>>()?
-            };
-            for (agent, call) in &future {
-                connection.execute(
-                    "INSERT OR IGNORE INTO forgotten VALUES (?)",
-                    params![identity(agent, call)],
-                )?;
-            }
-            let removed = connection.execute("DELETE FROM event", [])? as i64;
-            connection.execute_batch(
-                "DELETE FROM failure; DELETE FROM coverage; UPDATE source SET project = NULL; DELETE FROM project;",
+            let statement = sql::bind(
+                "SELECT agent, call FROM event WHERE at >= ? UNION \
+                 SELECT agent, call FROM failure WHERE at >= ?",
+                &[Bound::Integer(cutoff), Bound::Integer(cutoff)],
             )?;
-            (cutoff, removed)
+            let mut prelude = String::new();
+            for row in database.query(&statement)? {
+                prelude.push_str(&format!(
+                    "INSERT OR IGNORE INTO forgotten VALUES ({});\n",
+                    literal(&Bound::Blob(identity(&row.text(0), &row.text(1))))
+                ));
+            }
+            prelude.push_str(
+                "DELETE FROM failure;\nDELETE FROM coverage;\n\
+                 UPDATE source SET project = NULL;\nDELETE FROM project;\n",
+            );
+            (cutoff, prelude, "DELETE FROM event;\n".to_string())
         }
     };
-    connection.execute(
-        "INSERT INTO retention VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET before = max(before, excluded.before)",
-        params![cutoff],
-    )?;
-    Ok(removed)
+    let script = format!(
+        "PRAGMA secure_delete = ON;\nBEGIN IMMEDIATE;\n{prelude}\
+         INSERT INTO retention VALUES (1, {}) ON CONFLICT (id) DO UPDATE SET before = max(before, excluded.before);\n\
+         {removal}SELECT changes();\nCOMMIT;\n",
+        literal(&Bound::Integer(cutoff))
+    );
+    let removed = database.query_one(&script)?.map_or(0, |row| row.integer(0));
+    Ok(json!({"ok": true, "schemaVersion": SCHEMA_VERSION, "removed": removed}))
 }

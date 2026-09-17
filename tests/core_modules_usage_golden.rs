@@ -96,44 +96,41 @@ fn a_fresh_ingest_reproduces_the_recorded_rows_and_identities() {
         &std::fs::read_to_string(baseline("store-dump.json")).expect("golden dump"),
     )
     .expect("golden dump document");
-    let connection = fixture.open_store();
-    let version: i64 = connection
-        .query_row("PRAGMA user_version", [], |row| row.get(0))
-        .expect("user version");
+    let database = fixture.open_store();
+    let version = database
+        .query_one("PRAGMA user_version")
+        .expect("user version")
+        .map_or(0, |row| row.integer(0));
     assert_eq!(json!(version), dump["userVersion"]);
-    let mut statement = connection
-        .prepare(
+    let rows: Vec<Value> = database
+        .query(
             "SELECT agent, call, at, kind, origin, server, name, subagent, failed FROM event \
              ORDER BY agent, call",
         )
-        .expect("event query");
-    let rows: Vec<Value> = statement
-        .query_map([], |row| {
-            Ok(json!([
-                row.get::<_, String>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, i64>(2)?,
-                row.get::<_, String>(3)?,
-                row.get::<_, String>(4)?,
-                row.get::<_, String>(5)?,
-                row.get::<_, String>(6)?,
-                row.get::<_, i64>(7)?,
-                row.get::<_, i64>(8)?,
-            ]))
-        })
         .expect("event rows")
-        .collect::<rusqlite::Result<Vec<Value>>>()
-        .expect("event rows");
+        .iter()
+        .map(|row| {
+            json!([
+                row.text(0),
+                row.text(1),
+                row.integer(2),
+                row.text(3),
+                row.text(4),
+                row.text(5),
+                row.text(6),
+                row.integer(7),
+                row.integer(8),
+            ])
+        })
+        .collect();
     assert_eq!(Value::Array(rows.clone()), dump["events"]);
 
-    let mut statement = connection
-        .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
-        .expect("table query");
-    let tables: Vec<String> = statement
-        .query_map([], |row| row.get(0))
+    let tables: Vec<String> = database
+        .query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
         .expect("tables")
-        .collect::<rusqlite::Result<Vec<String>>>()
-        .expect("tables");
+        .iter()
+        .map(|row| row.text(0))
+        .collect();
     let mut recorded: Vec<String> = dump["tables"]
         .as_object()
         .expect("tables")
@@ -143,14 +140,12 @@ fn a_fresh_ingest_reproduces_the_recorded_rows_and_identities() {
     recorded.sort();
     assert_eq!(tables, recorded);
     for table in &tables {
-        let mut statement = connection
-            .prepare(&format!("PRAGMA table_info({table})"))
-            .expect("table info");
-        let columns: Vec<String> = statement
-            .query_map([], |row| row.get(1))
+        let columns: Vec<String> = database
+            .query(&format!("PRAGMA table_info({table})"))
             .expect("columns")
-            .collect::<rusqlite::Result<Vec<String>>>()
-            .expect("columns");
+            .iter()
+            .map(|row| row.text(1))
+            .collect();
         assert_eq!(
             Value::from(columns),
             dump["tables"][table]["columns"],

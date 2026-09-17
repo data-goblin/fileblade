@@ -1,5 +1,6 @@
 use super::records::{self, Batch};
-use rusqlite::{Connection, OptionalExtension, params};
+use super::sql::{self, Bound, Sql, literal};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
@@ -418,34 +419,22 @@ pub fn watch_paths(environment: &Environment) -> Vec<PathBuf> {
     unique
 }
 
-pub fn connect(directory: &Path) -> rusqlite::Result<Connection> {
+pub fn connect(directory: &Path) -> sql::Result<Sql> {
     connect_with_cache(directory, None)
 }
 
-fn connect_with_cache(directory: &Path, cache: Option<&Path>) -> rusqlite::Result<Connection> {
+fn connect_with_cache(directory: &Path, cache: Option<&Path>) -> sql::Result<Sql> {
     if let Some(cache) = cache {
         for name in ["agent-usage.json", "agent-usage.tmp"] {
             let _ = std::fs::remove_file(cache.join(name));
         }
     }
-    create_private_directory(directory).map_err(into_sqlite)?;
+    create_private_directory(directory)?;
     let path = directory.join("agent-usage.sqlite3");
-    create_private_file(&path).map_err(into_sqlite)?;
-    let connection = Connection::open(&path)?;
-    match prepare(&connection) {
-        Ok(()) => Ok(connection),
-        Err(error) => {
-            let _ = connection.close();
-            Err(error)
-        }
-    }
-}
-
-fn into_sqlite(error: std::io::Error) -> rusqlite::Error {
-    rusqlite::Error::SqliteFailure(
-        rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CANTOPEN),
-        Some(error.to_string()),
-    )
+    create_private_file(&path)?;
+    let database = Sql::open(&path)?;
+    prepare(&database)?;
+    Ok(database)
 }
 
 fn create_private_directory(directory: &Path) -> std::io::Result<()> {
@@ -471,56 +460,52 @@ fn create_private_file(path: &Path) -> std::io::Result<()> {
         .map(|_| ())
 }
 
-pub fn pragma(connection: &Connection, statement: &str) -> rusqlite::Result<()> {
-    let mut prepared = connection.prepare(statement)?;
-    let mut rows = prepared.query([])?;
-    while rows.next()?.is_some() {}
-    Ok(())
-}
-
-fn prepare(connection: &Connection) -> rusqlite::Result<()> {
-    pragma(connection, "PRAGMA busy_timeout = 5000")?;
-    pragma(connection, "PRAGMA journal_mode = WAL")?;
-    if user_version(connection)? == VERSION {
+fn prepare(database: &Sql) -> sql::Result<()> {
+    database.execute("PRAGMA journal_mode = WAL")?;
+    let version = user_version(database)?;
+    if version == VERSION {
         return Ok(());
     }
-    connection.execute_batch("BEGIN IMMEDIATE")?;
-    let result = migrate(connection);
-    if result.is_ok() {
-        connection.execute_batch("COMMIT")?;
-    } else {
-        let _ = connection.execute_batch("ROLLBACK");
+    if !(version == 0 || version == 1 || version == 2) {
+        return Err(sql::Error::new("unsupported usage schema"));
     }
-    result
-}
-
-fn migrate(connection: &Connection) -> rusqlite::Result<()> {
-    let version = user_version(connection)?;
-    if !(version == 0 || version == 1 || version == 2 || version == VERSION) {
-        return Err(rusqlite::Error::SqliteFailure(
-            rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
-            Some("unsupported usage schema".to_string()),
-        ));
-    }
+    let mut script = String::from("BEGIN IMMEDIATE;\n");
     if version == 0 {
         for statement in SCHEMA {
-            connection.execute_batch(statement)?;
+            script.push_str(statement);
+            script.push_str(";\n");
         }
-        connection.execute_batch(EVENT_NAME_INDEX)?;
+        script.push_str(EVENT_NAME_INDEX);
+        script.push_str(";\n");
     }
     if version < 2 {
-        connection.execute_batch(RETENTION)?;
-        connection.execute_batch(FAILURE)?;
-        connection.execute_batch(FORGOTTEN)?;
+        for statement in [RETENTION, FAILURE, FORGOTTEN] {
+            script.push_str(statement);
+            script.push_str(";\n");
+        }
     }
     if version < 3 {
-        connection.execute_batch(FAILURE_AGENT)?;
+        script.push_str(FAILURE_AGENT);
+        script.push_str(";\n");
     }
-    pragma(connection, &format!("PRAGMA user_version = {VERSION}"))
+    script.push_str(&format!("PRAGMA user_version = {VERSION};\nCOMMIT;\n"));
+    match database.execute(&script) {
+        Ok(()) => Ok(()),
+        Err(error) => {
+            if user_version(database)? == VERSION {
+                Ok(())
+            } else {
+                Err(error)
+            }
+        }
+    }
 }
 
-fn user_version(connection: &Connection) -> rusqlite::Result<i64> {
-    connection.query_row("PRAGMA user_version", [], |row| row.get(0))
+fn user_version(database: &Sql) -> sql::Result<i64> {
+    database
+        .query_one("PRAGMA user_version")?
+        .map(|row| row.integer(0))
+        .ok_or_else(|| sql::Error::new("usage store has no schema version"))
 }
 
 struct Lock {
@@ -685,36 +670,37 @@ fn read_bounded_line(
     Ok(())
 }
 
-fn opencode_tables(connection: &Connection) -> rusqlite::Result<Vec<String>> {
-    let mut statement =
-        connection.prepare("SELECT name FROM sqlite_master WHERE type = 'table'")?;
-    let rows = statement.query_map([], |row| row.get::<_, String>(0))?;
-    rows.collect()
+fn remaining(deadline: Instant) -> Duration {
+    deadline.saturating_duration_since(Instant::now())
 }
 
 fn read_sqlite(path: &Path, row: Option<&Known>, deadline: Instant) -> std::io::Result<Batch> {
     let watermark = row.map_or(0, |row| row.offset.max(0));
     let mut batch = Batch::new(watermark, None, clean_path(path));
-    let connection = Connection::open(path).map_err(sqlite_io)?;
-    let outcome = read_opencode(&connection, watermark, &mut batch, deadline);
-    let _ = connection.close();
-    outcome?;
+    let database = Sql::open_readonly(path)
+        .map_err(sqlite_io)?
+        .with_busy(1000)
+        .with_timeout(remaining(deadline));
+    read_opencode(&database, watermark, &mut batch, deadline)?;
     Ok(batch)
 }
 
-fn sqlite_io(error: rusqlite::Error) -> std::io::Error {
+fn sqlite_io(error: sql::Error) -> std::io::Error {
     std::io::Error::other(error.to_string())
 }
 
 fn read_opencode(
-    connection: &Connection,
+    database: &Sql,
     watermark: i64,
     batch: &mut Batch,
     deadline: Instant,
 ) -> std::io::Result<()> {
-    pragma(connection, "PRAGMA query_only = ON").map_err(sqlite_io)?;
-    pragma(connection, "PRAGMA busy_timeout = 1000").map_err(sqlite_io)?;
-    let tables = opencode_tables(connection).map_err(sqlite_io)?;
+    let tables: Vec<String> = database
+        .query("SELECT name FROM sqlite_master WHERE type = 'table'")
+        .map_err(sqlite_io)?
+        .iter()
+        .map(|row| row.text(0))
+        .collect();
     let has = |name: &str| tables.iter().any(|entry| entry == name);
     let (query, table) = if has("part") && has("session") {
         (
@@ -734,51 +720,37 @@ fn read_opencode(
         return Ok(());
     };
     if watermark == 0 {
-        let earliest: Option<i64> = connection
-            .query_row(
-                &format!("SELECT min(time_created) FROM {table}"),
-                [],
-                |row| row.get(0),
-            )
-            .optional()
+        let earliest = database
+            .query_one(&format!("SELECT min(time_created) FROM {table}"))
             .map_err(sqlite_io)?
-            .flatten();
+            .and_then(|row| row.optional_integer(0));
         if let Some(earliest) = earliest {
             batch.note(earliest);
         }
     }
-    let mut statement = connection.prepare(query).map_err(sqlite_io)?;
-    let mut rows = statement
-        .query_map(params![watermark, CHUNK_ROWS as i64 + 1], |row| {
-            Ok((
-                row.get::<_, rusqlite::types::Value>(0)?,
-                row.get::<_, Option<i64>>(1)?,
-                row.get::<_, Option<i64>>(2)?,
-                row.get::<_, rusqlite::types::Value>(3)?,
-                row.get::<_, Option<String>>(4)?,
-            ))
-        })
-        .map_err(sqlite_io)?
-        .collect::<rusqlite::Result<Vec<_>>>()
-        .map_err(sqlite_io)?;
+    let statement = sql::bind(
+        query,
+        &[
+            Bound::Integer(watermark),
+            Bound::Integer(CHUNK_ROWS as i64 + 1),
+        ],
+    )
+    .map_err(sqlite_io)?;
+    let mut rows = database.query(&statement).map_err(sqlite_io)?;
     batch.pending = rows.len() > CHUNK_ROWS;
     rows.truncate(CHUNK_ROWS);
-    for (identity, updated, created, data, directory) in rows {
+    for row in rows {
         if Instant::now() >= deadline {
             batch.pending = true;
             break;
         }
-        batch.offset = batch.offset.max(updated.unwrap_or(0));
-        let text = match data {
-            rusqlite::types::Value::Text(text) => text,
-            rusqlite::types::Value::Blob(bytes) => clean_bytes(&bytes),
-            _ => continue,
-        };
-        let Ok(serde_json::Value::Object(document)) = serde_json::from_str(&text) else {
+        let created = row.optional_integer(2);
+        batch.offset = batch.offset.max(row.optional_integer(1).unwrap_or(0));
+        let Some(document) = payload(row.value(3)) else {
             continue;
         };
-        let project = directory.filter(|value| !value.is_empty());
-        let identity = value_text(&identity);
+        let project = row.optional_text(4).filter(|value| !value.is_empty());
+        let identity = value_text(row.value(0));
         if table == "session" {
             let state = records::mapping(document.get("state")).clone();
             let time = records::mapping(state.get("time")).clone();
@@ -790,7 +762,7 @@ fn read_opencode(
             continue;
         }
         let content = match document.get("content") {
-            Some(serde_json::Value::Array(items)) => items.clone(),
+            Some(Value::Array(items)) => items.clone(),
             _ => Vec::new(),
         };
         for (index, item) in content.iter().enumerate() {
@@ -812,15 +784,15 @@ fn read_opencode(
                 }
             };
             let mut shaped = serde_json::Map::new();
-            shaped.insert("type".to_string(), serde_json::Value::from("tool"));
-            shaped.insert("callID".to_string(), serde_json::Value::from(call));
+            shaped.insert("type".to_string(), Value::from("tool"));
+            shaped.insert("callID".to_string(), Value::from(call));
             shaped.insert(
                 "tool".to_string(),
-                serde_json::Value::from(records::text(item.get("name"))),
+                Value::from(records::text(item.get("name"))),
             );
             shaped.insert(
                 "state".to_string(),
-                serde_json::Value::Object(records::mapping(item.get("state")).clone()),
+                Value::Object(records::mapping(item.get("state")).clone()),
             );
             let at = batch.note(at);
             records::opencode_part(
@@ -833,6 +805,23 @@ fn read_opencode(
         }
     }
     Ok(())
+}
+
+fn payload(value: &Value) -> Option<serde_json::Map<String, Value>> {
+    let Value::String(text) = value else {
+        return None;
+    };
+    if let Ok(Value::Object(document)) = serde_json::from_str::<Value>(text) {
+        return Some(document);
+    }
+    let bytes: Vec<u8> = text
+        .chars()
+        .map(|character| (character as u32 & 0xff) as u8)
+        .collect();
+    match serde_json::from_str::<Value>(&clean_bytes(&bytes)) {
+        Ok(Value::Object(document)) => Some(document),
+        _ => None,
+    }
 }
 
 fn chosen_moment(
@@ -863,66 +852,40 @@ fn chosen_moment(
     }
 }
 
-fn value_text(value: &rusqlite::types::Value) -> String {
+fn value_text(value: &Value) -> String {
     match value {
-        rusqlite::types::Value::Null => "None".to_string(),
-        rusqlite::types::Value::Integer(number) => number.to_string(),
-        rusqlite::types::Value::Real(number) => number.to_string(),
-        rusqlite::types::Value::Text(text) => text.clone(),
-        rusqlite::types::Value::Blob(bytes) => clean_bytes(bytes),
+        Value::Null => "None".to_string(),
+        Value::String(text) => text.clone(),
+        other => other.to_string(),
     }
 }
 
-fn project_id(connection: &Connection, path: Option<&str>) -> rusqlite::Result<Option<i64>> {
-    let Some(path) = path else { return Ok(None) };
-    let clean = clean_bytes(path.as_bytes());
-    connection.execute(
-        "INSERT OR IGNORE INTO project (path) VALUES (?)",
-        params![clean],
-    )?;
-    connection
-        .query_row(
-            "SELECT id FROM project WHERE path = ?",
-            params![clean],
-            |row| row.get(0),
-        )
-        .map(Some)
+fn project_reference(script: &mut String, path: Option<&str>) -> String {
+    let Some(path) = path else {
+        return "NULL".to_string();
+    };
+    let value = literal(&Bound::Text(clean_bytes(path.as_bytes())));
+    script.push_str(&format!(
+        "INSERT OR IGNORE INTO project (path) VALUES ({value});\n"
+    ));
+    format!("(SELECT id FROM project WHERE path = {value})")
 }
 
 fn write(
-    connection: &Connection,
+    database: &Sql,
     agent: &str,
     path: &str,
     status: Identity,
     batch: &Batch,
-) -> rusqlite::Result<()> {
-    connection.execute_batch("BEGIN IMMEDIATE")?;
-    let result = write_inner(connection, agent, path, status, batch);
-    if result.is_ok() {
-        connection.execute_batch("COMMIT")?;
-    } else {
-        let _ = connection.execute_batch("ROLLBACK");
-    }
-    result
-}
-
-fn write_inner(
-    connection: &Connection,
-    agent: &str,
-    path: &str,
-    status: Identity,
-    batch: &Batch,
-) -> rusqlite::Result<()> {
-    let cutoff: i64 = connection.query_row(
-        "SELECT coalesce(max(before), -9223372036854775808) FROM retention",
-        [],
-        |row| row.get(0),
-    )?;
-    let forgotten: Vec<Vec<u8>> = {
-        let mut statement = connection.prepare("SELECT identity FROM forgotten")?;
-        let rows = statement.query_map([], |row| row.get::<_, Vec<u8>>(0))?;
-        rows.collect::<rusqlite::Result<Vec<_>>>()?
-    };
+) -> sql::Result<()> {
+    let cutoff = database
+        .query_one("SELECT coalesce(max(before), -9223372036854775808) FROM retention")?
+        .map_or(i64::MIN, |row| row.integer(0));
+    let forgotten: Vec<Vec<u8>> = database
+        .query("SELECT identity FROM forgotten")?
+        .iter()
+        .map(|row| row.blob(0))
+        .collect();
     let kept = |agent: &str, call: &str| {
         forgotten.is_empty() || !forgotten.contains(&identity(agent, call))
     };
@@ -935,76 +898,84 @@ fn write_inner(
         None => false,
         Some(first) => !events.is_empty() || (batch.events.is_empty() && first >= cutoff),
     };
+    let mut script = String::from("BEGIN IMMEDIATE;\n");
     for event in &events {
-        let project = project_id(connection, event.project.as_deref())?;
-        connection.execute(
-            "INSERT OR IGNORE INTO event VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            params![
-                clean_bytes(event.agent.as_bytes()),
-                clean_bytes(event.call.as_bytes()),
-                event.at,
-                clean_bytes(event.kind.as_bytes()),
-                clean_bytes(event.origin.as_bytes()),
-                clean_bytes(event.server.as_bytes()),
-                clean_bytes(event.name.as_bytes()),
-                event.subagent,
-                project,
-                event.failed,
-            ],
-        )?;
+        let project = project_reference(&mut script, event.project.as_deref());
+        let values = [
+            literal(&Bound::Text(clean_bytes(event.agent.as_bytes()))),
+            literal(&Bound::Text(clean_bytes(event.call.as_bytes()))),
+            literal(&Bound::Integer(event.at)),
+            literal(&Bound::Text(clean_bytes(event.kind.as_bytes()))),
+            literal(&Bound::Text(clean_bytes(event.origin.as_bytes()))),
+            literal(&Bound::Text(clean_bytes(event.server.as_bytes()))),
+            literal(&Bound::Text(clean_bytes(event.name.as_bytes()))),
+            literal(&Bound::Integer(event.subagent)),
+            project,
+            literal(&Bound::Integer(event.failed)),
+        ];
+        script.push_str(&format!(
+            "INSERT OR IGNORE INTO event VALUES ({});\n",
+            values.join(", ")
+        ));
     }
     if !events.is_empty() || !batch.failures.is_empty() {
         for (call, at) in &batch.failures {
             if *at < cutoff || !kept(agent, call) {
                 continue;
             }
-            connection.execute(
-                "INSERT OR IGNORE INTO failure (call, at, agent) VALUES (?, ?, ?)",
-                params![clean_bytes(call.as_bytes()), at, agent],
-            )?;
+            script.push_str(&format!(
+                "INSERT OR IGNORE INTO failure (call, at, agent) VALUES ({}, {}, {});\n",
+                literal(&Bound::Text(clean_bytes(call.as_bytes()))),
+                literal(&Bound::Integer(*at)),
+                literal(&Bound::Text(agent.to_string()))
+            ));
         }
-        connection.execute_batch(
-            "UPDATE event SET failed = 1 WHERE (agent, call) IN (SELECT agent, call FROM failure);\
-             DELETE FROM failure WHERE EXISTS (SELECT 1 FROM event WHERE event.agent = failure.agent AND event.call = failure.call);",
-        )?;
+        script.push_str(
+            "UPDATE event SET failed = 1 WHERE (agent, call) IN (SELECT agent, call FROM failure);\n\
+             DELETE FROM failure WHERE EXISTS (SELECT 1 FROM event WHERE event.agent = failure.agent AND event.call = failure.call);\n",
+        );
     }
     if covered {
-        connection.execute(
-            "INSERT INTO coverage VALUES (?, ?) ON CONFLICT (agent) DO UPDATE \
-             SET first_at = min(first_at, excluded.first_at)",
-            params![agent, cutoff.max(batch.first_at.unwrap_or(cutoff))],
-        )?;
+        script.push_str(&format!(
+            "INSERT INTO coverage VALUES ({}, {}) ON CONFLICT (agent) DO UPDATE \
+             SET first_at = min(first_at, excluded.first_at);\n",
+            literal(&Bound::Text(agent.to_string())),
+            literal(&Bound::Integer(
+                cutoff.max(batch.first_at.unwrap_or(cutoff))
+            ))
+        ));
     }
     let project = if covered {
-        project_id(connection, batch.project.as_deref())?
+        project_reference(&mut script, batch.project.as_deref())
     } else {
-        connection.query_row(
-            "SELECT (SELECT project FROM source WHERE path = ?)",
-            params![path],
-            |row| row.get::<_, Option<i64>>(0),
-        )?
+        format!(
+            "(SELECT project FROM source WHERE path = {})",
+            literal(&Bound::Text(path.to_string()))
+        )
     };
     let size = if agent == "opencode" && batch.pending {
         -1
     } else {
         status.size
     };
-    connection.execute(
-        "INSERT INTO source (agent, path, device, inode, size, mtime, offset, project) VALUES (?, ?, ?, ?, ?, ?, ?, ?) \
+    let values = [
+        literal(&Bound::Text(agent.to_string())),
+        literal(&Bound::Text(path.to_string())),
+        literal(&Bound::Integer(status.device)),
+        literal(&Bound::Integer(status.inode)),
+        literal(&Bound::Integer(size)),
+        literal(&Bound::Integer(status.mtime)),
+        literal(&Bound::Integer(batch.offset)),
+        project,
+    ];
+    script.push_str(&format!(
+        "INSERT INTO source (agent, path, device, inode, size, mtime, offset, project) VALUES ({}) \
          ON CONFLICT (path) DO UPDATE SET agent = excluded.agent, device = excluded.device, inode = excluded.inode, \
-         size = excluded.size, mtime = excluded.mtime, offset = excluded.offset, project = excluded.project",
-        params![
-            agent,
-            path,
-            status.device,
-            status.inode,
-            size,
-            status.mtime,
-            batch.offset,
-            project
-        ],
-    )?;
-    Ok(())
+         size = excluded.size, mtime = excluded.mtime, offset = excluded.offset, project = excluded.project;\n",
+        values.join(", ")
+    ));
+    script.push_str("COMMIT;\n");
+    database.execute(&script)
 }
 
 fn complete(agent: &str, row: &Known, status: Identity) -> bool {
@@ -1019,39 +990,32 @@ fn complete(agent: &str, row: &Known, status: Identity) -> bool {
 }
 
 pub fn ingest(
-    connection: &Connection,
+    database: &Sql,
     environment: &Environment,
     directory: &Path,
-) -> rusqlite::Result<(bool, i64)> {
+) -> sql::Result<(bool, i64)> {
     let deadline = Instant::now() + BUDGET;
-    let lock = Lock::acquire(&directory.join("agent-usage.sqlite3.lock")).map_err(into_sqlite)?;
+    let lock = Lock::acquire(&directory.join("agent-usage.sqlite3.lock"))?;
     let Some(_lock) = lock else {
         return Ok((true, 0));
     };
     let (found, mut unreadable) = transcripts(environment);
     let mut known: HashMap<String, Known> = HashMap::new();
-    {
-        let mut statement = connection.prepare(
-            "SELECT source.path, device, inode, size, mtime, offset, project.path FROM source \
-             LEFT JOIN project ON project.id = source.project",
-        )?;
-        let rows = statement.query_map([], |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                Known {
-                    device: row.get(1)?,
-                    inode: row.get(2)?,
-                    size: row.get(3)?,
-                    mtime: row.get(4)?,
-                    offset: row.get(5)?,
-                    project: row.get(6)?,
-                },
-            ))
-        })?;
-        for row in rows {
-            let (path, entry) = row?;
-            known.insert(path, entry);
-        }
+    for row in database.query(
+        "SELECT source.path, device, inode, size, mtime, offset, project.path FROM source \
+         LEFT JOIN project ON project.id = source.project",
+    )? {
+        known.insert(
+            row.text(0),
+            Known {
+                device: row.integer(1),
+                inode: row.integer(2),
+                size: row.integer(3),
+                mtime: row.integer(4),
+                offset: row.integer(5),
+                project: row.optional_text(6),
+            },
+        );
     }
     let mut pending = false;
     for (agent, path, status) in &found {
@@ -1080,7 +1044,7 @@ pub fn ingest(
                     break;
                 }
             };
-            write(connection, agent, &text, *status, &batch)?;
+            write(database, agent, &text, *status, &batch)?;
             if !batch.pending || Instant::now() >= deadline {
                 pending = pending || batch.pending;
                 break;
@@ -1103,46 +1067,36 @@ pub fn ingest(
         .cloned()
         .collect();
     if !vanished.is_empty() && !pending {
-        connection.execute_batch("BEGIN IMMEDIATE")?;
-        let outcome = (|| -> rusqlite::Result<()> {
-            for path in &vanished {
-                connection.execute("DELETE FROM source WHERE path = ?", params![path])?;
-            }
-            Ok(())
-        })();
-        if outcome.is_ok() {
-            connection.execute_batch("COMMIT")?;
-        } else {
-            let _ = connection.execute_batch("ROLLBACK");
+        let mut script = String::from("BEGIN IMMEDIATE;\n");
+        for path in &vanished {
+            script.push_str(&format!(
+                "DELETE FROM source WHERE path = {};\n",
+                literal(&Bound::Text(path.clone()))
+            ));
         }
-        outcome?;
+        script.push_str("COMMIT;\n");
+        database.execute(&script)?;
     }
     Ok((pending, unreadable))
 }
 
 pub struct Session {
-    pub connection: Connection,
+    pub database: Sql,
     pub pending: bool,
     pub unreadable: i64,
 }
 
-pub fn session(environment: &Environment, ingest_history: bool) -> rusqlite::Result<Session> {
+pub fn session(environment: &Environment, ingest_history: bool) -> sql::Result<Session> {
     let directory = environment.state();
     let cache = environment.cache();
-    let connection = connect_with_cache(&directory, Some(&cache))?;
+    let database = connect_with_cache(&directory, Some(&cache))?;
     let (pending, unreadable) = if ingest_history {
-        match ingest(&connection, environment, &directory) {
-            Ok(result) => result,
-            Err(error) => {
-                let _ = connection.close();
-                return Err(error);
-            }
-        }
+        ingest(&database, environment, &directory)?
     } else {
         (false, 0)
     };
     Ok(Session {
-        connection,
+        database,
         pending,
         unreadable,
     })

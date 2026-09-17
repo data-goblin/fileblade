@@ -2,8 +2,39 @@
 mod usage_fixtures;
 
 use chrono::{Duration, Utc};
+use fileblade::core_modules::usage::sql::Sql;
 use serde_json::{Value, json};
+use std::io::{BufRead, BufReader, Write};
+use std::path::Path;
+use std::process::{Child, Command, Stdio};
 use usage_fixtures::*;
+
+fn count_of(database: &Sql, statement: &str) -> i64 {
+    database
+        .query_one(statement)
+        .expect("count")
+        .map_or(0, |row| row.integer(0))
+}
+
+fn snapshot_reader(store: &Path) -> Child {
+    let mut child = Command::new("sqlite3")
+        .args(["-batch", "-bail"])
+        .arg(store)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("snapshot reader");
+    let stdin = child.stdin.as_mut().expect("snapshot stdin");
+    stdin
+        .write_all(b"BEGIN;\nSELECT count(*) FROM event;\n")
+        .expect("snapshot statements");
+    stdin.flush().expect("snapshot flush");
+    let mut answer = String::new();
+    BufReader::new(child.stdout.as_mut().expect("snapshot stdout"))
+        .read_line(&mut answer)
+        .expect("snapshot answer");
+    child
+}
 
 fn alpha() -> Value {
     stub("skill-alpha", "alpha", "user")
@@ -447,13 +478,9 @@ fn forget_removes_history_before_a_day_or_all_of_it() {
     let history = fixture.history(&items);
     assert_eq!(history["coverageStart"], Value::Null);
     assert_eq!(history["days"], json!([]));
-    let connection = fixture.open_store();
-    let events: i64 = connection
-        .query_row("SELECT count(*) FROM event", [], |row| row.get(0))
-        .expect("events");
-    let projects: i64 = connection
-        .query_row("SELECT count(*) FROM project", [], |row| row.get(0))
-        .expect("projects");
+    let database = fixture.open_store();
+    let events = count_of(&database, "SELECT count(*) FROM event");
+    let projects = count_of(&database, "SELECT count(*) FROM project");
     assert_eq!((events, projects), (0, 0));
 }
 
@@ -622,14 +649,13 @@ fn schema_upgrade_preserves_history_from_deleted_transcripts() {
     );
     let expected = fixture.mcp_history()["days"].clone();
     std::fs::remove_file(path).expect("remove");
-    let connection = fixture.open_store();
-    connection
-        .execute_batch(
+    fixture
+        .open_store()
+        .execute(
             "DROP TABLE IF EXISTS retention; DROP TABLE IF EXISTS failure; \
              DROP TABLE IF EXISTS forgotten; PRAGMA user_version = 1;",
         )
         .expect("downgrade");
-    drop(connection);
     assert_eq!(fixture.mcp_history()["days"], expected);
 }
 
@@ -643,18 +669,14 @@ fn unknown_schema_is_refused_without_erasing_history() {
         &[called(day, "preserved", "mcp__docs__search", json!({}))],
     );
     fixture.mcp_history();
-    let connection = fixture.open_store();
-    connection
-        .execute_batch("PRAGMA user_version = 99")
+    fixture
+        .open_store()
+        .execute("PRAGMA user_version = 99")
         .expect("unknown schema");
-    drop(connection);
     let refused = fixture.mcp_history();
     assert_eq!(refused["ok"], json!(false));
     assert_eq!(refused["error"], json!("usage store unavailable"));
-    let connection = fixture.open_store();
-    let events: i64 = connection
-        .query_row("SELECT count(*) FROM event", [], |row| row.get(0))
-        .expect("events");
+    let events = count_of(&fixture.open_store(), "SELECT count(*) FROM event");
     assert_eq!(events, 1);
 }
 
@@ -675,10 +697,7 @@ fn full_forget_keeps_old_codex_project_paths_out_of_replayed_chunks() {
     std::fs::write(&replacement, &body).expect("replacement");
     std::fs::rename(replacement, &path).expect("replace");
     assert_eq!(fixture.mcp_history()["days"], json!([]));
-    let connection = fixture.open_store();
-    let projects: i64 = connection
-        .query_row("SELECT count(*) FROM project", [], |row| row.get(0))
-        .expect("projects");
+    let projects = count_of(&fixture.open_store(), "SELECT count(*) FROM project");
     assert_eq!(projects, 0);
 }
 
@@ -718,21 +737,13 @@ fn forget_commits_while_another_connection_keeps_a_read_snapshot() {
         &[called(day, "private", "mcp__docs__private_name", json!({}))],
     );
     fixture.mcp_history();
-    let reader = fixture.open_store();
-    reader.execute_batch("BEGIN").expect("snapshot");
-    reader
-        .prepare("SELECT * FROM event")
-        .and_then(|mut statement| {
-            statement
-                .query_map([], |_| Ok(()))?
-                .collect::<rusqlite::Result<Vec<()>>>()
-        })
-        .expect("snapshot rows");
+    let mut reader = snapshot_reader(&fixture.store);
     assert_eq!(
         fixture.forget(None),
         json!({"ok": true, "schemaVersion": 1, "removed": 1})
     );
-    drop(reader);
+    drop(reader.stdin.take());
+    reader.wait().expect("snapshot reader");
     assert_eq!(fixture.mcp_history()["days"], json!([]));
     let bytes = std::fs::read(&fixture.store).expect("store bytes");
     assert!(
@@ -748,15 +759,14 @@ fn concurrent_readers_ingest_once_and_agree() {
     let fixture = Fixture::new();
     let day = fixture.day;
     assert_eq!(fixture.mcp_history()["days"], json!([]));
-    let connection = fixture.open_store();
-    connection
-        .execute_batch(
+    fixture
+        .open_store()
+        .execute(
             "CREATE TABLE ingest_log (path TEXT NOT NULL);\
              CREATE TRIGGER source_inserted AFTER INSERT ON source BEGIN INSERT INTO ingest_log VALUES (NEW.path); END;\
              CREATE TRIGGER source_updated AFTER UPDATE ON source BEGIN INSERT INTO ingest_log VALUES (NEW.path); END;",
         )
         .expect("ingest log");
-    drop(connection);
     for session in 0..24 {
         let records: Vec<Value> = std::iter::once(opening())
             .chain((0..40).map(|call| {
@@ -790,13 +800,11 @@ fn concurrent_readers_ingest_once_and_agree() {
         answers[0]["days"],
         json!([[fixture.date(day), 960, 960, 0, 0, 0]])
     );
-    let connection = fixture.open_store();
-    let writes: (i64, i64) = connection
-        .query_row(
-            "SELECT count(DISTINCT path), count(*) FROM ingest_log",
-            [],
-            |row| Ok((row.get(0)?, row.get(1)?)),
-        )
-        .expect("ingest log rows");
+    let row = fixture
+        .open_store()
+        .query_one("SELECT count(DISTINCT path), count(*) FROM ingest_log")
+        .expect("ingest log rows")
+        .expect("ingest log row");
+    let writes: (i64, i64) = (row.integer(0), row.integer(1));
     assert_eq!(writes, (24, 24));
 }
