@@ -23,6 +23,7 @@ semver = "1.0.28"
 sha2 = "0.11.0"
 tempfile = "3.27.0"
 thiserror = "2.0.20"
+toml = { version = "0.9.8", default-features = false, features = ["parse", "serde"] }
 url = "2.5.8"
 uuid = "1.26.0"
 xattr = "1.6.1"
@@ -53,6 +54,7 @@ serde_json.workspace = true
 semver.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
+toml.workspace = true
 url.workspace = true
 uuid = { workspace = true, features = ["v4"] }
 xattr.workspace = true

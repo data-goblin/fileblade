@@ -4,6 +4,7 @@ pub mod frontmatter;
 pub mod glob;
 pub mod metrics;
 pub mod recovery_store;
+pub mod skills;
 pub mod text;
 pub mod watch;
 
@@ -14,8 +15,10 @@ use serde_json::Value;
 pub type CoreHandler = fn(&Request<'_>, &[String]) -> AppResult<Value>;
 
 pub fn registered(route: CoreRoute, method: &str) -> Option<CoreHandler> {
-    let _ = (route, method);
-    None
+    match route {
+        CoreRoute::Skills => skills::handler(method),
+        _ => None,
+    }
 }
 
 pub fn dispatch(

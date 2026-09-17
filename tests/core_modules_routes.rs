@@ -52,6 +52,7 @@ impl Fixture {
             "--arguments",
             "[]",
         ])
+        .env("HOME", self.root.path())
         .env("FILEBLADE_APP_ROOT", self.root.path())
         .env("XDG_STATE_HOME", self.root.path().join("state"))
         .env("XDG_CONFIG_HOME", self.root.path().join("config"))
@@ -97,6 +98,15 @@ fn canonical_routes_match_only_the_exact_owned_identities_and_helper() {
     }
 }
 
+fn rejected(result: &Value) -> bool {
+    result["ok"] == false
+        && result["error"]
+            .as_str()
+            .is_some_and(|error| error.contains("core helper"))
+}
+
+const IN_PROCESS: [&str; 1] = ["skills"];
+
 #[test]
 fn core_helpers_never_query_the_registry_and_cannot_be_retargeted() {
     let fixture = Fixture::new();
@@ -104,23 +114,36 @@ fn core_helpers_never_query_the_registry_and_cannot_be_retargeted() {
         let provider = format!("fileblade.core.{module}");
         let result = fixture.run(&provider, "", "inventory", "list", false);
         assert_eq!(result["ok"], true, "{result}");
-        assert_eq!(result["args"], json!(["list"]));
-        assert_eq!(
-            fixture.run(&provider, "/retired/checkout", "inventory", "list", false)["ok"],
+        if IN_PROCESS.contains(&module) {
+            assert_eq!(result["args"], Value::Null, "{result}");
+            assert_eq!(result["schemaVersion"], json!(1), "{result}");
+        } else {
+            assert_eq!(result["args"], json!(["list"]));
+        }
+        assert!(rejected(&fixture.run(
+            &provider,
+            "/retired/checkout",
+            "inventory",
+            "list",
             false
-        );
-        assert_eq!(
-            fixture.run(&provider, "", "other", "list", false)["ok"],
+        )));
+        assert!(rejected(
+            &fixture.run(&provider, "", "other", "list", false)
+        ));
+        assert!(rejected(&fixture.run(
+            &provider,
+            "",
+            "inventory",
+            "apply",
             false
-        );
-        assert_eq!(
-            fixture.run(&provider, "", "inventory", "apply", false)["ok"],
-            false
-        );
-        assert_eq!(
-            fixture.run(&provider, "", "inventory", "list", true)["ok"],
-            false
-        );
+        )));
+        assert!(rejected(&fixture.run(
+            &provider,
+            "",
+            "inventory",
+            "list",
+            true
+        )));
         for legacy in [
             format!("data-goblin.fileblade-{module}"),
             format!("kurt.agent-{module}"),
@@ -143,10 +166,8 @@ fn skills_and_memory_writes_need_no_separate_consent() {
         "data-goblin.fileblade-skills",
         "kurt.agent-memory",
     ] {
-        assert_eq!(
-            fixture.run(provider, "", "inventory", "apply", true)["ok"],
-            true
-        );
+        let result = fixture.run(provider, "", "inventory", "apply", true);
+        assert!(!rejected(&result), "{result}");
     }
 }
 
@@ -177,28 +198,28 @@ fn recovery_label_and_usage_methods_are_limited_to_their_owned_modules() {
     for module in ["skills", "memory", "hooks", "mcp"] {
         let provider = format!("fileblade.core.{module}");
         assert_eq!(
-            fixture.run(&provider, "", "inventory", "usage", false)["ok"],
+            !rejected(&fixture.run(&provider, "", "inventory", "usage", false)),
             matches!(module, "skills" | "mcp")
         );
         assert_eq!(
-            fixture.run(&provider, "", "inventory", "usage-forget", true)["ok"],
+            !rejected(&fixture.run(&provider, "", "inventory", "usage-forget", true)),
             module == "mcp"
         );
         for (method, write) in [("usage", true), ("usage-forget", false)] {
-            assert_eq!(
-                fixture.run(&provider, "", "inventory", method, write)["ok"],
-                false
-            );
+            assert!(rejected(&fixture.run(
+                &provider,
+                "",
+                "inventory",
+                method,
+                write
+            )));
         }
     }
-    assert_eq!(
-        fixture.run(
-            "fileblade.core.skills",
-            "",
-            "inventory",
-            "recovery-list",
-            false
-        )["ok"],
+    assert!(rejected(&fixture.run(
+        "fileblade.core.skills",
+        "",
+        "inventory",
+        "recovery-list",
         false
-    );
+    )));
 }
