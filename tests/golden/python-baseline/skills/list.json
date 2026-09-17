@@ -2,7 +2,7 @@
   "ok": true,
   "schemaVersion": 1,
   "project": "/tmp",
-  "count": 8,
+  "count": 9,
   "truncated": false,
   "agents": [
     "claude-code",
@@ -14,12 +14,60 @@
   ],
   "items": [
     {
+      "id": "163bcee43247ec69",
+      "name": "native-byte",
+      "detail": "A native-byte skill",
+      "metrics": {
+        "updated": "2025-09-16 05:20",
+        "created": "2026-09-17 20:01",
+        "bytes": 82,
+        "characters": 82,
+        "words": 12,
+        "tokens": 5,
+        "fileTokens": 21,
+        "uses": 0,
+        "usesAgent": 0,
+        "usesUser": 0,
+        "usesScheduled": 0,
+        "failed": 0
+      },
+      "scope": "project",
+      "root_kind": "project",
+      "source": "loose",
+      "path": "file://{ROOT}/skills/work/project/.claude/skills/native-%FF/SKILL.md",
+      "link_target": "",
+      "agents": [
+        "claude-code",
+        "copilot-cli",
+        "opencode"
+      ],
+      "agent_labels": [
+        "Claude Code",
+        "GitHub Copilot CLI",
+        "OpenCode"
+      ],
+      "roots": [
+        "{ROOT}/skills/work/project/.claude/skills"
+      ],
+      "precedence": 2,
+      "enabled": null,
+      "badges": [
+        "project",
+        "3 agents"
+      ],
+      "uses": 0,
+      "usesAgent": 0,
+      "usesUser": 0,
+      "usesScheduled": 0,
+      "failed": 0
+    },
+    {
       "id": "106ab5b23026770d",
       "name": "project-only",
       "detail": "A project skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 80,
         "characters": 80,
         "words": 11,
@@ -67,7 +115,7 @@
       "detail": "A shared skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 77,
         "characters": 77,
         "words": 11,
@@ -117,7 +165,7 @@
       "detail": "An antigravity skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 93,
         "characters": 93,
         "words": 11,
@@ -160,7 +208,7 @@
       "detail": "A user skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 75,
         "characters": 75,
         "words": 11,
@@ -206,7 +254,7 @@
       "detail": "A copilot skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 80,
         "characters": 80,
         "words": 11,
@@ -249,7 +297,7 @@
       "detail": "A linked skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 67,
         "characters": 67,
         "words": 9,
@@ -302,7 +350,7 @@
       "detail": "An opencode skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 84,
         "characters": 84,
         "words": 11,
@@ -345,7 +393,7 @@
       "detail": "A pi skill",
       "metrics": {
         "updated": "2025-09-16 05:20",
-        "created": "2026-09-17 18:02",
+        "created": "2026-09-17 20:01",
         "bytes": 65,
         "characters": 65,
         "words": 11,
@@ -413,6 +461,7 @@
     "{ROOT}/skills/work/project",
     "{ROOT}/skills/work/project/.claude",
     "{ROOT}/skills/work/project/.claude/skills",
+    "file://{ROOT}/skills/work/project/.claude/skills/native-%FF",
     "{ROOT}/skills/work/project/.claude/skills/project-only"
   ],
   "watchTruncated": false,

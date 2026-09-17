@@ -1,6 +1,8 @@
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::fmt::Write as _;
+use std::os::unix::ffi::OsStrExt;
+use std::path::Path;
 
 pub fn sha256_hex(data: &[u8]) -> String {
     let mut digest = Sha256::new();
@@ -13,15 +15,28 @@ pub fn sha256_hex(data: &[u8]) -> String {
     text
 }
 
-pub fn stable_id(parts: &[&str]) -> String {
-    let mut joined = String::new();
+pub fn stable_id_bytes(parts: &[&[u8]]) -> String {
+    let mut joined: Vec<u8> = Vec::new();
     for (index, part) in parts.iter().enumerate() {
         if index > 0 {
-            joined.push('\0');
+            joined.push(0);
         }
-        joined.push_str(part);
+        joined.extend_from_slice(part);
     }
-    sha256_hex(joined.as_bytes())[..16].to_string()
+    sha256_hex(&joined)[..16].to_string()
+}
+
+pub fn stable_id(parts: &[&str]) -> String {
+    let bytes: Vec<&[u8]> = parts.iter().map(|part| part.as_bytes()).collect();
+    stable_id_bytes(&bytes)
+}
+
+pub fn scoped_path_id(scope: &str, target: &Path) -> String {
+    stable_id_bytes(&[scope.as_bytes(), target.as_os_str().as_bytes()])
+}
+
+pub fn path_id(target: &Path) -> String {
+    stable_id_bytes(&[target.as_os_str().as_bytes()])
 }
 
 pub fn short_digest(value: &str) -> String {

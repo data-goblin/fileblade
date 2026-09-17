@@ -1,4 +1,6 @@
-use crate::common::{expanded_path, file_name, parse_path, path_error, path_text};
+use crate::common::{
+    expanded_os_path, expanded_path, file_name, parse_path, path_error, path_text,
+};
 use serde_json::{Value, json};
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
@@ -63,7 +65,10 @@ pub fn marker_root(start: &Path, search: RootSearch<'_>) -> Option<(PathBuf, Str
             Some(home.parent().unwrap_or(&home).to_path_buf())
         }
     };
-    let start = expanded_path(&start.to_string_lossy());
+    if start.as_os_str().is_empty() {
+        return None;
+    }
+    let start = expanded_os_path(start);
     for directory in walked(start, boundary.as_deref(), search.max_walk) {
         if !eligible_marker_parent(&directory) {
             continue;

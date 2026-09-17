@@ -1,8 +1,12 @@
+use fileblade::common::parse_path;
 use fileblade::core_modules::canonical::{
-    canonical_json, compact_ascii_json, fingerprint, python_float_hex, python_float_repr,
-    sha256_hex, short_digest, stable_id, typed_fingerprint,
+    canonical_json, compact_ascii_json, fingerprint, path_id, python_float_hex, python_float_repr,
+    scoped_path_id, sha256_hex, short_digest, stable_id, stable_id_bytes, typed_fingerprint,
 };
 use serde_json::{Value, json};
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
+use std::path::Path;
 
 fn baseline(name: &str) -> Value {
     let root =
@@ -82,7 +86,7 @@ fn golden_memory_row_ids_reproduce_from_their_realpath() {
     for row in items {
         let realpath = row["realpath"].as_str().expect("memory realpath");
         assert_eq!(
-            sha256_hex(realpath.as_bytes())[..16].to_string(),
+            path_id(&parse_path(realpath).expect("memory realpath parses")),
             row["id"].as_str().expect("memory id"),
             "{realpath}"
         );
@@ -94,20 +98,47 @@ fn golden_skills_row_ids_reproduce_from_scope_and_path() {
     let document = baseline("skills/list.json");
     let items = document["items"].as_array().expect("skills items");
     assert!(!items.is_empty());
+    let mut native = 0;
     for row in items {
         let scope = row["scope"].as_str().expect("skills scope");
         let link = row["link_target"].as_str().expect("skills link target");
-        let path = if link.is_empty() {
+        let raw = if link.is_empty() {
             row["path"].as_str().expect("skills path")
         } else {
             link
         };
+        let path = parse_path(raw).expect("skills path parses");
+        if path.to_str().is_none() {
+            native += 1;
+        }
         assert_eq!(
-            stable_id(&[scope, path]),
+            scoped_path_id(scope, &path),
             row["id"].as_str().expect("skills id"),
-            "{path}"
+            "{raw}"
         );
     }
+    assert!(native > 0, "the baseline must carry a native-byte path");
+}
+
+#[test]
+fn row_ids_hash_the_raw_path_bytes_rather_than_a_lossy_rendering() {
+    let path = Path::new(OsStr::from_bytes(b"/tmp/repo-\xff/SKILL.md"));
+    let mut preimage = b"project\0/tmp/repo-".to_vec();
+    preimage.push(0xff);
+    preimage.extend_from_slice(b"/SKILL.md");
+    assert_eq!(
+        scoped_path_id("project", path),
+        sha256_hex(&preimage)[..16].to_string()
+    );
+    assert_ne!(
+        scoped_path_id("project", path),
+        stable_id(&["project", &path.to_string_lossy()])
+    );
+    assert_eq!(
+        path_id(path),
+        sha256_hex(path.as_os_str().as_bytes())[..16].to_string()
+    );
+    assert_eq!(stable_id_bytes(&[b"a", b"b"]), stable_id(&["a", "b"]));
 }
 
 #[test]

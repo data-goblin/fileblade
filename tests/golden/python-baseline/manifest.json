@@ -3,7 +3,7 @@
   "root": "/tmp/fileblade-python-baseline",
   "modules": {
     "skills": {
-      "rows": 8
+      "rows": 9
     },
     "memory": {
       "rows": 24

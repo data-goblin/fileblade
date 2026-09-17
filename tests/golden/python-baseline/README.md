@@ -10,6 +10,10 @@ are fixed, the removal transaction id is fixed, and every value that still
 varies is replaced with a placeholder (`{ROOT}` for the sandbox root, `{TODAY}`
 for the local date a query ran on, `{CREATED_AT}` for the recovery record's
 creation time), so the JSON fixtures regenerate identically at the same root.
+A row's `created` is the file's real birth time and is not normalized, so it
+moves whenever the fixtures are rebuilt. `--modules <names>` rebuilds only the
+named modules and keeps the recorded manifest entry for the rest.
+
 `usage/agent-usage.sqlite3` is not reproducible that way: its `source` table
 keeps the real device and inode numbers of the machine it was built on, and the
 generator copies the database without normalizing them. It is a frozen

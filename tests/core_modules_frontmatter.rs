@@ -1,8 +1,13 @@
 use fileblade::core_modules::frontmatter::{block, frontmatter_field, value};
-use fileblade::core_modules::glob::{MAX_GLOB_MATCHES, bounded_glob, fnmatch_case};
+use fileblade::core_modules::glob::{
+    MAX_GLOB_MATCHES, bounded_glob, code_points, fnmatch_bytes, fnmatch_case,
+};
 use fileblade::core_modules::watch::WatchPlan;
 use fileblade::project::{AGENT_SEARCH, SKILLS_SEARCH, marker_root};
+use std::ffi::OsStr;
 use std::fs;
+use std::os::unix::ffi::OsStrExt;
+use std::path::Path;
 
 #[test]
 fn a_frontmatter_block_tolerates_trailing_spaces_and_carriage_returns() {
@@ -193,5 +198,49 @@ fn marker_root_walks_the_logical_ancestor_chain_through_a_symlink() {
     assert_eq!(
         marker_root(&link.join("a/b"), SKILLS_SEARCH),
         Some((link, ".git".to_string()))
+    );
+}
+
+#[test]
+fn the_bounded_glob_carries_names_that_are_not_valid_utf8() {
+    let scratch = tempfile::tempdir().unwrap();
+    let root = fs::canonicalize(scratch.path()).unwrap();
+    let repository = root.join(OsStr::from_bytes(b"repo-\xff"));
+    let rules = repository.join("rules");
+    fs::create_dir_all(&rules).unwrap();
+    let odd = rules.join(OsStr::from_bytes(b"\xfe.md"));
+    fs::write(&odd, "body").unwrap();
+    fs::write(rules.join("plain.md"), "body").unwrap();
+
+    let mut plan = WatchPlan::new();
+    let found = bounded_glob(&mut plan, &repository, "rules/*.md");
+    assert!(found.contains(&odd), "{found:?}");
+    assert!(found.contains(&rules.join("plain.md")), "{found:?}");
+}
+
+#[test]
+fn name_matching_treats_undecodable_bytes_as_single_code_points() {
+    assert!(fnmatch_bytes(b"\xff.md", "*.md"));
+    assert!(fnmatch_bytes(b"\xff.md", "?.md"));
+    assert!(!fnmatch_bytes(b"\xff\xfe.md", "?.md"));
+    assert!(fnmatch_bytes("é.md".as_bytes(), "?.md"));
+    assert_eq!(code_points(b"a\xffb"), vec![0x61, 0xdcff, 0x62]);
+    assert_eq!(code_points("é".as_bytes()), vec![0xe9]);
+}
+
+#[test]
+fn marker_root_refuses_an_empty_anchor_and_keeps_raw_path_bytes() {
+    assert_eq!(marker_root(Path::new(""), AGENT_SEARCH), None);
+    assert_eq!(marker_root(Path::new(""), SKILLS_SEARCH), None);
+
+    let scratch = tempfile::tempdir().unwrap();
+    let root = fs::canonicalize(scratch.path()).unwrap();
+    let repository = root.join(OsStr::from_bytes(b"repo-\xff"));
+    let nested = repository.join("a/b");
+    fs::create_dir_all(&nested).unwrap();
+    fs::create_dir_all(repository.join(".git")).unwrap();
+    assert_eq!(
+        marker_root(&nested, SKILLS_SEARCH),
+        Some((repository, ".git".to_string()))
     );
 }

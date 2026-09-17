@@ -36,18 +36,28 @@ pub fn replaced_binary_path(path: &Path) -> PathBuf {
 
 pub fn expanded_path(raw: &str) -> PathBuf {
     let input = if raw.is_empty() { "~" } else { raw };
-    let path = if input == "~" || input.starts_with("~/") {
+    expanded_os_path(Path::new(input))
+}
+
+pub fn expanded_os_path(path: &Path) -> PathBuf {
+    use std::os::unix::ffi::OsStrExt;
+    let bytes = path.as_os_str().as_bytes();
+    let expanded = if bytes == b"~" || bytes.starts_with(b"~/") {
         let home = std::env::var_os("HOME").unwrap_or_else(|| "/".into());
-        PathBuf::from(home).join(input.strip_prefix("~/").unwrap_or(""))
+        let mut result = PathBuf::from(home);
+        if bytes.len() > 2 {
+            result.push(Path::new(OsStr::from_bytes(&bytes[2..])));
+        }
+        result
     } else {
-        PathBuf::from(input)
+        path.to_path_buf()
     };
-    let absolute = if path.is_absolute() {
-        path
+    let absolute = if expanded.is_absolute() {
+        expanded
     } else {
         std::env::current_dir()
             .unwrap_or_else(|_| PathBuf::from("/"))
-            .join(path)
+            .join(expanded)
     };
     normalize_path(&absolute)
 }

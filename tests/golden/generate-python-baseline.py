@@ -95,6 +95,10 @@ def build_skills(home: Path, project: Path) -> None:
     fixtures.write_skill(home / ".config" / "opencode" / "skills", "opencode-user", "An opencode skill")
     fixtures.write_skill(home / ".gemini" / "antigravity-cli" / "skills", "antigravity-user", "An antigravity skill")
     fixtures.write_skill(project / ".claude" / "skills", "project-only", "A project skill")
+    native = project / ".claude" / "skills" / os.fsdecode(b"native-\xff")
+    native.mkdir(parents=True, exist_ok=True)
+    (native / "SKILL.md").write_text(
+        fixtures.SKILL.format(name="native-byte", description="A native-byte skill"), encoding="utf-8")
     descriptor = fixtures.write_skill(vault, "linked", "A linked skill")
     fixtures.link_skill(home / ".claude" / "skills", "linked", descriptor.parent)
     fixtures.link_skill(home / ".agents" / "skills", "linked", descriptor.parent)
@@ -273,16 +277,27 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT,
                         help="sandbox the fixtures are built in; row ids hash these paths")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="directory the fixtures are written to")
+    parser.add_argument("--modules", default="", help="comma separated subset to regenerate; the rest keep their recorded manifest entry")
     arguments = parser.parse_args()
+    selected = [name for name in arguments.modules.split(",") if name]
     root = arguments.root.resolve()
     out = arguments.out.resolve()
     if root.exists():
         shutil.rmtree(root)
     root.mkdir(parents=True)
+    previous = {}
+    if (out / "manifest.json").exists():
+        previous = json.loads((out / "manifest.json").read_text(encoding="utf-8")).get("modules", {})
     manifest = {"frozen": "2026-09-17", "root": str(root), "modules": {}}
-    for module in BUILDERS:
-        manifest["modules"][module] = module_baseline(module, root, out)
-    manifest["modules"]["usage"] = usage_baseline(root, out)
+    for module in list(BUILDERS) + ["usage"]:
+        if selected and module not in selected:
+            if module in previous:
+                manifest["modules"][module] = previous[module]
+            continue
+        if module == "usage":
+            manifest["modules"][module] = usage_baseline(root, out)
+        else:
+            manifest["modules"][module] = module_baseline(module, root, out)
     write_json(out / "manifest.json", manifest)
     print(json.dumps(manifest, indent=2))
     return 0

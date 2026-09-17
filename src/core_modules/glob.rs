@@ -10,57 +10,97 @@ pub const MAX_DIR_ENTRIES: usize = 512;
 const MAX_PATTERN_PARTS: usize = 32;
 
 pub fn fnmatch_case(value: &str, pattern: &str) -> bool {
-    let value: Vec<char> = value.chars().collect();
-    let pattern: Vec<char> = pattern.chars().collect();
+    fnmatch_bytes(value.as_bytes(), pattern)
+}
+
+pub fn fnmatch_bytes(value: &[u8], pattern: &str) -> bool {
+    let value = code_points(value);
+    let pattern: Vec<u32> = pattern.chars().map(u32::from).collect();
     matches(&value, &pattern)
 }
 
-fn matches(value: &[char], pattern: &[char]) -> bool {
+pub fn code_points(bytes: &[u8]) -> Vec<u32> {
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+    while index < bytes.len() {
+        match std::str::from_utf8(&bytes[index..]) {
+            Ok(text) => {
+                out.extend(text.chars().map(u32::from));
+                break;
+            }
+            Err(error) => {
+                let valid = error.valid_up_to();
+                if let Ok(text) = std::str::from_utf8(&bytes[index..index + valid]) {
+                    out.extend(text.chars().map(u32::from));
+                }
+                let skipped = error
+                    .error_len()
+                    .unwrap_or(bytes.len() - index - valid)
+                    .max(1);
+                let stop = (index + valid + skipped).min(bytes.len());
+                for byte in &bytes[index + valid..stop] {
+                    out.push(0xdc00 + u32::from(*byte));
+                }
+                index = stop;
+            }
+        }
+    }
+    out
+}
+
+const STAR: u32 = '*' as u32;
+const QUESTION: u32 = '?' as u32;
+const OPEN: u32 = '[' as u32;
+const CLOSE: u32 = ']' as u32;
+const BANG: u32 = '!' as u32;
+const DASH: u32 = '-' as u32;
+
+fn matches(value: &[u32], pattern: &[u32]) -> bool {
     let Some((first, rest)) = pattern.split_first() else {
         return value.is_empty();
     };
-    match first {
-        '*' => {
-            let rest = match rest.iter().position(|character| *character != '*') {
+    match *first {
+        STAR => {
+            let rest = match rest.iter().position(|character| *character != STAR) {
                 Some(offset) => &rest[offset..],
                 None => return true,
             };
             (0..=value.len()).any(|index| matches(&value[index..], rest))
         }
-        '?' => !value.is_empty() && matches(&value[1..], rest),
-        '[' => {
+        QUESTION => !value.is_empty() && matches(&value[1..], rest),
+        OPEN => {
             let Some((set, tail)) = bracket(rest) else {
-                return !value.is_empty() && value[0] == '[' && matches(&value[1..], rest);
+                return !value.is_empty() && value[0] == OPEN && matches(&value[1..], rest);
             };
             !value.is_empty() && in_set(value[0], set) && matches(&value[1..], tail)
         }
-        character => !value.is_empty() && value[0] == *character && matches(&value[1..], rest),
+        character => !value.is_empty() && value[0] == character && matches(&value[1..], rest),
     }
 }
 
-fn bracket(pattern: &[char]) -> Option<(&[char], &[char])> {
-    let start = if pattern.first() == Some(&'!') { 1 } else { 0 };
-    let start = if pattern.get(start) == Some(&']') {
+fn bracket(pattern: &[u32]) -> Option<(&[u32], &[u32])> {
+    let start = if pattern.first() == Some(&BANG) { 1 } else { 0 };
+    let start = if pattern.get(start) == Some(&CLOSE) {
         start + 1
     } else {
         start
     };
     let offset = pattern[start..]
         .iter()
-        .position(|character| *character == ']')?;
+        .position(|character| *character == CLOSE)?;
     let close = start + offset;
     Some((&pattern[..close], &pattern[close + 1..]))
 }
 
-fn in_set(character: char, set: &[char]) -> bool {
+fn in_set(character: u32, set: &[u32]) -> bool {
     let (negated, set) = match set.split_first() {
-        Some(('!', rest)) => (true, rest),
+        Some((&BANG, rest)) => (true, rest),
         _ => (false, set),
     };
     let mut index = 0;
     let mut hit = false;
     while index < set.len() {
-        if index + 2 < set.len() && set[index + 1] == '-' {
+        if index + 2 < set.len() && set[index + 1] == DASH {
             if set[index] <= character && character <= set[index + 2] {
                 hit = true;
             }
@@ -83,7 +123,7 @@ fn parts_of(pattern: &str) -> Option<Vec<String>> {
     let mut parts = Vec::new();
     for component in Path::new(pattern).components() {
         match component {
-            Component::Normal(name) => parts.push(name.to_str()?.to_string()),
+            Component::Normal(name) => parts.push(name.to_string_lossy().into_owned()),
             Component::CurDir => continue,
             _ => return None,
         }
@@ -142,9 +182,8 @@ pub fn bounded_glob(plan: &mut WatchPlan, base: &Path, pattern: &str) -> Vec<Pat
             }
             let Ok(entry) = entry else { continue };
             let name = entry.file_name();
-            let Some(name) = name.to_str() else { continue };
-            let candidate = directory.join(name);
-            if part != "**" && !fnmatch_case(name, part) {
+            let candidate = directory.join(&name);
+            if part != "**" && !fnmatch_bytes(name.as_bytes(), part) {
                 continue;
             }
             let kind = std::fs::metadata(&candidate).ok();
