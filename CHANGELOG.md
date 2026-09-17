@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # Changelog
 
-## 0.1.3 (unreleased)
+## 0.1.3
 
 - UI changes
   - Hide internal caches and reset Quick Nav selection for new queries.
