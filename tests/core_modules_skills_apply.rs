@@ -333,3 +333,65 @@ fn an_incomplete_root_scan_refuses_before_anything_changes() {
     );
     assert!(home.join(".claude/skills/crowded/SKILL.md").is_file());
 }
+
+fn enforced(directory: &Path) -> bool {
+    let probe = directory.join(".permission-probe");
+    match fs::write(&probe, b"") {
+        Ok(()) => {
+            let _ = fs::remove_file(&probe);
+            false
+        }
+        Err(_) => true,
+    }
+}
+
+fn sealed(directory: &Path, mode: u32) {
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(directory, fs::Permissions::from_mode(mode)).unwrap();
+}
+
+#[test]
+fn link_and_unlink_refusals_carry_the_bare_system_message() {
+    let _serial = serialized();
+    let base = sandbox();
+    let home = base.path().join("home");
+    write_skill(
+        &home.join(".claude/skills"),
+        "sealed-skill",
+        "A fixture skill",
+    );
+    let environment = environment(&home);
+    let id = row_id(&environment, "sealed-skill");
+    let pi_root = home.join(".pi/agent/skills");
+    fs::create_dir_all(&pi_root).unwrap();
+    sealed(&pi_root, 0o500);
+    if !enforced(&pi_root) {
+        sealed(&pi_root, 0o700);
+        return;
+    }
+    let on = apply(&environment, &id, &agents(&["pi"]), "on");
+    let row = first(&on);
+    assert_eq!(row.get("ok"), Some(&json!(false)));
+    assert_eq!(
+        message(row),
+        format!(
+            "cannot link {}: Permission denied",
+            pi_root.join("sealed-skill").display()
+        )
+    );
+    sealed(&pi_root, 0o700);
+    let codex_root = home.join(".agents/skills");
+    apply(&environment, &id, &agents(&["codex"]), "on");
+    sealed(&codex_root, 0o500);
+    let off = apply(&environment, &id, &agents(&["codex"]), "off");
+    let row = first(&off);
+    assert_eq!(row.get("ok"), Some(&json!(false)));
+    assert_eq!(
+        message(row),
+        format!(
+            "cannot unlink {}: Permission denied",
+            codex_root.join("sealed-skill").display()
+        )
+    );
+    sealed(&codex_root, 0o700);
+}

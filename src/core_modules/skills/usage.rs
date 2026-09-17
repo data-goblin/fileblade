@@ -1,7 +1,7 @@
 use crate::command::{CommandSpec, which};
+use crate::core_modules::Context;
 use crate::{AppError, AppResult};
 use serde_json::{Map, Value};
-use std::time::Duration;
 
 const BRIDGE: &str = r#"
 import json, sys
@@ -22,7 +22,8 @@ else:
 sys.stdout.write(json.dumps(document))
 "#;
 
-pub fn call(request: &Value) -> AppResult<Value> {
+pub fn call(context: &Context<'_>, request: &Value) -> AppResult<Value> {
+    context.check()?;
     let root = crate::paths::app_root()?;
     let interpreter =
         which("python3").ok_or_else(|| AppError::command("python3 is not available"))?;
@@ -31,10 +32,10 @@ pub fn call(request: &Value) -> AppResult<Value> {
         .env("PYTHONPATH", root.join("python"))
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .cwd(root)
-        .timeout(Duration::from_secs(20))
+        .timeout(context.remaining())
         .limits(8 * 1024 * 1024, 4096)
         .stdin(serde_json::to_vec(request).map_err(|error| AppError::command(error.to_string()))?)
-        .run()?;
+        .run_cancellable(context.cancelled())?;
     if !output.status.success() || output.stdout_truncated {
         return Err(AppError::command("the usage store could not be queried"));
     }
@@ -44,12 +45,15 @@ pub fn call(request: &Value) -> AppResult<Value> {
 
 pub const UNAVAILABLE: &str = "usage store unavailable";
 
-pub fn attach(document: &mut Map<String, Value>) {
+pub fn attach(context: &Context<'_>, document: &mut Map<String, Value>) {
     let items = document
         .get("items")
         .cloned()
         .unwrap_or(Value::Array(Vec::new()));
-    let Ok(answer) = call(&serde_json::json!({"method": "attach", "items": items})) else {
+    let Ok(answer) = call(
+        context,
+        &serde_json::json!({"method": "attach", "items": items}),
+    ) else {
         document.insert("usageError".to_string(), Value::from(UNAVAILABLE));
         document.insert("usageWatchPaths".to_string(), Value::Array(Vec::new()));
         return;

@@ -5,6 +5,7 @@ pub mod registry;
 mod usage;
 
 use crate::common::{expanded_os_path, parse_path};
+use crate::core_modules::Context;
 use crate::core_modules::emit::encoded_items;
 use crate::core_modules::watch::{SCOPES, WatchPlan};
 use crate::module_helpers::Request;
@@ -136,37 +137,44 @@ fn bounded(document: Map<String, Value>) -> AppResult<Value> {
         .map_err(|_| AppError::command("the skills helper produced no complete document"))
 }
 
-fn listing(_: &Request<'_>, arguments: &[String]) -> AppResult<Value> {
+fn listing(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
+    context.check()?;
     let options = parsed(arguments)?;
     let mut plan = WatchPlan::new();
     let mut document = discovery::collect(&mut plan, &environment(&options)?);
     plan.finish(&mut document);
-    usage::attach(&mut document);
+    usage::attach(context, &mut document);
     bounded(document)
 }
 
-fn usage_history(_: &Request<'_>, arguments: &[String]) -> AppResult<Value> {
+fn usage_history(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
     let options = parsed(arguments)?;
     match &options.items {
-        Some(raw) => usage::call(&json!({
-            "method": "usage",
-            "items": item_stubs(raw),
-            "scoped": true,
-        })),
-        None => usage::call(&json!({
-            "method": "usage",
-            "items": discovered_items(&options)?,
-        })),
+        Some(raw) => usage::call(
+            context,
+            &json!({
+                "method": "usage",
+                "items": item_stubs(raw),
+                "scoped": true,
+            }),
+        ),
+        None => usage::call(
+            context,
+            &json!({
+                "method": "usage",
+                "items": discovered_items(&options)?,
+            }),
+        ),
     }
 }
 
-fn usage_counts(_: &Request<'_>, arguments: &[String]) -> AppResult<Value> {
+fn usage_counts(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
     let options = parsed(arguments)?;
     let items = item_stubs(options.items.as_deref().unwrap_or("[]"));
-    usage::call(&json!({"method": "counts", "items": items}))
+    usage::call(context, &json!({"method": "counts", "items": items}))
 }
 
-fn usage_day(_: &Request<'_>, arguments: &[String]) -> AppResult<Value> {
+fn usage_day(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
     let options = parsed(arguments)?;
     let day = options.day.clone().ok_or_else(|| {
         AppError::invalid("the skills usage-day method requires a --day argument")
@@ -175,10 +183,14 @@ fn usage_day(_: &Request<'_>, arguments: &[String]) -> AppResult<Value> {
         Some(raw) => item_stubs(raw),
         None => discovered_items(&options)?,
     };
-    usage::call(&json!({"method": "day", "items": items, "day": day}))
+    usage::call(
+        context,
+        &json!({"method": "day", "items": items, "day": day}),
+    )
 }
 
-fn applying(_: &Request<'_>, arguments: &[String]) -> AppResult<Value> {
+fn applying(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
+    context.check()?;
     let options = parsed(arguments)?;
     let id = options
         .id

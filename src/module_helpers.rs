@@ -274,7 +274,12 @@ pub fn run(request: &Request<'_>, cancelled: &AtomicBool) -> AppResult<Value> {
         crate::preferences::require_agent_management()?
     }
     if let Some(core) = declared.core
-        && let Some(document) = crate::core_modules::dispatch(core, request, &arguments)
+        && let Some(document) = crate::core_modules::dispatch(
+            core,
+            request,
+            &arguments,
+            &crate::core_modules::Context::new(declared.timeout, cancelled),
+        )
     {
         return document;
     }

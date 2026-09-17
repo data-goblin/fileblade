@@ -164,12 +164,15 @@ fn text(path: &Path) -> String {
     crate::common::display_path(path)
 }
 
-fn strerror(error: &std::io::Error) -> String {
-    let rendered = error.to_string();
+fn without_code(rendered: String) -> String {
     match rendered.split_once(" (os error ") {
         Some((message, _)) => message.to_string(),
         None => rendered,
     }
+}
+
+fn strerror(error: &std::io::Error) -> String {
+    without_code(error.to_string())
 }
 
 fn link_on(
@@ -242,8 +245,9 @@ fn create_link(link: &Path, target: &Path) -> Result<(), String> {
         .parent()
         .map(realpath)
         .ok_or_else(|| "path has no parent".to_string())?;
-    let resolved = std::fs::canonicalize(target).map_err(|error| error.to_string())?;
-    crate::companion_mutations::link(link, &parent, &resolved).map_err(|error| error.to_string())
+    let resolved = std::fs::canonicalize(target).map_err(|error| strerror(&error))?;
+    crate::companion_mutations::link(link, &parent, &resolved)
+        .map_err(|error| without_code(error.to_string()))
 }
 
 fn remove_link(entry: &Path, target: &Path) -> Result<(), String> {
@@ -252,12 +256,12 @@ fn remove_link(entry: &Path, target: &Path) -> Result<(), String> {
             .parent()
             .ok_or_else(|| "path has no parent".to_string())?,
     )
-    .map_err(|error| error.to_string())?;
-    let current = std::fs::symlink_metadata(entry).map_err(|error| error.to_string())?;
+    .map_err(|error| strerror(&error))?;
+    let current = std::fs::symlink_metadata(entry).map_err(|error| strerror(&error))?;
     if !current.is_symlink() {
         return Err("selected link changed; nothing was removed".to_string());
     }
-    let destination = std::fs::read_link(entry).map_err(|error| error.to_string())?;
+    let destination = std::fs::read_link(entry).map_err(|error| strerror(&error))?;
     let pointed = if destination.is_absolute() {
         realpath(&destination)
     } else {
@@ -268,7 +272,7 @@ fn remove_link(entry: &Path, target: &Path) -> Result<(), String> {
     }
     use std::os::unix::fs::MetadataExt;
     crate::companion_mutations::unlink(entry, &parent, current.dev(), current.ino())
-        .map_err(|error| error.to_string())
+        .map_err(|error| without_code(error.to_string()))
 }
 
 fn unlink_off(
