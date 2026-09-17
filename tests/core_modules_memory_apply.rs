@@ -130,6 +130,49 @@ fn identity(row: &Value) -> String {
 }
 
 #[test]
+fn a_project_rule_named_in_native_bytes_is_refused_for_antigravity() {
+    use std::os::unix::ffi::OsStringExt;
+
+    let _guard = serialized();
+    let fixture = fixture();
+    let name = std::ffi::OsString::from_vec(b"\xffrule.md".to_vec());
+    write(
+        &fixture.project.join("opencode.json"),
+        "{\"instructions\": [\"rules/*.md\"]}\n",
+    );
+    let source = write(
+        &fixture.project.join("rules").join(&name),
+        "# native byte rule\n",
+    );
+    let document = payload(&fixture.home, &fixture.project);
+    let wanted = fileblade::common::path_text(&fs::canonicalize(&source).unwrap());
+    let row = rows(&document)
+        .into_iter()
+        .find(|row| field(row, "realpath") == wanted)
+        .unwrap_or_else(|| panic!("no row for {wanted}"))
+        .clone();
+    assert_eq!(field(&row, "kind"), "instructions");
+
+    let refusal = run(&fixture, &identity(&row), &["antigravity"], "on");
+    let result = by_agent(&refusal, "antigravity");
+    assert_eq!(result.get("ok"), Some(&json!(false)));
+    assert_eq!(result.get("changed"), Some(&json!(false)));
+    assert!(
+        field(&result, "message").contains("would escape"),
+        "{result:?}"
+    );
+    assert!(touched(&result).is_empty());
+    assert!(
+        !fixture
+            .project
+            .join(".agents/rules")
+            .join(&name)
+            .symlink_metadata()
+            .is_ok()
+    );
+}
+
+#[test]
 fn a_project_file_links_and_unlinks_for_every_agent() {
     let _guard = serialized();
     let fixture = fixture();

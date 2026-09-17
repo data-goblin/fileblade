@@ -636,6 +636,36 @@ fn environment_path_values_keep_spaces_and_refuse_hazards() {
 }
 
 #[test]
+fn environment_path_values_keep_native_bytes_that_are_not_utf8() {
+    use std::os::unix::ffi::OsStringExt;
+
+    let raw = OsString::from_vec(b"/tmp/\xffdir".to_vec());
+    let named = vec![(OsString::from("X"), raw.clone())];
+    assert_eq!(env_path_value("X", &named), raw);
+    let mut long = b"/".to_vec();
+    long.extend(std::iter::repeat_n(b'\xff', MAX_ENV_PATH_CHARS));
+    assert_eq!(
+        env_path_value("X", &vec![(OsString::from("X"), OsString::from_vec(long))]),
+        OsString::new()
+    );
+
+    let fixture = sandbox();
+    let codex_home = fixture.root.join(PathBuf::from(OsString::from_vec(
+        b"codex-\xffhome".to_vec(),
+    )));
+    write(&codex_home.join("AGENTS.md"), "# native byte codex home\n");
+    let mut variables = environ(&fixture.home);
+    variables.push((
+        OsString::from("CODEX_HOME"),
+        codex_home.as_os_str().to_os_string(),
+    ));
+    let document = collect(&fixture.home, &fixture.project, "", variables);
+    assert!(
+        paths_of(&document).contains(&fileblade::common::path_text(&codex_home.join("AGENTS.md")))
+    );
+}
+
+#[test]
 fn the_listing_is_bounded_to_the_output_limit() {
     let row = json!({
         "id": "x",

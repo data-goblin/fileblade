@@ -1,9 +1,10 @@
 use super::adapters::AGENT_IDS;
-use super::common::{SCHEMA_VERSION, ancestors_of, env_path, realpath_of, safe_basename};
+use super::common::{SCHEMA_VERSION, ancestors_of, env_path, realpath_of, safe_basename_os};
 use super::discovery::{self, Context};
 use crate::common::{display_path, path_text};
 use crate::core_modules::watch::WatchPlan;
 use serde_json::{Map, Value, json};
+use std::ffi::OsStr;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 
@@ -226,12 +227,9 @@ fn resolve_target(agent: &str, context: &Context, row: &Value) -> Result<PathBuf
             format!("{scope} scope has no documented location for {agent}"),
         ));
     };
-    let named = target
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or_default();
+    let named = target.file_name().unwrap_or_else(|| OsStr::new(""));
     let escapes = base.is_none()
-        || safe_basename(named) != named
+        || safe_basename_os(named).as_os_str() != named
         || !target
             .parent()
             .is_some_and(|parent| contained(parent, base.as_deref().unwrap_or(Path::new("/"))));

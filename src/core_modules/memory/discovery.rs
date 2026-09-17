@@ -1,8 +1,8 @@
 use super::adapters::{ADAPTERS, Claim, claim};
 use super::common::{
     Budget, Environ, MAX_EXTRA_ROOTS, MAX_NAME_CHARS, SCHEMA_VERSION, descriptor_head,
-    env_path_value, expanded, expanded_path, listed_files, project_root, realpath_of, stable_id,
-    summary_line,
+    env_path_value, expanded, expanded_os, expanded_path, listed_files, project_root, realpath_of,
+    stable_id, summary_line,
 };
 use crate::common::{display_path, path_text};
 use crate::core_modules::frontmatter::frontmatter_field;
@@ -91,7 +91,7 @@ pub fn config_path(home: &Path, environ: &Environ, override_path: &str) -> PathB
     let root = if base.is_empty() {
         home.join(".config")
     } else {
-        expanded(&base)
+        expanded_os(&base)
     };
     let current = root
         .join("data-goblin.fileblade-memory")

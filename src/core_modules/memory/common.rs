@@ -88,6 +88,13 @@ pub fn expanded(path: &str) -> PathBuf {
     }
 }
 
+pub fn expanded_os(value: &OsStr) -> PathBuf {
+    match value.to_str() {
+        Some(text) => expanded(text),
+        None => expanded_path(Path::new(value)),
+    }
+}
+
 pub fn expanded_path(path: &Path) -> PathBuf {
     crate::common::expanded_os_path(path)
 }
@@ -169,6 +176,13 @@ pub fn safe_basename(value: &str) -> String {
         }
     }
     value.to_string()
+}
+
+pub fn safe_basename_os(value: &OsStr) -> OsString {
+    match value.to_str() {
+        Some(text) => OsString::from(safe_basename(text)),
+        None => OsString::new(),
+    }
 }
 
 fn sorted(mut paths: Vec<PathBuf>) -> Vec<PathBuf> {
@@ -463,17 +477,35 @@ pub fn project_root(start: &Path, home: &Path) -> PathBuf {
     PathBuf::new()
 }
 
-pub fn env_path_value(name: &str, environ: &Environ) -> String {
-    let Some((_, value)) = environ.iter().find(|(key, _)| key == name) else {
-        return String::new();
-    };
-    let Some(text) = value.to_str() else {
-        return String::new();
-    };
-    if text.is_empty() || text.contains('\0') || text.chars().count() > MAX_ENV_PATH_CHARS {
-        return String::new();
+fn escaped_chars(bytes: &[u8]) -> usize {
+    let mut total = 0;
+    let mut rest = bytes;
+    loop {
+        match std::str::from_utf8(rest) {
+            Ok(text) => return total + text.chars().count(),
+            Err(error) => {
+                let valid = error.valid_up_to();
+                total += std::str::from_utf8(&rest[..valid])
+                    .unwrap_or_default()
+                    .chars()
+                    .count();
+                let skipped = error.error_len().unwrap_or(rest.len() - valid);
+                total += skipped;
+                rest = &rest[valid + skipped..];
+            }
+        }
     }
-    text.to_string()
+}
+
+pub fn env_path_value(name: &str, environ: &Environ) -> OsString {
+    let Some((_, value)) = environ.iter().find(|(key, _)| key == name) else {
+        return OsString::new();
+    };
+    let bytes = value.as_bytes();
+    if bytes.is_empty() || bytes.contains(&0) || escaped_chars(bytes) > MAX_ENV_PATH_CHARS {
+        return OsString::new();
+    }
+    value.clone()
 }
 
 pub fn env_path(name: &str, environ: &Environ) -> Option<PathBuf> {
@@ -481,6 +513,6 @@ pub fn env_path(name: &str, environ: &Environ) -> Option<PathBuf> {
     if value.is_empty() {
         None
     } else {
-        Some(expanded(&value))
+        Some(expanded_os(&value))
     }
 }

@@ -1,13 +1,15 @@
 use super::common::MAX_RULE_DEPTH;
 use super::common::{
     Budget, MAX_ENV_DIRS, MAX_FALLBACK_NAMES, MAX_INSTRUCTION_ENTRIES, MAX_SOURCES, ancestors_of,
-    bounded_directories, env_path, env_path_value, expanded, is_remote, listed_files,
+    bounded_directories, env_path, env_path_value, expanded, expanded_os, is_remote, listed_files,
     load_json_document, load_toml_document, matches_any, safe_basename, walked_files,
 };
 use super::discovery::Context;
 use crate::core_modules::glob::bounded_glob;
 use crate::core_modules::watch::WatchPlan;
 use serde_json::Value;
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
 pub const AGENT_IDS: [&str; 6] = [
@@ -545,11 +547,15 @@ pub fn pi(plan: &mut WatchPlan, context: &Context, _: &mut Budget) -> Vec<Claim>
 fn copilot_extra_dirs(plan: &mut WatchPlan, context: &Context) -> Vec<PathBuf> {
     let raw = env_path_value("COPILOT_CUSTOM_INSTRUCTIONS_DIRS", &context.environ);
     let mut found = Vec::new();
-    for piece in raw.split(',').take(MAX_ENV_DIRS) {
+    for piece in raw
+        .as_bytes()
+        .split(|byte| *byte == b',')
+        .take(MAX_ENV_DIRS)
+    {
         if piece.is_empty() {
             continue;
         }
-        let candidate = expanded(piece);
+        let candidate = expanded_os(OsStr::from_bytes(piece));
         plan.watch_path(&candidate, true);
         if std::fs::metadata(&candidate).is_ok_and(|data| data.is_dir()) {
             found.push(candidate);
