@@ -223,11 +223,20 @@ fn bounded_entries(
     directories: bool,
 ) -> Vec<PathBuf> {
     plan.watch_path(root, true);
-    let Ok(entries) = std::fs::read_dir(root) else {
+    let Some(descriptor) = open_directory_nofollow(root) else {
+        return Vec::new();
+    };
+    let Ok(stream) = rustix::fs::Dir::read_from(&descriptor) else {
         return Vec::new();
     };
     let mut names: Vec<std::ffi::OsString> = Vec::new();
-    for (index, entry) in entries.enumerate() {
+    let mut index = 0usize;
+    for entry in stream {
+        let Ok(entry) = entry else { continue };
+        let name = entry.file_name().to_bytes();
+        if name == b"." || name == b".." {
+            continue;
+        }
         if deadline.expired() {
             return Vec::new();
         }
@@ -235,17 +244,21 @@ fn bounded_entries(
             deadline.truncated = true;
             break;
         }
-        let Ok(entry) = entry else { continue };
-        let Ok(metadata) = std::fs::symlink_metadata(entry.path()) else {
+        index += 1;
+        let name = std::ffi::OsStr::from_bytes(name);
+        let Ok(metadata) =
+            rustix::fs::statat(&descriptor, name, rustix::fs::AtFlags::SYMLINK_NOFOLLOW)
+        else {
             continue;
         };
+        let kind = metadata.st_mode & libc::S_IFMT;
         let keep = if directories {
-            metadata.is_dir()
+            kind == libc::S_IFDIR
         } else {
-            metadata.is_file()
+            kind == libc::S_IFREG
         };
         if keep {
-            names.push(entry.file_name());
+            names.push(name.to_os_string());
         }
     }
     names.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));

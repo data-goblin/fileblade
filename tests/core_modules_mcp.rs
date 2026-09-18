@@ -740,3 +740,47 @@ fn watch_paths_cover_missing_sources_symlink_targets_and_nested_plugins() {
         "the listing must never echo a command"
     );
 }
+
+#[test]
+fn bounded_entries_refuse_symlinked_directories() {
+    let case = Case::new();
+    let mut plan = WatchPlan::new();
+    let real = case.base.join("real-root");
+    fs::create_dir_all(real.join("child")).unwrap();
+    write(&real.join("inside.json"), "{}");
+    let link = case.base.join("linked-root");
+    std::os::unix::fs::symlink(&real, &link).unwrap();
+    let mut deadline = safeio::Deadline::new(2000);
+    assert_eq!(
+        safeio::bounded_files(&mut plan, &real, 16, &mut deadline),
+        vec![real.join("inside.json")]
+    );
+    assert_eq!(
+        safeio::bounded_directories(&mut plan, &real, 16, &mut deadline),
+        vec![real.join("child")]
+    );
+    assert!(safeio::bounded_files(&mut plan, &link, 16, &mut deadline).is_empty());
+    assert!(safeio::bounded_directories(&mut plan, &link, 16, &mut deadline).is_empty());
+    assert!(safeio::bounded_files(&mut plan, &link.join("child"), 16, &mut deadline).is_empty());
+}
+
+#[test]
+fn the_undo_record_bound_measures_raw_utf8_bytes() {
+    let payload = json!({"definition": "\u{4f60}\u{4f60}\u{4f60}\u{4f60}"});
+    assert_eq!(
+        fileblade::core_modules::canonical::compact_json(&payload).len(),
+        "{\"definition\":\"".len() + 12 + 2
+    );
+    assert_eq!(
+        fileblade::core_modules::canonical::compact_ascii_json(&payload).len(),
+        "{\"definition\":\"".len() + 24 + 2
+    );
+    assert_eq!(
+        fileblade::core_modules::canonical::compact_json(&json!({"a": "\u{1f600}"})),
+        "{\"a\":\"\u{1f600}\"}"
+    );
+    assert_eq!(
+        fileblade::core_modules::canonical::compact_json(&json!({"a": "x\u{1}\n\""})),
+        "{\"a\":\"x\\u0001\\n\\\"\"}"
+    );
+}

@@ -899,7 +899,7 @@ impl Applier {
         payload.insert("path".to_string(), json!(path_text(&path)));
         payload.insert("target".to_string(), json!(path_text(&target)));
         let payload = Value::Object(payload);
-        let encoded = crate::core_modules::canonical::compact_ascii_json(&payload);
+        let encoded = crate::core_modules::canonical::compact_json(&payload);
         if encoded.len() > 1024 * 1024 {
             return Ok(failure(
                 "the definition exceeds the undo record size limit; edit the source directly",

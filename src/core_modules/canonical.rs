@@ -71,6 +71,27 @@ pub fn escape_ascii(text: &str, out: &mut String) {
     out.push('"');
 }
 
+pub fn escape_unicode(text: &str, out: &mut String) {
+    out.push('"');
+    for character in text.chars() {
+        match character {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            '\u{8}' => out.push_str("\\b"),
+            '\u{c}' => out.push_str("\\f"),
+            _ if (character as u32) < 0x20 => {
+                let code = character as u32;
+                let _ = write!(out, "\\u{code:04x}");
+            }
+            _ => out.push(character),
+        }
+    }
+    out.push('"');
+}
+
 pub fn python_float_repr(value: f64) -> String {
     if value.is_nan() {
         return "NaN".to_string();
@@ -153,20 +174,26 @@ fn number(value: &serde_json::Number, out: &mut String) {
     }
 }
 
-fn encode(value: &Value, sort_keys: bool, out: &mut String) {
+fn encode(value: &Value, sort_keys: bool, ascii: bool, out: &mut String) {
     match value {
         Value::Null => out.push_str("null"),
         Value::Bool(true) => out.push_str("true"),
         Value::Bool(false) => out.push_str("false"),
         Value::Number(item) => number(item, out),
-        Value::String(text) => escape_ascii(text, out),
+        Value::String(text) => {
+            if ascii {
+                escape_ascii(text, out);
+            } else {
+                escape_unicode(text, out);
+            }
+        }
         Value::Array(items) => {
             out.push('[');
             for (index, item) in items.iter().enumerate() {
                 if index > 0 {
                     out.push(',');
                 }
-                encode(item, sort_keys, out);
+                encode(item, sort_keys, ascii, out);
             }
             out.push(']');
         }
@@ -180,9 +207,13 @@ fn encode(value: &Value, sort_keys: bool, out: &mut String) {
                 if index > 0 {
                     out.push(',');
                 }
-                escape_ascii(key, out);
+                if ascii {
+                    escape_ascii(key, out);
+                } else {
+                    escape_unicode(key, out);
+                }
                 out.push(':');
-                encode(&entries[key], sort_keys, out);
+                encode(&entries[key], sort_keys, ascii, out);
             }
             out.push('}');
         }
@@ -191,13 +222,19 @@ fn encode(value: &Value, sort_keys: bool, out: &mut String) {
 
 pub fn canonical_json(value: &Value) -> String {
     let mut out = String::new();
-    encode(value, true, &mut out);
+    encode(value, true, true, &mut out);
     out
 }
 
 pub fn compact_ascii_json(value: &Value) -> String {
     let mut out = String::new();
-    encode(value, false, &mut out);
+    encode(value, false, true, &mut out);
+    out
+}
+
+pub fn compact_json(value: &Value) -> String {
+    let mut out = String::new();
+    encode(value, false, false, &mut out);
     out
 }
 
