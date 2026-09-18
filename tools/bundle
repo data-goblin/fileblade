@@ -26,7 +26,7 @@ fi
 
 source_id() {
   {
-    printf '%s\0' Cargo.toml Cargo.lock rust-toolchain.toml tools/bundle tools/notices assets/fileblade-logo.png
+    printf '%s\0' Cargo.toml Cargo.lock rust-toolchain.toml tools/bundle tools/notices assets/fileblade-logo.png examples/fileblade-bindings.lua
     find src crates -type f -print0
   } | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d ' ' -f 1
 }
