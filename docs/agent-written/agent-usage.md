@@ -35,10 +35,9 @@ mod.rs:      the environment the store reads, the watch-path list and the MCP co
 ```
 
 The Skills routes (`list`, `usage`, `usage-counts`, `usage-day`) and the MCP
-`usage` and `usage-forget` routes are answered in this process: `CoreRoute`
-dispatch in `src/module_helpers.rs` routes per method, so the MCP `list` route
-still runs the Python inventory helper, which keeps using `python/agent_usage/`
-until that helper is ported.
+`usage`, `list` and `usage-forget` routes are answered in this process:
+`CoreRoute` dispatch in `src/module_helpers.rs` routes per method into
+`src/core_modules/`. No route spawns a helper program.
 
 ## The store
 

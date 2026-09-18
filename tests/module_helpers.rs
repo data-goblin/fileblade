@@ -28,7 +28,7 @@ impl Fixture {
     }
     fn script(&self, body: &str) {
         let path = self.root.path().join("bin/helper");
-        fs::write(&path, format!("#!/usr/bin/python3\n{body}\n")).unwrap();
+        fs::write(&path, format!("#!/usr/bin/env bash\nset -eu\n{body}\n")).unwrap();
         fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
     }
     fn manifest(&self, declaration: Value) {
@@ -106,7 +106,7 @@ impl Fixture {
 
 #[test]
 fn only_declared_methods_run_in_the_correct_request_kind() {
-    let fixture = Fixture::new("print('{\"ok\":true,\"items\":[]}')");
+    let fixture = Fixture::new("printf '%s\\n' '{\"ok\":true,\"items\":[]}'");
     assert_eq!(
         fixture.request("list", "[]", None, false).unwrap()["items"],
         json!([])
@@ -130,7 +130,7 @@ fn only_declared_methods_run_in_the_correct_request_kind() {
 
 #[test]
 fn helper_entry_cannot_select_an_external_executable_or_symlink() {
-    let fixture = Fixture::new("print('{}')");
+    let fixture = Fixture::new("printf '%s\\n' '{}'");
     for entry in [
         "/usr/bin/true",
         "../outside",
@@ -150,7 +150,7 @@ fn helper_entry_cannot_select_an_external_executable_or_symlink() {
 
 #[test]
 fn input_and_arguments_are_bounded_before_any_helper_side_effect() {
-    let fixture = Fixture::new("from pathlib import Path\nPath('ran').touch()\nprint('{}')");
+    let fixture = Fixture::new("touch ran\nprintf '%s\\n' '{}'");
     assert!(
         fixture
             .request("apply", "[]", Some(&"x".repeat(65537)), true)
@@ -177,7 +177,7 @@ fn input_and_arguments_are_bounded_before_any_helper_side_effect() {
 
 #[test]
 fn flood_malformed_and_premature_success_responses_are_refused() {
-    let fixture = Fixture::new("import os\nos.write(1,b'x'*(3*1024*1024))");
+    let fixture = Fixture::new("head -c $((3 * 1024 * 1024)) /dev/zero | tr '\\0' 'x'");
     assert!(
         fixture
             .request("list", "[]", None, false)
@@ -185,13 +185,13 @@ fn flood_malformed_and_premature_success_responses_are_refused() {
             .to_string()
             .contains("2 MiB")
     );
-    fixture.script("print('not JSON')");
+    fixture.script("printf '%s\\n' 'not JSON'");
     assert!(fixture.request("list", "[]", None, false).is_err());
-    fixture.script("print('[]')");
+    fixture.script("printf '%s\\n' '[]'");
     assert!(fixture.request("list", "[]", None, false).is_err());
-    fixture.script("print('{\"ok\":true}')\nraise SystemExit(7)");
+    fixture.script("printf '%s\\n' '{\"ok\":true}'\nexit 7");
     assert!(fixture.request("list", "[]", None, false).is_err());
-    fixture.script("print('{\"ok\":false,\"message\":\"refused\"}')\nraise SystemExit(1)");
+    fixture.script("printf '%s\\n' '{\"ok\":false,\"message\":\"refused\"}'\nexit 1");
     assert_eq!(
         fixture.request("list", "[]", None, false).unwrap()["message"],
         "refused"
@@ -201,7 +201,7 @@ fn flood_malformed_and_premature_success_responses_are_refused() {
 #[test]
 fn native_provider_paths_and_closed_private_input_work() {
     let fixture = Fixture::new(
-        "import json,sys\nprint(json.dumps({'ok':True,'input':sys.stdin.read(),'args':sys.argv[1:]}))",
+        "text=$(cat)\nprintf '%s\\n' \"$@\" | jq -Rs --arg input \"$text\" '{ok:true, input:$input, args:(if . == \"\" then [] else rtrimstr(\"\\n\") | split(\"\\n\") end)}'",
     );
     let link = fixture
         .root
@@ -228,7 +228,7 @@ fn native_provider_paths_and_closed_private_input_work() {
 
 #[test]
 fn deadlines_and_cancellation_use_the_shared_native_runner() {
-    let fixture = Fixture::new("import time\ntime.sleep(10)");
+    let fixture = Fixture::new("sleep 10");
     fixture.manifest(
         json!({"id":"inventory", "entry":"bin/helper", "read":["list"], "timeoutMs":100}),
     );
@@ -257,7 +257,7 @@ fn deadlines_and_cancellation_use_the_shared_native_runner() {
 #[test]
 fn resident_input_is_private_and_not_accepted_for_unrelated_commands() {
     let fixture = Fixture::new(
-        "import json,sys\nprint(json.dumps({'ok':True,'input':sys.stdin.read(),'argv':sys.argv}))",
+        "text=$(cat)\nprintf '%s\\n' \"$0\" \"$@\" | jq -Rs --arg input \"$text\" '{ok:true, input:$input, argv:(rtrimstr(\"\\n\") | split(\"\\n\"))}'",
     );
     let mut server = fixture
         .command()
@@ -313,7 +313,7 @@ fn resident_input_is_private_and_not_accepted_for_unrelated_commands() {
 
 #[test]
 fn disabled_or_unknown_activation_never_starts_a_helper() {
-    let fixture = Fixture::new("from pathlib import Path\nPath('ran').touch()\nprint('{}')");
+    let fixture = Fixture::new("touch ran\nprintf '%s\\n' '{}'");
     for state in [r#"[{"id":"test.inventory","enabled":false}]"#, "not json"] {
         fs::write(fixture.root.path().join("enabled.json"), state).unwrap();
         assert!(

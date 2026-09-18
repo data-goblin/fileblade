@@ -155,18 +155,16 @@ fn production_runtime_is_rust_with_one_resident_qml_process() {
     let blade_host = text(&root.join("blades/BladeHost.qml"));
     assert!(!blade_host.contains("applyLayerRules"));
     assert!(!blade_host.contains("configreloaded"));
-    let python_support = files(root, &["py"]);
-    for path in &python_support {
-        let relative = path.strip_prefix(root).unwrap_or(path);
+    assert!(!root.join("python").exists());
+    for path in files(root, &["py"]) {
+        let relative = path.strip_prefix(root).unwrap_or(&path);
         assert!(
-            relative.starts_with("python")
-                || relative.starts_with("tests")
+            relative.starts_with("tests")
                 || relative == std::path::Path::new("scripts/fileblade-extension-image.py"),
-            "Python is a bundled helper under python/, a test, or the extension image tool, never a core backend: {}",
+            "Python is a test or the extension image tool, never runtime or backend code: {}",
             path.display()
         );
     }
-    assert!(python_support.len() >= 12);
 }
 
 #[test]

@@ -123,11 +123,15 @@ impl Route {
     }
 }
 
+enum Target {
+    Core(CoreRoute),
+    Program(PathBuf),
+}
+
 struct Declaration {
     root: PathBuf,
-    program: PathBuf,
+    target: Target,
     timeout: Duration,
-    core: Option<CoreRoute>,
 }
 
 fn declaration(request: &Request<'_>) -> AppResult<Declaration> {
@@ -150,14 +154,10 @@ fn declaration(request: &Request<'_>) -> AppResult<Declaration> {
                 "core helper method is not declared for this request kind",
             ));
         }
-        let root = crate::paths::app_root()?;
-        let entry = format!("python/bin/agent-{}ctl", core.module());
-        let program = resolve_plugin_program(&entry, &root).map_err(AppError::invalid)?;
         return Ok(Declaration {
-            root,
-            program,
+            root: crate::paths::app_root()?,
+            target: Target::Core(core),
             timeout: Duration::from_secs(8),
-            core: Some(core),
         });
     }
     if request.provider.starts_with("fileblade.core.")
@@ -216,9 +216,8 @@ fn declaration(request: &Request<'_>) -> AppResult<Declaration> {
         .unwrap_or(8000);
     Ok(Declaration {
         root,
-        program,
+        target: Target::Program(program),
         timeout: Duration::from_millis(timeout),
-        core: None,
     })
 }
 
@@ -267,23 +266,24 @@ pub fn run(request: &Request<'_>, cancelled: &AtomicBool) -> AppResult<Value> {
         return Err(AppError::invalid("helper input exceeds 64 KiB"));
     }
     let declared = declaration(request)?;
-    if declared.core.is_none() {
-        crate::plugin_catalog::require_enabled(request.provider, &declared.root)?;
-    }
-    if request.write && matches!(declared.core, Some(CoreRoute::Skills | CoreRoute::Memory)) {
-        crate::preferences::require_agent_management()?
-    }
-    if let Some(core) = declared.core
-        && let Some(document) = crate::core_modules::dispatch(
-            core,
-            request,
-            &arguments,
-            &crate::core_modules::Context::new(declared.timeout, cancelled),
-        )
-    {
-        return document;
-    }
-    let mut command = CommandSpec::new(declared.program)
+    let program = match declared.target {
+        Target::Core(core) => {
+            if matches!(core, CoreRoute::Skills | CoreRoute::Memory) && request.write {
+                crate::preferences::require_agent_management()?
+            }
+            return crate::core_modules::dispatch(
+                core,
+                request,
+                &arguments,
+                &crate::core_modules::Context::new(declared.timeout, cancelled),
+            );
+        }
+        Target::Program(program) => {
+            crate::plugin_catalog::require_enabled(request.provider, &declared.root)?;
+            program
+        }
+    };
+    let mut command = CommandSpec::new(program)
         .args([request.method])
         .args(&arguments)
         .cwd(declared.root)

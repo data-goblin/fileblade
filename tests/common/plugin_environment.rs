@@ -13,7 +13,7 @@ pub fn install(root: &Path, id: &str) {
     )
     .unwrap();
     let program = root.join("bin/omarchy");
-    fs::write(&program, "#!/usr/bin/python3\nimport os,sys\nfrom pathlib import Path\nassert sys.argv[1:]==['plugin','list','--json']\nprint((Path(os.environ['HOME'])/'enabled.json').read_text())\n").unwrap();
+    fs::write(&program, "#!/usr/bin/env bash\nset -eu\ntest \"$*\" = 'plugin list --json'\ncat \"$HOME/enabled.json\"\n").unwrap();
     fs::set_permissions(program, fs::Permissions::from_mode(0o700)).unwrap();
 }
 

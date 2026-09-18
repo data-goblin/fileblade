@@ -5,9 +5,9 @@ use std::process::{Command, Output};
 
 fn app_root(root: &Path, qs_body: &str, launch_body: &str) {
     fs::create_dir_all(root.join("app")).unwrap();
-    fs::create_dir_all(root.join("python")).unwrap();
     fs::create_dir_all(root.join("bin")).unwrap();
     fs::write(root.join("manifest.json"), "{}").unwrap();
+    fs::write(root.join("Service.qml"), "").unwrap();
     fs::write(root.join("app/shell.qml"), "").unwrap();
     for (path, body) in [("bin/qs", qs_body), ("app/launch", launch_body)] {
         fs::write(root.join(path), format!("#!/bin/sh\n{body}\n")).unwrap();

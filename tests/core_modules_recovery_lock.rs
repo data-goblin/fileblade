@@ -7,8 +7,8 @@ fn standalone_bin_put_locks_recovery_with_app_root_override() {
     for app_ready in [false, true] {
         let root = tempfile::tempdir().unwrap();
         if app_ready {
-            fs::create_dir_all(root.path().join("python")).unwrap();
             fs::write(root.path().join("manifest.json"), "{}").unwrap();
+            fs::write(root.path().join("Service.qml"), "").unwrap();
         }
         let data = root.path().join("data");
         let output = Command::new(

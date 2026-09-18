@@ -22,8 +22,8 @@ aimed at both you and your agent.
 
 ## Built-ins and legacy aliases
 
-Skills, Memory, Hooks and MCP ship under `modules/` with their Python helpers
-under `python/`. They do not require companion checkouts, an enabled Omarchy
+Skills, Memory, Hooks and MCP ship under `modules/` and are implemented in the
+backend under `src/core_modules/`. They do not require companion checkouts, an enabled Omarchy
 service or a registry connection. Their module IDs are `skills`, `memory`,
 `hooks` and `mcp`; their shared provider IDs are `fileblade.core.<module>`.
 Providers load inventory on attachment and share it across attached views.
@@ -46,9 +46,9 @@ These records survive save/reload. If including them exceeds the layout byte
 limit, saving is refused and the original disk document remains intact.
 
 Core helper requests use `inventory`, an empty `--plugin-dir` and a fixed
-method declaration. Executables resolve through `paths::app_root()` to
-`python/bin/agent-<module>ctl`. Supplying a directory for a core provider is
-refused. Historical companion recovery routes retain their original evidence
+method declaration. They are answered inside the backend process: no helper
+executable is resolved and no interpreter is spawned. Supplying a directory for
+a core provider is refused. Historical companion recovery routes retain their original evidence
 but execute the bundled helper; a retired checkout is never used for recovery.
 Skills and Memory writes still require Manage agent files. Browsing hooks and
 MCP declarations executes no configured hook or server.
@@ -420,7 +420,7 @@ changes, so a selection change never blanks the user-level rows. Set
 `exactProject: false` for helpers without `--exact`. Responses use
 `schemaVersion: 1`, `ok`, `items`, `project`, and `truncated`; `itemsKey`
 selects another row-array field. `watchPaths` supplies at most 512
-directories. `python/fileblade_inventory.py` collects a bounded
+directories. The core modules collect a bounded
 watch plan alongside discovery, including existing parents of missing sources;
 callers record each source and visited directory. A subscription is reconciled
 after installation, and watch failures or incomplete coverage remain visible.
@@ -871,39 +871,36 @@ actions unchanged; labels and `relative` text are for display, not reconstructio
 The [path contract](ARCHITECTURE.md#filesystem-path-identity) covers native
 providers and the shared QML helpers.
 
-Python companions use `python/fileblade_paths.py` from their FileBlade
-dependency. Their package initializer adds the sibling core's `python` directory
-to the import path (the installed `data-goblin.fileblade` directory, or the
-adjacent `fileblade` development checkout). This loads installed source only;
-it does not fetch code or require a Python package installation.
-Helper entry points set `sys.dont_write_bytecode = True` before importing their
-packages: the plugin tree is read-only at runtime, and writing `__pycache__`
-there triggers Omarchy's plugin watcher. The shared read-only-import regression
-runs from each companion's `tests/run`.
+A helper entry may be any executable that speaks JSON over stdin and stdout.
+The backend runs the declared `entry` with the method and its arguments, writes
+private input to stdin, and reads one JSON document from stdout. The contract
+names no language and requires no interpreter.
 
-Use `parse_path` at command-line and undo-input boundaries, keep native Python
-strings inside filesystem operations, mark response paths with `NativePath`,
-and apply `wire` before JSON serialization. Use `display` only for labels.
-Structured undo payloads must explicitly encode their source paths and be
-representable before changing the source; they are not display text. Redacted
-MCP source labels remain non-actionable.
+Treat path values crossing that boundary as opaque identities. Parse them at
+command-line and undo-input boundaries, keep the native bytes inside filesystem
+operations, mark response paths as native, and encode them for the wire before
+serializing JSON. Use display text only for labels. Structured undo payloads
+must explicitly encode their source paths and be representable before changing
+the source; they are not display text. Redacted MCP source labels remain
+non-actionable.
 
-Python helpers that spawn commands use `python/fileblade_process.py`. Its
-single-threaded Linux runner accepts bounded byte input, output caps and a
-deadline. A small supervisor owns the command's process group; TERM waits for
-cleanup before the helper exits, and abrupt helper death still triggers group
-cleanup. Independently detached groups, including credential agents, have a
-separate lifetime. They cannot hold the output reader indefinitely. This is
-process ownership, not a sandbox for repository hooks or plugins.
+Commands the backend spawns run under a supervisor that accepts bounded byte
+input, output caps and a deadline, and that owns the command's process group.
+TERM waits for cleanup before the request completes, and abrupt death of the
+request still triggers group cleanup. Independently detached groups, including
+credential agents, have a separate lifetime. They cannot hold the output reader
+indefinitely. This is process ownership, not a sandbox for repository hooks or
+plugins.
 
-Configuration writers use `python/fileblade_mutations.py` to retain a bounded,
-byte-exact preimage and delegate publication to the native backend. The backend
-checks file identity and original bytes, uses descriptor-relative quarantine
-and no-replace publication, and keeps recovery intents on interruption. New
-files are private `0600`; existing permission bits are preserved. Link creation
-is exclusive, and unlink checks the captured symlink identity. This private
-stdin-only adapter allows up to 8 MiB of configuration with a 24 MiB transport
-cap; it does not widen the resident helper or artifact-record limits.
+Configuration writers retain a bounded, byte-exact preimage and delegate
+publication to the native write path. That path checks file identity and
+original bytes, uses descriptor-relative quarantine and no-replace publication,
+and keeps recovery intents on interruption. New files are private `0600`;
+existing permission bits are preserved. Link creation is exclusive, and unlink
+checks the captured symlink identity. External helpers reach the same path
+through a private stdin-only adapter that allows up to 8 MiB of configuration
+with a 24 MiB transport cap; it does not widen the resident helper or
+artifact-record limits.
 
 Send private text through stdin, not command arguments. Git's commit path
 accepts at most 64 KiB and closes stdin after writing; Git receives the same

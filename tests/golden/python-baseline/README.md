@@ -5,23 +5,22 @@ These files are the behaviour of the Python helpers in `python/`, frozen on
 compared against what the Python version actually produced, not against a
 reading of the code.
 
-Regenerate with `tests/golden/generate-python-baseline.py`. Fixture timestamps
-are fixed, the removal transaction id is fixed, and every value that still
-varies is replaced with a placeholder (`{ROOT}` for the sandbox root, `{TODAY}`
-for the local date a query ran on, `{CREATED_AT}` for the recovery record's
-creation time), so the JSON fixtures regenerate identically at the same root.
-A row's `created` is the file's real birth time and is not normalized, so it
-moves whenever the fixtures are rebuilt. `--modules <names>` rebuilds only the
-named modules and keeps the recorded manifest entry for the rest.
+The generator and the `python/` tree it ran are gone; these fixtures are frozen
+and cannot be regenerated. They remain the reference the Rust modules are
+compared against. When it still existed, the generator fixed fixture
+timestamps, fixed the removal transaction id, and replaced every value that
+still varied with a placeholder (`{ROOT}` for the sandbox root, `{TODAY}` for
+the local date a query ran on, `{CREATED_AT}` for the recovery record's
+creation time), so the JSON fixtures were reproducible at the same root.
+A row's `created` is the file's real birth time and was not normalized.
 
 `usage/agent-usage.sqlite3` is not reproducible that way: its `source` table
-keeps the real device and inode numbers of the machine it was built on, and the
-generator copies the database without normalizing them. It is a frozen
-artifact, kept as it was written.
+keeps the real device and inode numbers of the machine it was built on. It is a
+frozen artifact, kept as it was written.
 
 Row ids hash real paths, so the sandbox root is part of the contract: the
 fixtures were built under `/tmp/fileblade-python-baseline`, the generator's
-default. A different `--root` produces different ids.
+default, and the Rust suites reproduce that root when they compare.
 
 ```yaml
 manifest.json:            the root, the frozen date and the row counts per module

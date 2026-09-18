@@ -432,8 +432,8 @@ cleanup. Nonblocking input/output and a bounded final drain prevent inherited
 pipes from holding a completed request open. Cleanup reports failure if the
 kernel cannot complete it within its bound.
 
-Git's Python helper uses a separate supervisor to stop its owned command group
-on timeout or helper death. TERM waits for cleanup before the helper exits.
+An external Git helper uses a separate supervisor to stop its owned command
+group on timeout or helper death. TERM waits for cleanup before the helper exits.
 Deliberately detached groups, such as credential agents, remain independent;
 they cannot hold the output reader indefinitely. Commit messages use bounded
 stdin instead of argv. Neither this supervisor nor FileBlade sandboxes Git

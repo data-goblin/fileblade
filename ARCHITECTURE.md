@@ -326,11 +326,11 @@ backend option. Native command arguments, journals, Trash, search results and
 artifact-bin manifests retain the original bytes. Terminal path quoting uses
 Bash/Zsh byte escapes when needed.
 
-Companions inherit these operations through `context.paths` and the core's
-`python/fileblade_paths.py`. The Python codec marks actionable output fields
-with `NativePath`; filesystem operations still receive native strings. Display
-sanitization and output bounds must never rewrite or truncate an action path.
-`tests/run` checks the Python codec alongside the Rust and QML implementations.
+Helpers inherit these operations through `context.paths` and the same codec in
+`src/common/path.rs`, which the core modules share. Actionable output fields are
+marked as native paths; filesystem operations still receive the original bytes.
+Display sanitization and output bounds must never rewrite or truncate an action
+path. `tests/run` checks the Rust codec alongside the QML implementation.
 
 This file was written by an agent.
 
@@ -350,21 +350,20 @@ descriptors are duplicated above stderr before command stdio setup; all other
 guardian descriptors are closed. Adopted children in independent groups are only
 reaped after exit, never killed.
 
-Python companion commands share `python/fileblade_process.py`. A Linux
-supervisor drains bounded streams, enforces a deadline and stops the owned
-process group on cancellation or caller death. It retains the leader's PID
-until group cleanup and reaps adopted group children. TERM completion waits
-for cleanup; deliberately detached groups remain independent, and a bounded
-final drain prevents inherited pipes from holding a completed request open.
-This runner is for single-threaded helpers, not the native backend or detached
-desktop launches.
+A helper entry may be any executable that speaks JSON over stdin and stdout;
+the contract names no language. An external helper that spawns its own commands
+owns their lifetime itself. Commands the backend spawns for it go through the
+same supervisor: bounded streams, a deadline, and the owned process group
+stopped on cancellation or caller death.
 
 `ui/ArtifactInventory.qml` shares provider-owned JSON discovery and mutations
 over the resident backend's `helper-read` / `helper-write` requests. The backend
 resolves a manifest-declared helper and method rather than accepting an
 executable from a row. Native supervision bounds its streams and lifetime;
-private request input is forwarded on stdin. `python/fileblade_inventory.py`
-collects source directories for the existing filesystem subscription protocol.
+private request input is forwarded on stdin. The built-in Skills, Memory, Hooks
+and MCP routes are answered in process by `src/core_modules/` instead of a
+spawned program, and collect source directories for the existing filesystem
+subscription protocol.
 Memory uses this runtime, leaving its visual module responsible for presentation.
 
 ### IPC verbs without a CLI subcommand

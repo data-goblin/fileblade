@@ -6,7 +6,7 @@ use crate::error::{AppError, AppResult};
 const CURRENT: &str = "omarchy/fileblade";
 const LEGACY: &str = "omarchy/filetree";
 const APP_ROOT_VARIABLE: &str = "FILEBLADE_APP_ROOT";
-const APP_ROOT_MARKERS: [&str; 2] = ["manifest.json", "python"];
+const APP_ROOT_MARKERS: [&str; 2] = ["manifest.json", "Service.qml"];
 const APP_ROOT_SEARCH_DEPTH: usize = 4;
 
 pub fn app_root() -> AppResult<PathBuf> {

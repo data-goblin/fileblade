@@ -116,7 +116,7 @@ else:
             .env_remove("FILEBLADE_APP_ROOT")
             .env("XDG_DATA_HOME", self.root.path().join("data"))
             .env("XDG_STATE_HOME", self.root.path().join("state"));
-        if self.root.path().join("python").is_dir() {
+        if self.root.path().join("Service.qml").exists() {
             command.env("FILEBLADE_APP_ROOT", self.root.path());
         }
         command

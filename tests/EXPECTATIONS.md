@@ -1349,7 +1349,7 @@ checked by `tests/qml/tst_usage_heatmap.qml` (weeks by width, colours, tooltip
 text, keyboard cursor), `tests/qml/tst_artifact_inventory.qml` (history
 requests), `tests/qml/tst_usage_modules.qml` (both modules' focus, visibility,
 errors and MCP Right/`l` expansion), `tests/qml/tst_artifact_branches.qml` (servers from one file fold
-separately), `tests/test_python_usage.py` (counting and history) and
+separately), `tests/core_modules_usage_golden.rs` (counting and history) and
 `tests/usage_cli_e2e.rs` (the `fileblade usage` commands). Placement under the
 search field and compositor focus still need a VM scenario at blade widths 280 and 1000, with the search
 field both shown and auto-hidden. See

@@ -39,8 +39,8 @@ Cross-target verification is not an ARM runtime or physical-hardware pass.
 
 The production runtime launcher `app/launch` resolves its backend at
 `bin/fileblade`; the payload retains that path without requiring
-Cargo or a source checkout at launch. All QML relative imports and core Python
-helpers are preserved. The app-private adapter and its upstream license are
+Cargo or a source checkout at launch. All QML relative imports are preserved and the
+core modules are answered by that backend, with no interpreter in the payload. The app-private adapter and its upstream license are
 included. Developer-only app/ovm-spike and app/qualification helpers are
 excluded. Runtime-owned service/portal metadata, when committed beneath app/,
 is included; packaging does not invent or enable a chooser implementation.

@@ -12,16 +12,15 @@ impl Fixture {
     fn new() -> Self {
         let root = tempfile::tempdir().unwrap();
         let path = root.path();
-        fs::create_dir_all(path.join("python/bin")).unwrap();
         fs::write(path.join("manifest.json"), "{}").unwrap();
-        for name in ["skills", "memory", "hooks", "mcp"] {
-            let helper = path.join(format!("python/bin/agent-{name}ctl"));
-            fs::write(&helper, "#!/usr/bin/python3\nimport json,sys\nprint(json.dumps({'ok':True,'args':sys.argv[1:]}))\n").unwrap();
-            fs::set_permissions(helper, fs::Permissions::from_mode(0o700)).unwrap();
-        }
+        fs::write(path.join("Service.qml"), "").unwrap();
         fs::create_dir(path.join("scripts")).unwrap();
         let registry = path.join("scripts/omarchy");
-        fs::write(&registry, "#!/usr/bin/python3\nimport os,pathlib\npathlib.Path(os.environ['FILEBLADE_APP_ROOT'],'registry-called').touch()\nraise SystemExit(1)\n").unwrap();
+        fs::write(
+            &registry,
+            "#!/usr/bin/env bash\nset -eu\ntouch \"$FILEBLADE_APP_ROOT/registry-called\"\nexit 1\n",
+        )
+        .unwrap();
         fs::set_permissions(registry, fs::Permissions::from_mode(0o700)).unwrap();
         Self { root }
     }
@@ -105,8 +104,6 @@ fn rejected(result: &Value) -> bool {
             .is_some_and(|error| error.contains("core helper"))
 }
 
-const IN_PROCESS: [&str; 4] = ["skills", "memory", "hooks", "mcp"];
-
 #[test]
 fn core_helpers_never_query_the_registry_and_cannot_be_retargeted() {
     let fixture = Fixture::new();
@@ -114,12 +111,8 @@ fn core_helpers_never_query_the_registry_and_cannot_be_retargeted() {
         let provider = format!("fileblade.core.{module}");
         let result = fixture.run(&provider, "", "inventory", "list", false);
         assert_eq!(result["ok"], true, "{result}");
-        if IN_PROCESS.contains(&module) {
-            assert_eq!(result["args"], Value::Null, "{result}");
-            assert_eq!(result["schemaVersion"], json!(1), "{result}");
-        } else {
-            assert_eq!(result["args"], json!(["list"]));
-        }
+        assert_eq!(result["args"], Value::Null, "{result}");
+        assert_eq!(result["schemaVersion"], json!(1), "{result}");
         assert!(rejected(&fixture.run(
             &provider,
             "/retired/checkout",

@@ -10,7 +10,7 @@ fn the_mcp_module_keeps_its_qml_and_helper_contract() {
     let keys = fs::read_to_string(root.join("components/RescanKeyContract.qml")).unwrap();
     let provider = fs::read_to_string(root.join("Provider.qml")).unwrap();
     let shared_provider = fs::read_to_string(core.join("ui/InventoryProvider.qml")).unwrap();
-    let cli = fs::read_to_string(core.join("python/agent_mcp/cli.py")).unwrap();
+    let routes = fs::read_to_string(core.join("src/core_modules/mcp/mod.rs")).unwrap();
 
     for target in ["searchLoader", "treeLoader"] {
         for option in ["caseSensitive", "regex"] {
@@ -223,19 +223,19 @@ fn the_mcp_module_keeps_its_qml_and_helper_contract() {
         "metrics: entry.metrics"
     );
     assert!(
-        cli.contains("add_argument(\"--record-id\", required=True)"),
+        routes.contains("\"--record-id\" => options.record_id = Some(value()?),"),
         "In: {}",
-        "add_argument(\"--record-id\", required=True)"
+        "\"--record-id\" => options.record_id = Some(value()?),"
     );
     assert!(
-        cli.contains("add_argument(\"--payload-stdin\", action=\"store_true\", required=True)"),
+        routes.contains("\"--payload-stdin\" => options.payload_stdin = true,"),
         "In: {}",
-        "add_argument(\"--payload-stdin\", action=\"store_true\", required=True)"
+        "\"--payload-stdin\" => options.payload_stdin = true,"
     );
     assert!(
-        !cli.contains("add_argument(\"--payload\")"),
+        !routes.contains("\"--payload\" =>"),
         "NotIn: {}",
-        "add_argument(\"--payload\")"
+        "\"--payload\" =>"
     );
     assert!(
         module.contains("property: \"tabIndex\""),

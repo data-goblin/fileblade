@@ -68,13 +68,14 @@ pub fn dispatch(
     request: &Request<'_>,
     arguments: &[String],
     context: &Context<'_>,
-) -> Option<AppResult<Value>> {
-    let handler = registered(route, request.method)?;
-    Some(handler(request, arguments, context).and_then(|document| {
-        if document.is_object() {
-            Ok(document)
-        } else {
-            Err(AppError::command("helper response must be a JSON object"))
-        }
-    }))
+) -> AppResult<Value> {
+    let handler = registered(route, request.method).ok_or_else(|| {
+        AppError::invalid("core helper method is not declared for this request kind")
+    })?;
+    let document = handler(request, arguments, context)?;
+    if document.is_object() {
+        Ok(document)
+    } else {
+        Err(AppError::command("helper response must be a JSON object"))
+    }
 }

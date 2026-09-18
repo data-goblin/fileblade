@@ -38,8 +38,8 @@ counted, so `/model` or `/goal` never appear.
 - sub-agent uses carry `subagent = 1` in the store but are not shown apart
 - a transcript is read once past its stored offset. A file whose device,
   inode, size and mtime match its row and whose offset equals its size is only
-  `stat`ed, never opened; `tests/test_python_usage.py` proves it with a file
-  made unreadable after its first read
+  `stat`ed, never opened; `tests/core_modules_usage_golden.rs` proves it with a
+  file made unreadable after its first read
 
 ## Refresh policy
 

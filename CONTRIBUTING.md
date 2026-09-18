@@ -62,7 +62,6 @@ Service.qml, blades/, modules/, controllers/, panes/, ui/, lib/:  QML and JS
 src/, crates/:                                                     Rust
 tests/*.rs:      cargo integration and end-to-end tests, plus the source contract tests
 tests/qml/:      QML and JavaScript regression tests
-python/:         shared support for extension companions
 tests/vm/:       scripts for a headless Omarchy VM
 examples/:       a minimal dependent plugin, also the reference for EXTENSIONS.md
 scripts/:        developer helpers the CLI embeds, such as the extension banner generator
@@ -95,7 +94,8 @@ surface really is a dot, knob or handle.
 [backend delivery build](docs/agent-written/build-provenance.md) runs on GitHub
 solely to reproduce and attest the bundled backend; it does not run tests there.
 It isolates state in a temporary directory and requires the test dependencies,
-including Qt 6 declarative tools, Python 3, `nvim`, `git`, and `bsdtar`. Set
+including Qt 6 declarative tools, Python 3 for the developer hooks, `nvim`,
+`git`, and `bsdtar`. Set
 `FILEBLADE_OFFLINE=1` to use cached Cargo dependencies.
 
 Keep `target/` and bundle staging on a disk-backed filesystem. Bundle builds
@@ -104,7 +104,7 @@ Remove the staging directory when finished. A native change must include the
 updated `fileblade-bin`, `fileblade-bin.sha256`, and `fileblade-bin.source`.
 
 The gate runs Rust formatting, checks, Clippy and tests, Qt 6 lint and regression
-tests, Python support tests, and a byte-for-byte rebuild of the bundled backend.
+tests, the scaffold checks, and a byte-for-byte rebuild of the bundled backend.
 The pinned Rust toolchain is required even when only verifying the bundle.
 
 `tests/version_contract.rs` and the pre-commit hook in `tools/hooks/pre-commit`
@@ -164,7 +164,7 @@ or untested scenarios. Remove your temporary captures after verification.
 ## Conventions
 
 - Keep core filesystem and command logic in Rust; QML renders and routes actions.
-  Python extension companions reuse the shared support in `python/`.
+  An extension helper may be any executable that speaks JSON over stdin and stdout.
 - document implementation details in the technical docs; do not add code comments
 - modules over regions: split a large file along a seam instead of stacking sections in one
 - external commands take argument vectors, never a shell string
