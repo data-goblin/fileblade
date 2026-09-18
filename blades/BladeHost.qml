@@ -193,6 +193,8 @@ Item {
   function setSlotTab(edge, slotIndex, tabIndex) { return tabController.setSlotTab(edge, slotIndex, tabIndex) }
   function cycleSlotTab(edge, slotIndex, delta) { return tabController.cycleSlotTab(edge, slotIndex, delta) }
   function removeTab(edge, slotIndex, tabIndex) { return tabController.removeTab(edge, slotIndex, tabIndex) }
+  function removeTabsAfter(edge, slotIndex, tabIndex) { return tabController.removeTabsAfter(edge, slotIndex, tabIndex) }
+  function moveTabToSlot(edge, slotIndex, tabIndex, targetSlotIndex) { return tabController.moveTabToSlot(edge, slotIndex, tabIndex, targetSlotIndex) }
   function addTab(edge, slotIndex, moduleId, state) { return tabController.addTab(edge, slotIndex, moduleId, state) }
 
   function tabSeedState(moduleId) { return tabController.tabSeedState(moduleId) }

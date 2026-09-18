@@ -98,6 +98,24 @@ Item {
     return true
   }
 
+  function moveTabToSlot(edge, slotIndex, tabIndex, targetSlotIndex) {
+    return moveTabInto(edge, slotIndex, tabIndex, edge, targetSlotIndex, undefined)
+  }
+
+  function removeTabsAfter(edge, slotIndex, tabIndex) {
+    var target = host.normalizeEdge(edge)
+    var index = Number(slotIndex)
+    var list = host.slotTabs(target, index)
+    var wanted = Number(tabIndex)
+    if (!host.validIndex(wanted, list.length) || wanted === list.length - 1) return false
+    host.updateBlade(target, function(blade) {
+      var slot = blade.slots[index]
+      slot.modules.splice(wanted + 1)
+      slot.active = Math.max(0, Math.min(Number(slot.active) || 0, wanted))
+    }, true)
+    return true
+  }
+
   function setSlotTab(edge, slotIndex, tabIndex) {
     var target = host.normalizeEdge(edge)
     var index = Number(slotIndex)

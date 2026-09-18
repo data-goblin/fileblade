@@ -199,17 +199,23 @@ Item {
           z: 1
 
           Text {
+            id: closeGlyph
             textFormat: Text.PlainText
             visible: bar.slot.tabs.length > 1
+            readonly property bool revealed: bar.interactive && (pointer.containsMouse || closePointer.containsMouse)
+            opacity: revealed ? 1 : 0
             text: "×"
             color: closePointer.containsMouse ? Color.urgent : Color.muted
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
 
+            Behavior on opacity { NumberAnimation { duration: 80 } }
+
             MouseArea {
               id: closePointer
               anchors.fill: parent
               anchors.margins: -Style.space(3)
+              enabled: closeGlyph.revealed
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onClicked: bar.slot.requestCloseTab(tab.index)
@@ -349,10 +355,14 @@ Item {
           { key: "clear", glyph: "󰅖", label: "Clear name", enabled: tabLabel(index) !== "" }
         ]
       : []
+    var slotCount = bar.slot.host.slots(bar.slot.edge).length
+    if (bar.slot.slotIndex > 0) rows.push({ key: "top", glyph: "󰁝", label: "Move to top" })
+    if (bar.slot.slotIndex < slotCount - 1) rows.push({ key: "bottom", glyph: "󰁅", label: "Move to bottom" })
     rows.push(bar.slot.edge === "right"
-      ? { key: "send", glyph: "←", label: "Move to left blade" }
-      : { key: "send", glyph: "→", label: "Move to right blade" })
-    rows.push({ key: "close", glyph: "×", label: "Close tab", enabled: bar.slot.tabs.length > 1 })
+      ? { key: "send", glyph: "󰁍", label: "Move to left blade" }
+      : { key: "send", glyph: "󰁔", label: "Move to right blade" })
+    rows.push({ key: "close", glyph: "󰅖", label: "Close tab", enabled: bar.slot.tabs.length > 1 })
+    rows.push({ key: "closeRight", glyph: "󰄾", label: "Close to the right", enabled: index < bar.slot.tabs.length - 1 })
     tabMenu.rows = rows
     tabMenu.present()
   }
@@ -384,6 +394,11 @@ Item {
     bar.slot.host.sendTabAcross(bar.slot.edge, bar.slot.slotIndex, index, bar.slot.hostWindow ? bar.slot.hostWindow.screen : null)
   }
 
+  function moveTabToSlot(index, targetSlotIndex) {
+    closeTabMenu()
+    bar.slot.host.moveTabToSlot(bar.slot.edge, bar.slot.slotIndex, index, targetSlotIndex)
+  }
+
   function clearLabel(index) {
     closeTabMenu()
     bar.slot.host.setTabStateValue(bar.slot.edge, bar.slot.slotIndex, index, "label", null)
@@ -400,7 +415,10 @@ Item {
       if (key === "rename") bar.beginRename(index)
       else if (key === "clear") bar.clearLabel(index)
       else if (key === "send") bar.sendTab(index)
+      else if (key === "top") bar.moveTabToSlot(index, 0)
+      else if (key === "bottom") bar.moveTabToSlot(index, bar.slot.host.slots(bar.slot.edge).length - 1)
       else if (key === "close") bar.slot.requestCloseTab(index)
+      else if (key === "closeRight") bar.slot.requestCloseTabsAfter(index)
     }
   }
 

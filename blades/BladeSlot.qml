@@ -15,6 +15,7 @@ FocusScope {
   property bool bladeOpen: false
   property bool bladeFocused: false
   property int pendingCloseTab: -1
+  property bool pendingCloseAfter: false
   property var pendingCloseTarget: null
   property real moduleMenuX: 0
   readonly property bool modulePickerOpen: moduleMenu.visible
@@ -92,24 +93,40 @@ FocusScope {
   function requestCloseTab(tabIndex) {
     var index = Number(tabIndex)
     if (tabs.length <= 1 || !host.validIndex(index, tabs.length)) return false
+    return promptClose(index, false, "Close tab?\n" + host.tabTitle(edge, slotIndex, index))
+  }
+
+  function requestCloseTabsAfter(tabIndex) {
+    var index = Number(tabIndex)
+    if (!host.validIndex(index, tabs.length) || index === tabs.length - 1) return false
+    var count = tabs.length - index - 1
+    return promptClose(index, true, "Close " + count + (count === 1 ? " tab" : " tabs") + " to the right of\n" + host.tabTitle(edge, slotIndex, index) + "?")
+  }
+
+  function promptClose(index, after, message) {
     pendingCloseTab = index
+    pendingCloseAfter = after
     pendingCloseTarget = TabIdentity.capture(tabs, index, slotId)
-    closeTabDialog.open("Close tab?\n" + host.tabTitle(edge, slotIndex, index),
-                        [{ key: "cancel", label: "Cancel" }, { key: "close", label: "Close", danger: true }])
+    closeTabDialog.open(message, [{ key: "cancel", label: "Cancel" }, { key: "close", label: "Close", danger: true }])
     return true
   }
 
   function confirmCloseTab() {
     var index = pendingCloseTab
+    var after = pendingCloseAfter
     var target = pendingCloseTarget
     pendingCloseTab = -1
+    pendingCloseAfter = false
     pendingCloseTarget = null
-    if (tabs.length > 1 && TabIdentity.matches(tabs, slotId, target)) host.removeTab(edge, slotIndex, index)
+    if (!TabIdentity.matches(tabs, slotId, target)) return
+    if (after) host.removeTabsAfter(edge, slotIndex, index)
+    else if (tabs.length > 1) host.removeTab(edge, slotIndex, index)
   }
 
   function dropStaleCloseTab() {
     if (!closeTabDialog.opened || TabIdentity.matches(tabs, slotId, pendingCloseTarget)) return
     pendingCloseTab = -1
+    pendingCloseAfter = false
     pendingCloseTarget = null
     closeTabDialog.close()
   }
@@ -271,7 +288,7 @@ FocusScope {
     id: closeTabDialog
     anchors.fill: parent
     z: 60
-    onCanceled: { slot.pendingCloseTab = -1; slot.pendingCloseTarget = null }
+    onCanceled: { slot.pendingCloseTab = -1; slot.pendingCloseAfter = false; slot.pendingCloseTarget = null }
     onChosen: function(key) { if (key === "close") slot.confirmCloseTab() }
   }
 

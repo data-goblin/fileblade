@@ -664,41 +664,49 @@ Automation for the remaining tab-management scenarios is pending.
 189. **E-22-10** Each tab remembers its own content and choices when I switch
      tabs, close and reopen the blade, or restart the shell.
 190. **E-22-11** If I right-click a tab, the menu offers to move it to the other
-     blade with an arrow pointing that way: `→` "Move to right blade" from the
-     left blade, `←` "Move to left blade" from the right. Choosing it takes the
+     blade with an arrow icon pointing that way: "Move to right blade" from the
+     left blade, "Move to left blade" from the right. Choosing it takes the
      tab out of its section and places it as the top section of the other
      blade, opening that blade if it was closed, and focus follows the tab.
+     When the blade has more than one section, the menu also offers "Move to
+     top" or "Move to bottom" with an up or down arrow icon, which appends the
+     tab to that section and makes it current there. "Close to the right"
+     closes every tab after this one in the section after the same
+     confirmation as closing a tab; it is disabled on the last tab. Every
+     entry carries an icon.
+191. **E-22-12** The close mark on a tab only appears while my pointer is over
+     that tab; otherwise the tab shows its title alone.
 
 ## 23. Opening files, locations and recent items
 
 `tests/vm/expectations/23-opening.sh`
 
-191. **E-23-01** If I select a file and press `Enter` or `o`, it opens in its
+192. **E-23-01** If I select a file and press `Enter` or `o`, it opens in its
      default application. On a folder, `Enter` toggles expansion in place and
      `o`, `l` or Right enters it as the tree root; `h` or Left goes to the
      parent directory.
-192. **E-23-02** If I select a file and press `Shift+Enter`, I can choose from
+193. **E-23-02** If I select a file and press `Shift+Enter`, I can choose from
      compatible applications and open the file with my choice.
-193. **E-23-03** If I select one file and press `e`, it opens in LazyVim.
-194. **E-23-04** If I press `Enter`, `Shift+Enter`, or `e` from Properties, the
+194. **E-23-03** If I select one file and press `e`, it opens in LazyVim.
+195. **E-23-04** If I press `Enter`, `Shift+Enter`, or `e` from Properties, the
      selected item opens the same way it does from the file tree.
-195. **E-23-05** If I press `r` from Properties, my file manager opens with the
+196. **E-23-05** If I press `r` from Properties, my file manager opens with the
      selected item revealed.
-196. **E-23-06** If I press `Ctrl+L`, I can type or paste a location and open it;
+197. **E-23-06** If I press `Ctrl+L`, I can type or paste a location and open it;
      an invalid location shows an error without moving me elsewhere.
-197. **E-23-07** If I click Recent, I see files and folders I opened recently,
+198. **E-23-07** If I click Recent, I see files and folders I opened recently,
      ordered so useful recent choices are easy to reach.
-198. **E-23-08** If I choose an item from Recent, it opens normally and remains
+199. **E-23-08** If I choose an item from Recent, it opens normally and remains
      available in my recent history.
-199. **E-23-09** If I have no recent items, the Recent view tells me so instead of
+200. **E-23-09** If I have no recent items, the Recent view tells me so instead of
      showing a blank or broken list.
-200. **E-23-10** If I press `Ctrl+P`, I can use the picker to find files, recent
+201. **E-23-10** If I press `Ctrl+P`, I can use the picker to find files, recent
      items, content matches, or actions, and its visible prefixes tell me which
      mode I am using.
-201. **E-23-11** If I double-click a file, it opens in its default application;
+202. **E-23-11** If I double-click a file, it opens in its default application;
      double-clicking a folder opens it as the tree root, whether it is collapsed
      or expanded. `Enter` and the disclosure arrow still expand it in place.
-202. **E-23-12** If I double-click or press `Enter` on a file listed by a companion
+203. **E-23-12** If I double-click or press `Enter` on a file listed by a companion
      module such as Memory, Skills, Hooks, or MCP, it opens in the same default
      application it would open in from the file tree, not in the terminal editor.
 
@@ -706,37 +714,37 @@ Automation for the remaining tab-management scenarios is pending.
 
 `tests/vm/expectations/24-search-columns-colors.sh`
 
-203. **E-24-01** When I search, I can use quoted text for an exact phrase,
+204. **E-24-01** When I search, I can use quoted text for an exact phrase,
      `-word` or `!word` to exclude text, and `^start` or `end$` to anchor a match.
-204. **E-24-02** When I search, I can narrow results with `type:`, `format:`, and
+205. **E-24-02** When I search, I can narrow results with `type:`, `format:`, and
      `in:` filters.
-205. **E-24-03** If I search with `content:`, I see matching lines grouped under
+206. **E-24-03** If I search with `content:`, I see matching lines grouped under
      their files; if I use `scope:everywhere`, I can find matching paths beyond
      the current folder.
-206. **E-24-04** If I press `Ctrl+Shift+B` during a deep search, the results
+207. **E-24-04** If I press `Ctrl+Shift+B` during a deep search, the results
      switch between a flat list and a tree without changing the search.
-207. **E-24-05** If I click the add-column control, I can choose another detail
+208. **E-24-05** If I click the add-column control, I can choose another detail
      to show beside each row; I can also remove a column I no longer want.
-208. **E-24-06** If I drag a detail column, it moves to the indicated horizontal
+209. **E-24-06** If I drag a detail column, it moves to the indicated horizontal
      position without obscuring the other column labels.
-209. **E-24-07** If I click a column label or use its menu, I can sort ascending,
+210. **E-24-07** If I click a column label or use its menu, I can sort ascending,
      descending, add it as a secondary sort, or clear sorting; numbered arrows
      show the order of multiple sorts.
-210. **E-24-08** If I filter a date or number column, only matching rows remain
+211. **E-24-08** If I filter a date or number column, only matching rows remain
      and a visible filter marker stays until I clear the filter.
-211. **E-24-09** If I close and reopen a blade, my chosen columns, their order,
+212. **E-24-09** If I close and reopen a blade, my chosen columns, their order,
      sorting, and filters are preserved.
-212. **E-24-10** If I choose which Git details to show, the Git status column
+213. **E-24-10** If I choose which Git details to show, the Git status column
      displays those details without replacing the item's normal file icon.
      Counts use the same marker-first notation as the repository summary;
      the ? count includes only untracked files, never staged additions.
-213. **E-24-11** If I color one or more files or folders, I can choose a palette
+214. **E-24-11** If I color one or more files or folders, I can choose a palette
      color or enter a six-digit custom color and see it applied immediately.
-214. **E-24-12** If I change the color scope, the color applies only to the icon,
+215. **E-24-12** If I change the color scope, the color applies only to the icon,
      the name, or the whole row as selected; Reset returns to the theme color.
-215. **E-24-13** If I open a column's menu, it has a heading (Columns, Add
+216. **E-24-13** If I open a column's menu, it has a heading (Columns, Add
      column, or Git status) with an `×` that closes it, above the filter field.
-216. **E-24-14** The folder colour swatches never match a Git status colour;
+217. **E-24-14** The folder colour swatches never match a Git status colour;
      the red, yellow and green swatches are visibly rose, lemon and mint next to
      the amber, green and red Git markers. If I write my own hex colours into
      `colors.json` in FileBlade's config folder, the swatches and every coloured
@@ -759,57 +767,57 @@ visible, including zero; screen readers receive the full labels and values.
 
 `tests/vm/expectations/25-notes.sh`
 
-217. **E-25-01** If I add the Notes module, I can type a plain-text note directly
+218. **E-25-01** If I add the Notes module, I can type a plain-text note directly
      in the blade.
-218. **E-25-02** When I stop typing, switch modules, collapse Notes, or close the
+219. **E-25-02** When I stop typing, switch modules, collapse Notes, or close the
      blade, my note is saved without a separate Save action.
-219. **E-25-03** If I click `+` in Notes, a new named note tab appears and I can
+220. **E-25-03** If I click `+` in Notes, a new named note tab appears and I can
      keep different text in each note. Default note numbers keep increasing
      after I close notes or restart, so deleting Note 1 does not create
      another Note 2.
-220. **E-25-04** If I switch note tabs, each note keeps its own text and the tab I
+221. **E-25-04** If I switch note tabs, each note keeps its own text and the tab I
      chose is visibly active.
-221. **E-25-05** If I double-click a note tab or choose Rename from its menu, I
+222. **E-25-05** If I double-click a note tab or choose Rename from its menu, I
      can rename that note.
-222. **E-25-06** If I middle-click a note tab or choose Close note, that note
+223. **E-25-06** If I middle-click a note tab or choose Close note, that note
      closes; FileBlade keeps at least one note so I cannot lose the notebook
      itself by closing the last tab.
-223. **E-25-07** If I close and reopen the blade or restart the shell, my note
+224. **E-25-07** If I close and reopen the blade or restart the shell, my note
      names, text, and active note are preserved.
-224. **E-25-08** If my notes reach their storage limit, FileBlade warns me and
+225. **E-25-08** If my notes reach their storage limit, FileBlade warns me and
      stops accepting excess text instead of silently losing saved content.
 
 ## 26. Dragging files outside a blade
 
 `tests/vm/expectations/26-drop-wheel.sh`
 
-225. **E-26-01** When I drag files outside a blade, a compact ghost follows the
+226. **E-26-01** When I drag files outside a blade, a compact ghost follows the
      pointer with the last grabbed row's icon and name.
-226. **E-26-02** If I drag several selected items, the ghost shows how many items
+227. **E-26-02** If I drag several selected items, the ghost shows how many items
      I am carrying while still naming the last grabbed row.
-227. **E-26-03** If I hold my configured drop-wheel modifier during the drag, a
+228. **E-26-03** If I hold my configured drop-wheel modifier during the drag, a
      wheel opens at the pointer and shows actions for the items I am carrying.
-228. **E-26-04** When I drag over an application, editor, terminal, or empty
+229. **E-26-04** When I drag over an application, editor, terminal, or empty
      desktop, the wheel offers actions that make sense for that target.
-229. **E-26-05** I can move around the wheel with the pointer, scroll wheel,
+230. **E-26-05** I can move around the wheel with the pointer, scroll wheel,
      arrow keys, `h/j/k/l`, or `Tab`, and the highlighted choice is always clear.
-230. **E-26-06** If an action offers placements such as a tab, split, pane, or
+231. **E-26-06** If an action offers placements such as a tab, split, pane, or
      window, I can enter that second ring and choose the exact destination.
      The Herdr and tmux opening actions offer horizontal and vertical splits without an automatic
      "New pane" choice. Their icons show a full-width bottom pane and a
      full-height right pane respectively.
-231. **E-26-07** If I release the drag on a valid wheel choice, FileBlade runs the
+232. **E-26-07** If I release the drag on a valid wheel choice, FileBlade runs the
      highlighted action once for all carried items.
      If I release while the wheel's rows are still loading, FileBlade remembers
      the release point for at most 800 ms and runs the action there once the rows
      arrive; past that the wheel stays open for an explicit choice.
-232. **E-26-08** If I cancel the wheel or release without a valid choice, no file
+233. **E-26-08** If I cancel the wheel or release without a valid choice, no file
      is opened, moved, or changed. Escape during a held drag cancels it whether
      the wheel is open or closed: the ghost disappears, the blade stays open,
      and releasing the mouse afterward cannot drop files or paste paths.
-233. **E-26-09** If I release the drag on the hub of the wheel, the wheel stays
+234. **E-26-09** If I release the drag on the hub of the wheel, the wheel stays
      open, so I can still pick with the pointer or a key instead of losing it.
-234. **E-26-10** In the drop wheel, the Open with wedge shows an open-folder
+235. **E-26-10** In the drop wheel, the Open with wedge shows an open-folder
      glyph whatever I am dragging, and its placements list the applications for
      those files.
 
@@ -837,11 +845,11 @@ shared there.
 
 `tests/vm/expectations/27-updates-recovery.sh`
 
-235. **E-27-01** If FileBlade or an enabled companion has an update available, I
+236. **E-27-01** If FileBlade or an enabled companion has an update available, I
      see an Update available chip in the blade footer.
 This file was written by an agent.
 
-236. **E-27-02** The update notice names the available FileBlade version, for
+237. **E-27-02** The update notice names the available FileBlade version, for
      example "Version 0.1.2 of FileBlade is now available!", followed by a
      Companion updates heading and one bullet per extension, ordered by name.
      The version headline, bullets and instructions stay readable at the minimum
@@ -854,49 +862,49 @@ This file was written by an agent.
      The notice says FileBlade only checks and does not install while running,
      tells me to stop the shell, run `omarchy plugin update`, then run
      `omarchy restart shell`, and keeps Close and Check again.
-237. **E-27-03** If my FileBlade checkout has local work or commits that must
+238. **E-27-03** If my FileBlade checkout has local work or commits that must
      not be overwritten, the update details tell me it was skipped.
-238. **E-27-04** If FileBlade's interface and native helper are out of sync after
+239. **E-27-04** If FileBlade's interface and native helper are out of sync after
      an update, I see Backend update needed and instructions to update or reinstall it.
-239. **E-27-05** If update checking is disabled or the network is unavailable,
+240. **E-27-05** If update checking is disabled or the network is unavailable,
      I can continue using FileBlade without repeated prompts or an endless busy
      indicator.
-240. **E-27-06** If I check for updates and nothing is newer, I see "FileBlade is
+241. **E-27-06** If I check for updates and nothing is newer, I see "FileBlade is
      up to date!" in the footer and it disappears by itself after ten seconds.
 
 ## 28. Archives and long operations
 
 `tests/vm/expectations/28-archives-operations.sh`
 
-241. **E-28-01** If I select a supported archive, Extract here is available and
+242. **E-28-01** If I select a supported archive, Extract here is available and
      places its contents in a clearly named destination beside the archive.
-242. **E-28-02** If I extract an archive and its destination is already
+243. **E-28-02** If I extract an archive and its destination is already
      populated, FileBlade refuses, explains the conflict, and leaves the
      existing files unchanged.
-243. **E-28-03** While a long file operation is running, I can see what FileBlade
+244. **E-28-03** While a long file operation is running, I can see what FileBlade
      is doing and stop the operation from Properties.
-244. **E-28-04** If I stop an operation, items already completed remain visible
+245. **E-28-04** If I stop an operation, items already completed remain visible
      and any partial destination is refreshed immediately so I can inspect it.
-245. **E-28-05** If an undo cannot continue safely, I see why; pressing `Shift+U`
+246. **E-28-05** If an undo cannot continue safely, I see why; pressing `Shift+U`
      lets me skip that refused undo and continue to an older one.
 
 ## 29. Welcome, core blades and help
 
 `tests/vm/expectations/29-welcome.sh`
 
-246. **E-29-01** On first launch, Welcome opens beside the persistent Notes
+247. **E-29-01** On first launch, Welcome opens beside the persistent Notes
      tab. It introduces Files, Notes, Skills, Memory, Hooks and MCP, with
      keyboard-accessible entries and real help available offline.
-247. **E-29-02** Opening a core entry selects its existing blade or adds it
+248. **E-29-02** Opening a core entry selects its existing blade or adds it
      once. It requires no companion installation, registry or shell restart.
      The old welcomeInstall IPC reports "built-in" and starts no installer.
-248. **E-29-03** Close Welcome records dismissal and removes only Welcome.
+249. **E-29-03** Close Welcome records dismissal and removes only Welcome.
      Notes and other tabs retain their contents. A read-only or unready
      layout refuses dismissal.
-249. **E-29-04** Welcome can be reopened from the blade picker after dismissal
+250. **E-29-04** Welcome can be reopened from the blade picker after dismissal
      or a legacy "installed" state. Reopening preserves that saved state;
      later state/layout hydration and restart do not prune the reopened tab.
-250. **E-29-05** Core entries and local help remain useful offline. An absent,
+251. **E-29-05** Core entries and local help remain useful offline. An absent,
      malformed, oversized or newer-schema optional catalog retains the local
      or last-valid catalog. Its identity, source, compatibility and lifecycle
      fields are metadata; catalog-supplied commands never execute.
@@ -914,20 +922,20 @@ shell. Once FileBlade is enabled, the pop-up disappears.
 
 `tests/vm/expectations/30-keybindings.sh`
 
-251. **E-30-01** Editing `keybindings.json` changes tree navigation without a
+252. **E-30-01** Editing `keybindings.json` changes tree navigation without a
      shell restart; overridden keys stop performing their old action and omitted
      actions keep their defaults.
-252. **E-30-02** An empty binding array disables an action; key sequences can
+253. **E-30-02** An empty binding array disables an action; key sequences can
      use a custom prefix and cancel on Escape or focus loss without opening,
      copying or deleting an item.
-253. **E-30-03** Conflicting bindings preserve the last valid map and show an
+254. **E-30-03** Conflicting bindings preserve the last valid map and show an
      error. An action this FileBlade does not know, or a binding it cannot
      read, is dropped and named in the error while every other binding in the
      file still applies, so a file shared with a newer FileBlade keeps working.
      Fixing or removing the file clears the error and restores the
      corresponding bindings. A `keybindings.json` written by a newer FileBlade
      is never rewritten by an older one.
-254. **E-30-04** Artifact trees inherit the same defaults and user overrides;
+255. **E-30-04** Artifact trees inherit the same defaults and user overrides;
      the extension shortcut guide reports the effective bindings rather than a
      separately maintained keymap.
 
@@ -935,24 +943,24 @@ shell. Once FileBlade is enabled, the pop-up disappears.
 
 `tests/vm/expectations/31-scrolling.sh`
 
-255. **E-31-01** If I scroll the tree down and another application changes a
+256. **E-31-01** If I scroll the tree down and another application changes a
      file in a directory I am viewing, the rows I was looking at stay exactly
      where they were.
-256. **E-31-02** If I scroll the tree down and press `Shift+R`, the tree
+257. **E-31-02** If I scroll the tree down and press `Shift+R`, the tree
      refreshes and the same rows stay in view.
-257. **E-31-03** A thin ruler on the right edge of the tree shows how far I have
+258. **E-31-03** A thin ruler on the right edge of the tree shows how far I have
      scrolled; it only appears when the tree is taller than the blade, and
      clicking near its top takes me back to the first rows.
-258. **E-31-04** Files with a Git status leave a mark on the ruler at their
+259. **E-31-04** Files with a Git status leave a mark on the ruler at their
      position, coloured like their status, so I can see where changes are
      without scrolling. The marks match the statuses the tree actually shows: the
      opened repository's own row displays its summary instead of a status, so it
      leaves no mark and the ruler never counts a change twice.
-259. **E-31-05** Marks for rows outside the part of the tree I can see are
+260. **E-31-05** Marks for rows outside the part of the tree I can see are
      drawn at half strength; marks for rows in view are drawn in full. Turning
      off "Git marks on the scroll ruler" in settings removes every mark and the
      ruler thumb stays.
-260. **E-31-06** Extension trees loaded through `ArtifactTree` show the same
+261. **E-31-06** Extension trees loaded through `ArtifactTree` show the same
      ruler and keep their scroll position when their rows refresh.
 
 ## 34. Choosing a monitor
