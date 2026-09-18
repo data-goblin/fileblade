@@ -830,29 +830,33 @@ FocusScope {
     columns: controller.priorityColumns
     sorts: controller.treeSort
     filter: controller.treeFilter
-    navigationActions: [
-      { key: "back", glyph: "", title: "Back", enabled: controller.canGoBack,
-        actions: [{ button: "left", text: "Back" }, { shortcut: "Alt+←" }], context: [{ glyph: "󰉋", text: controller.backDestination }] },
-      { key: "forward", glyph: "", title: "Forward", enabled: controller.canGoForward,
-        actions: [{ button: "left", text: "Forward" }, { shortcut: "Alt+→" }], context: [{ glyph: "󰉋", text: controller.forwardDestination }] },
-      { key: "up", glyph: "", title: "Up", enabled: controller.canGoUp,
-        actions: [{ button: "left", text: "Up" }, { shortcut: "Alt+↑" }], context: [{ glyph: "󰉋", text: controller.parentDirectory(controller.rootPath) }] },
-      { key: "home", glyph: "", title: "Home", enabled: controller.rootPath !== controller.home,
-        actions: [{ button: "left", text: "Home" }, { shortcut: "Alt+Home" }], context: [{ glyph: "󰉋", text: controller.home }] },
-      { key: "screenshots", glyph: "󰹑", title: "Screenshots",
-        enabled: controller.screenshotsPath !== "" && controller.rootPath !== controller.screenshotsPath,
-        actions: [{ button: "left", text: "Screenshots" }],
-        context: [{ glyph: "󰉋", text: controller.screenshotsPath }] },
-      { key: "recent", glyph: "󰋚", title: "Recent", active: controller.recentMode,
-        actions: [{ button: "left", text: "Open" }], context: root.recentNavigationContext() },
-      { key: "media", glyph: "󰋩", title: root.mediaMode ? "Show files" : "Show media", active: root.mediaMode,
-        enabled: !controller.trashMode && !controller.drivesMode && !controller.recentMode,
-        actions: [{ button: "left", text: "Switch content mode" }] },
-      { key: "drives", glyph: "󰋊", title: "Drives", active: controller.drivesMode,
-        actions: [{ button: "left", text: "Open" }], context: root.drivesNavigationContext() },
-      { key: "desktop-trash", glyph: controller.trashCount > 0 ? "󰩹" : "󰩺", title: "Trash", active: controller.trashMode,
-        actions: [{ button: "left", text: "Open" }], context: root.trashNavigationContext() }
-    ].filter(function(entry) { return root.toolbarButtons.indexOf(entry.key) >= 0 })
+    navigationActions: {
+      var live = {
+        "back": { enabled: controller.canGoBack,
+          actions: [{ button: "left", text: "Back" }, { shortcut: "Alt+←" }], context: [{ glyph: "󰉋", text: controller.backDestination }] },
+        "forward": { enabled: controller.canGoForward,
+          actions: [{ button: "left", text: "Forward" }, { shortcut: "Alt+→" }], context: [{ glyph: "󰉋", text: controller.forwardDestination }] },
+        "up": { enabled: controller.canGoUp,
+          actions: [{ button: "left", text: "Up" }, { shortcut: "Alt+↑" }], context: [{ glyph: "󰉋", text: controller.parentDirectory(controller.rootPath) }] },
+        "home": { enabled: controller.rootPath !== controller.home,
+          actions: [{ button: "left", text: "Home" }, { shortcut: "Alt+Home" }], context: [{ glyph: "󰉋", text: controller.home }] },
+        "screenshots": { enabled: controller.screenshotsPath !== "" && controller.rootPath !== controller.screenshotsPath,
+          actions: [{ button: "left", text: "Screenshots" }],
+          context: [{ glyph: "󰉋", text: controller.screenshotsPath }] },
+        "recent": { active: controller.recentMode,
+          actions: [{ button: "left", text: "Open" }], context: root.recentNavigationContext() },
+        "media": { title: root.mediaMode ? "Show files" : "Show media", active: root.mediaMode,
+          enabled: !controller.trashMode && !controller.drivesMode && !controller.recentMode,
+          actions: [{ button: "left", text: "Switch content mode" }] },
+        "drives": { active: controller.drivesMode,
+          actions: [{ button: "left", text: "Open" }], context: root.drivesNavigationContext() },
+        "desktop-trash": Object.assign(controller.trashCount > 0 ? { glyph: "󰩹" } : {}, { active: controller.trashMode,
+          actions: [{ button: "left", text: "Open" }], context: root.trashNavigationContext() })
+      }
+      return ToolbarFields.choices
+        .filter(function(choice) { return root.toolbarButtons.indexOf(choice.key) >= 0 })
+        .map(function(choice) { return Object.assign({ key: choice.key, glyph: choice.glyph, title: choice.label }, live[choice.key]) })
+    }
     onColumnsCommitted: controller.setPriorityColumns(columns)
     onSortsChanged: root.pushTreeOrder()
     onFilterChanged: root.pushTreeOrder()

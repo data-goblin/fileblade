@@ -214,7 +214,7 @@ fn rust_and_qml_contracts_keep_output_and_state_boundaries_explicit() {
     let favorites = text(&root.join("panes/FavoritesPanel.qml"));
     assert!(!favorites.contains("controller.trashResource"));
     let tree_pane = text(&root.join("panes/TreePane.qml"));
-    assert!(tree_pane.contains("key: \"desktop-trash\""));
+    assert!(tree_pane.contains("\"desktop-trash\": "));
     assert!(!tree_pane.contains("TrashPlace"));
     assert!(tree_pane.contains("preferredHeight: header.integrated ? 0"));
     let tab_bar = text(&root.join("blades/BladeTabBar.qml"));
@@ -2227,8 +2227,12 @@ fn a_hidden_toolbar_button_keeps_its_own_route_into_the_pane() {
             "{key} has no row in the toolbar settings"
         );
         assert!(
-            tree.contains(&format!("{{ key: \"{key}\", glyph:")),
-            "{key} has no toolbar button"
+            tree.contains(&format!("        \"{key}\": ")),
+            "{key} has no live toolbar state"
+        );
+        assert!(
+            !tree.contains(&format!("{{ key: \"{key}\", glyph:")),
+            "{key} repeats its glyph instead of taking it from the toolbar table"
         );
         assert!(
             tree.contains(&format!("{key}: function()"))
@@ -2238,9 +2242,13 @@ fn a_hidden_toolbar_button_keeps_its_own_route_into_the_pane() {
     }
     assert!(
         tree.contains(
-            "].filter(function(entry) { return root.toolbarButtons.indexOf(entry.key) >= 0 })"
+            ".filter(function(choice) { return root.toolbarButtons.indexOf(choice.key) >= 0 })"
         ),
         "the toolbar specs keep their live bindings and are filtered in place"
+    );
+    assert!(
+        tree.contains("Object.assign({ key: choice.key, glyph: choice.glyph, title: choice.label }, live[choice.key])"),
+        "the toolbar takes key, glyph and title from the one toolbar table"
     );
     assert!(tree.contains("context.state.set(\"toolbarButtons\", toolbarButtons)"));
     assert!(tree.contains(
