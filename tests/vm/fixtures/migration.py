@@ -75,7 +75,10 @@ def generate(destination, scenario):
         value = ({'hooks': {'PreToolUse': [{'hooks': [{'type': 'command', 'command': 'printf MIGRATION_FIXTURE'}]}]}}
                  if module == 'hooks' else {'mcpServers': {'migration-fixture': {'command': 'printf', 'args': ['MIGRATION_FIXTURE']}}})
         write(path, value)
-        listed = subprocess.run([str(root / 'python/bin' / ('agent-' + module + 'ctl')), 'list', '--project', str(project), '--json'],
+        listed = subprocess.run([environment['FILEBLADE_BINARY'], '_backend', 'helper-read',
+                                 '--provider', 'fileblade.core.' + module, '--plugin-dir', '',
+                                 '--helper', 'inventory', '--method', 'list',
+                                 '--arguments', json.dumps(['--project', str(project), '--json'])],
                                 env=environment, capture_output=True, check=True, timeout=15)
         listing = json.loads(listed.stdout)
         row = next(row for row in listing['items' if module == 'hooks' else 'definitions']

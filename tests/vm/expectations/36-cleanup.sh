@@ -41,8 +41,8 @@ restart_checked() {
 cleanup() {
   [[ -z ${focus_pid:-} ]] || guest "kill $focus_pid 2>/dev/null || true"
   "$(dirname "$0")/../stop-shell" || return 1
-  if [[ -n ${helper_saved:-} ]]; then
-    guest "test ! -e $(printf '%q' "$helper_saved") || mv -- $(printf '%q' "$helper_saved") $(printf '%q' "$helper_path")" || return 1
+  if [[ -n ${locked_recovery:-} ]]; then
+    guest "test ! -d $(printf '%q' "$locked_recovery") || chmod 0700 -- $(printf '%q' "$locked_recovery")" || return 1
   fi
   fixture_state restore || return 1
   restart_checked restored || return 1
@@ -221,22 +221,17 @@ for module in skills memory hooks mcp; do
       recovery_path="$recovery_root/$module-recovery/$recovery.json"
       expect_out E-36-05 "$module removal has private recovery" "test -f $(printf '%q' "$recovery_path") && echo paired" paired
       if [[ $round == 3 ]]; then
-        helper_path="$GUEST_PLUGIN/python/bin/agent-${module}ctl"
-        helper_saved="$backup/agent-${module}ctl"
-        "$(dirname "$0")/../stop-shell" || exit 1
-        guest "mv -- $(printf '%q' "$helper_path") $(printf '%q' "$helper_saved")" || exit 1
-        restart_checked "$module-unavailable" || exit 1
-        probe refresh >/dev/null
-        require_wait "probe status | jq -e '.bin.rows | length == 1'" 20
+        locked_recovery="$recovery_root/$module-recovery"
+        guest "chmod 0500 -- $(printf '%q' "$locked_recovery")" || exit 1
         completed_before=$(probe status | jq .completions)
         probe_bin "$entry" purge
         require_wait "probe status | jq -e '.completions > $completed_before and .response.ok == false'" 20
-        expect_out E-36-05 "$module unavailable helper preserves both records" "test -f $(printf '%q' "$record/manifest.json") && test -f $(printf '%q' "$recovery_path") && echo retained" retained
-        "$OVM" shot "E-36-05-$module-unavailable" >/dev/null
-        "$(dirname "$0")/../stop-shell" || exit 1
-        guest "mv -- $(printf '%q' "$helper_saved") $(printf '%q' "$helper_path")" || exit 1
-        helper_saved=
-        restart_checked "$module-helper-restored" || exit 1
+        expect_out E-36-05 "$module unwritable recovery store preserves both records" "test -f $(printf '%q' "$record/manifest.json") && test -f $(printf '%q' "$recovery_path") && echo retained" retained
+        "$OVM" shot "E-36-05-$module-recovery-locked" >/dev/null
+        guest "chmod 0700 -- $(printf '%q' "$locked_recovery")" || exit 1
+        locked_recovery=
+        probe refresh >/dev/null
+        require_wait "probe_ready && probe status | jq -e '.bin.rows | length == 1'" 20
         probe projectContext >/dev/null
         continue
       fi

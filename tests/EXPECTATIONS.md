@@ -1067,8 +1067,8 @@ This file was written by an agent.
   returns the original source bytes.
 - **E-36-05** Purging an MCP or Hooks removal deletes its private recovery too.
   Repeating removal and purge does not fill an invisible undo quota. Core recovery
-  needs no companion activation. An unavailable helper refuses recovery or cleanup
-  while keeping its evidence recoverable.
+  needs no companion activation. A recovery store that cannot be written refuses
+  cleanup while keeping its evidence recoverable.
   If automatic cleanup reaches its scan limit, it reports an incomplete scan
   instead of claiming that every module was checked.
 - **E-36-06** Welcome remains built in, dismissible and reopenable, without installing

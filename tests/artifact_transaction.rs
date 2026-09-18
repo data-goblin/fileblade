@@ -153,13 +153,11 @@ else:
         provider: &str,
         helper: &str,
     ) -> (String, std::path::PathBuf, Value) {
-        let helpers = self.root.path().join("python/bin");
-        fs::create_dir_all(&helpers).unwrap();
-        for module in ["hooks", "mcp"] {
-            let target = helpers.join(format!("agent-{module}ctl"));
-            fs::copy(self.root.path().join("bin/helper"), &target).unwrap();
-            fs::set_permissions(target, fs::Permissions::from_mode(0o700)).unwrap();
-        }
+        fs::write(
+            self.root.path().join("Service.qml"),
+            "import QtQuick\nItem {}\n",
+        )
+        .unwrap();
         let payload =
             json!({"body":"private fixture payload", "source":self.root.path().join("source")});
         let stored = self.run(&[
@@ -346,6 +344,13 @@ fn historical_mcp_aliases_reach_the_in_process_core_and_keep_saved_evidence() {
         let refused = f.restore_route("mcp", &id, "fileblade.core.mcp", "inventory");
         assert_eq!(refused["ok"], false, "{refused}");
         assert!(
+            refused["message"]
+                .as_str()
+                .unwrap()
+                .contains("no prepared recovery record matches this payload"),
+            "{refused}"
+        );
+        assert!(
             !f.root.path().join("source").exists(),
             "the retired mcp helper must not run"
         );
@@ -365,6 +370,13 @@ fn historical_hooks_aliases_reach_the_in_process_core_and_keep_saved_evidence() 
         f.mode("restore-after");
         let refused = f.restore_route("hooks", &id, "fileblade.core.hooks", "inventory");
         assert_eq!(refused["ok"], false, "{refused}");
+        assert!(
+            refused["message"]
+                .as_str()
+                .unwrap()
+                .contains("no prepared recovery record matches this payload"),
+            "{refused}"
+        );
         assert!(
             !f.root.path().join("source").exists(),
             "the retired hooks helper must not run"
