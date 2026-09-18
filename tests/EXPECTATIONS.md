@@ -1497,8 +1497,10 @@ This file was written by an agent.
 No VM script covers this section yet. The rows, status text, search, switch
 and worktree navigation are checked by `tests/qml/tst_branches_module.qml`
 on a fixture document; the slot position by
-`tests/qml/tst_layout_inventory.qml`; the backend document and the CLI by the
-Rust suites named in the branches contract.
+`tests/qml/tst_layout_inventory.qml`; first-use and saved layouts by
+`tests/core_modules/run-slots`; the backend document and CLI by
+`tests/git_places.rs`. The QML module suite also runs under Wayland in the
+isolated guest for rendering and keyboard/pointer checks.
 
 1. **E-49-01** When I click the branch name in the tree footer, the Switch
    branch popup opens with a first row `Expand into Branches` above a
