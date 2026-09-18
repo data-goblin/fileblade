@@ -73,11 +73,13 @@ impl Snapshot {
             before.st_mtime,
             before.st_mtime_nsec,
             before.st_ctime,
+            before.st_ctime_nsec,
         ) == (
             after.st_size,
             after.st_mtime,
             after.st_mtime_nsec,
             after.st_ctime,
+            after.st_ctime_nsec,
         );
         if data.len() > limit
             || !unchanged

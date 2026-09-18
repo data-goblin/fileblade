@@ -177,7 +177,7 @@ pub fn detach(
     }
     let remaining = definitions.clone();
     if remaining.is_empty() {
-        container.remove(&event);
+        container.shift_remove(&event);
     }
     let after = if remaining.is_empty() {
         fingerprint(&Value::Null)

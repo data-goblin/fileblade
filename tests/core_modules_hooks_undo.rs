@@ -644,3 +644,28 @@ fn a_project_source_restores_without_project_arguments() {
     assert_eq!(restored.get("ok"), Some(&json!(true)), "{restored:?}");
     assert_eq!(case.current(), case.original);
 }
+
+#[test]
+fn emptying_an_event_keeps_the_order_of_the_sibling_events() {
+    let _guard = serial();
+    let mut case = new_case();
+    case.original = json!({"hooks": {
+        "PreToolUse": [{"hooks": [command("printf selected")]}],
+        "SessionStart": [{"hooks": [command("printf start")]}],
+        "Stop": [{"hooks": [command("printf stop")]}],
+    }});
+    fs::write(&case.source, serde_json::to_string(&case.original).unwrap()).unwrap();
+    let row = case
+        .rows()
+        .into_iter()
+        .find(|row| row.get("event").and_then(Value::as_str) == Some("PreToolUse"))
+        .unwrap();
+    let removed = case.remove(&row);
+    assert_eq!(removed.get("ok"), Some(&json!(true)), "{removed:?}");
+    let text = fs::read_to_string(&case.source).unwrap();
+    assert!(
+        text.find("SessionStart").unwrap() < text.find("\"Stop\"").unwrap(),
+        "{text}"
+    );
+    assert!(!text.contains("PreToolUse"), "{text}");
+}
