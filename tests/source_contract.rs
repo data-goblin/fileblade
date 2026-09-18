@@ -221,12 +221,14 @@ fn rust_and_qml_contracts_keep_output_and_state_boundaries_explicit() {
     assert!(tab_bar.contains("id: fileActions"));
     assert!(tab_bar.contains("text: \"×\""));
     assert!(tab_bar.contains(
-        "{ key: \"close\", glyph: \"×\", label: \"Close tab\", enabled: bar.slot.tabs.length > 1 }"
+        "{ key: \"close\", glyph: \"󰅖\", label: \"Close tab\", enabled: bar.slot.tabs.length > 1 }"
     ));
+    assert!(tab_bar.contains("opacity: revealed ? 1 : 0"));
     assert!(tab_bar.contains("bar.slot.requestCloseTab"));
     let slot = text(&root.join("blades/BladeSlot.qml"));
     assert!(slot.contains("pendingCloseTarget = TabIdentity.capture(tabs, index, slotId)"));
-    assert!(slot.contains("if (tabs.length > 1 && TabIdentity.matches(tabs, slotId, target)) host.removeTab(edge, slotIndex, index)"));
+    assert!(slot.contains("if (!TabIdentity.matches(tabs, slotId, target)) return"));
+    assert!(slot.contains("else if (tabs.length > 1) host.removeTab(edge, slotIndex, index)"));
     assert!(slot.contains("onTabsChanged: dropStaleCloseTab()"));
     assert!(slot.contains("onSlotIdChanged: { dropStaleCloseTab();"));
     assert_eq!(

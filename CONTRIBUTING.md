@@ -64,7 +64,6 @@ tests/*.rs:      cargo integration and end-to-end tests, plus the source contrac
 tests/qml/:      QML and JavaScript regression tests
 tests/vm/:       scripts for a headless Omarchy VM
 examples/:       a minimal dependent plugin, also the reference for EXTENSIONS.md
-scripts/:        developer helpers the CLI embeds, such as the extension banner generator
 demos/:          scripted tours used for screenshots and recordings
 assets/:         logos, icons, and other visual assets
 ```
