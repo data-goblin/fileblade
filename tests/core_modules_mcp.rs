@@ -752,16 +752,28 @@ fn bounded_entries_refuse_symlinked_directories() {
     std::os::unix::fs::symlink(&real, &link).unwrap();
     let mut deadline = safeio::Deadline::new(2000);
     assert_eq!(
-        safeio::bounded_files(&mut plan, &real, 16, &mut deadline),
+        safeio::bounded_files(&mut plan, &real, 16, &mut deadline).unwrap(),
         vec![real.join("inside.json")]
     );
     assert_eq!(
-        safeio::bounded_directories(&mut plan, &real, 16, &mut deadline),
+        safeio::bounded_directories(&mut plan, &real, 16, &mut deadline).unwrap(),
         vec![real.join("child")]
     );
-    assert!(safeio::bounded_files(&mut plan, &link, 16, &mut deadline).is_empty());
-    assert!(safeio::bounded_directories(&mut plan, &link, 16, &mut deadline).is_empty());
-    assert!(safeio::bounded_files(&mut plan, &link.join("child"), 16, &mut deadline).is_empty());
+    assert!(
+        safeio::bounded_files(&mut plan, &link, 16, &mut deadline)
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        safeio::bounded_directories(&mut plan, &link, 16, &mut deadline)
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        safeio::bounded_files(&mut plan, &link.join("child"), 16, &mut deadline)
+            .unwrap()
+            .is_empty()
+    );
 }
 
 #[test]

@@ -1,6 +1,26 @@
 use crate::core_modules::canonical::{compact_ascii_json, sha256_hex};
 use serde_json::{Map, Number, Value};
 
+pub const SURROGATE_PLACEHOLDER_BASE: u32 = 0xF_0000;
+
+pub fn placeholder_text(text: &str) -> bool {
+    text.chars().any(|character| {
+        let point = u32::from(character);
+        (SURROGATE_PLACEHOLDER_BASE..SURROGATE_PLACEHOLDER_BASE + 0x800).contains(&point)
+    })
+}
+
+pub fn unrepresentable(value: &Cfg) -> bool {
+    match value {
+        Cfg::Str(text) | Cfg::Stamp { text, .. } => placeholder_text(text),
+        Cfg::Array(items) => items.iter().any(unrepresentable),
+        Cfg::Table(entries) => entries
+            .iter()
+            .any(|(key, item)| placeholder_text(key) || unrepresentable(item)),
+        _ => false,
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum Cfg {
     Null,

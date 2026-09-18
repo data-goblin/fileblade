@@ -28,6 +28,9 @@ impl ReadResult {
     }
 }
 
+#[derive(Debug)]
+pub struct Timeout;
+
 pub struct Deadline {
     end: Instant,
     pub truncated: bool,
@@ -125,13 +128,12 @@ pub fn bounded_read(
     options: &Options,
 ) -> ReadResult {
     plan.watch_path(path, false);
-    let Ok(resolved) = std::fs::canonicalize(path) else {
-        return match std::fs::symlink_metadata(path) {
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                ReadResult::failed("missing")
-            }
-            _ => ReadResult::failed("unreadable"),
-        };
+    let resolved = match std::fs::canonicalize(path) {
+        Ok(resolved) => resolved,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return ReadResult::failed("missing");
+        }
+        Err(_) => return ReadResult::failed("unreadable"),
     };
     let Some(parent) = resolved.parent() else {
         return ReadResult::failed("unreadable");
@@ -221,13 +223,13 @@ fn bounded_entries(
     maximum: usize,
     deadline: &mut Deadline,
     directories: bool,
-) -> Vec<PathBuf> {
+) -> Result<Vec<PathBuf>, Timeout> {
     plan.watch_path(root, true);
     let Some(descriptor) = open_directory_nofollow(root) else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
     let Ok(stream) = rustix::fs::Dir::read_from(&descriptor) else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
     let mut names: Vec<std::ffi::OsString> = Vec::new();
     let mut index = 0usize;
@@ -238,7 +240,7 @@ fn bounded_entries(
             continue;
         }
         if deadline.expired() {
-            return Vec::new();
+            return Err(Timeout);
         }
         if index >= maximum {
             deadline.truncated = true;
@@ -262,7 +264,7 @@ fn bounded_entries(
         }
     }
     names.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));
-    names.into_iter().map(|name| root.join(name)).collect()
+    Ok(names.into_iter().map(|name| root.join(name)).collect())
 }
 
 pub fn bounded_directories(
@@ -270,7 +272,7 @@ pub fn bounded_directories(
     root: &Path,
     maximum: usize,
     deadline: &mut Deadline,
-) -> Vec<PathBuf> {
+) -> Result<Vec<PathBuf>, Timeout> {
     bounded_entries(plan, root, maximum, deadline, true)
 }
 
@@ -279,6 +281,6 @@ pub fn bounded_files(
     root: &Path,
     maximum: usize,
     deadline: &mut Deadline,
-) -> Vec<PathBuf> {
+) -> Result<Vec<PathBuf>, Timeout> {
     bounded_entries(plan, root, maximum, deadline, false)
 }

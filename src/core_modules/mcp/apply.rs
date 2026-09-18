@@ -3,7 +3,7 @@ use super::model::{Definition, SCHEMA_VERSION, core_agent_id, safe_label};
 use super::parsers::{parse_json, parse_toml};
 use super::records;
 use super::tomlwrite::{append_server_block, remove_server_block, render_server_table};
-use super::value::{Cfg, fingerprint};
+use super::value::{Cfg, fingerprint, unrepresentable};
 use crate::common::{parse_path, path_text};
 use crate::core_modules::recovery_store::{RecoveryError, RecoveryStore};
 use crate::core_modules::snapshot::Snapshot;
@@ -305,6 +305,11 @@ pub struct Applier {
 }
 
 fn rendered_json(document: &Cfg) -> Outcome<Vec<u8>> {
+    if unrepresentable(document) {
+        return Err(refuse(
+            "the updated configuration cannot be represented as JSON",
+        ));
+    }
     let mut text = serde_json::to_string_pretty(&document.to_json())
         .map_err(|_| refuse("the updated configuration cannot be represented as JSON"))?;
     text.push('\n');
@@ -892,6 +897,12 @@ impl Applier {
             let mut document = self.read_json_target(&path, limit)?;
             let record = records::detach_json(definition, &mut document)
                 .map_err(|error| Refused(error.0))?;
+            let stored = Cfg::from_json(&Value::Object(record.clone()));
+            if unrepresentable(&stored) || unrepresentable(&document) {
+                return Err(refuse(
+                    "the definition cannot be preserved as a Unicode undo record; edit the source directly",
+                ));
+            }
             (record, rendered_json(&document)?)
         };
         payload.insert("format".to_string(), json!(2));

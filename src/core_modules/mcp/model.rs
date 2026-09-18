@@ -29,6 +29,31 @@ pub fn core_agent_id(agent: &str) -> String {
         .unwrap_or_else(|| agent.to_string())
 }
 
+pub fn fs_encode(raw: &[u8]) -> Vec<u8> {
+    let mut output: Vec<u8> = Vec::with_capacity(raw.len());
+    let mut rest = raw;
+    loop {
+        match std::str::from_utf8(rest) {
+            Ok(text) => {
+                output.extend_from_slice(text.as_bytes());
+                return output;
+            }
+            Err(error) => {
+                let valid = error.valid_up_to();
+                output.extend_from_slice(&rest[..valid]);
+                let width = error.error_len().unwrap_or(rest.len() - valid);
+                for byte in &rest[valid..valid + width] {
+                    let point = 0xDC00u32 + u32::from(*byte);
+                    output.push(0xED);
+                    output.push(0x80 | ((point >> 6) & 0x3F) as u8);
+                    output.push(0x80 | (point & 0x3F) as u8);
+                }
+                rest = &rest[valid + width..];
+            }
+        }
+    }
+}
+
 pub fn digest_bytes(parts: &[&[u8]]) -> String {
     let mut joined: Vec<u8> = Vec::new();
     for (index, part) in parts.iter().enumerate() {
@@ -111,7 +136,7 @@ pub fn safe_path(value: &[u8], identifier: &str) -> (String, bool) {
             b"path-part-v1",
             identifier.as_bytes(),
             index.to_string().as_bytes(),
-            part,
+            &fs_encode(part),
         ]);
         let text = std::str::from_utf8(part).ok();
         match text {
@@ -129,7 +154,7 @@ pub fn safe_path(value: &[u8], identifier: &str) -> (String, bool) {
     let prefix = String::from_utf8_lossy(prefix).into_owned();
     let result = format!("{prefix}{}", parts.join("/"));
     if result.chars().count() > MAX_FIELD_CHARS {
-        let hashed = digest_bytes(&[b"path-value-v1", identifier.as_bytes(), value]);
+        let hashed = digest_bytes(&[b"path-value-v1", identifier.as_bytes(), &fs_encode(value)]);
         return (format!("{prefix}path-{}", &hashed[..8]), true);
     }
     (result, redacted)
@@ -181,7 +206,7 @@ impl Definition {
             b"source-v1",
             self.agent.as_bytes(),
             self.source_kind.as_bytes(),
-            &self.source_path,
+            &fs_encode(&self.source_path),
         ]);
         let raw = self.raw_config.clone().unwrap_or(Cfg::Null);
         let path_bytes: Vec<u8> = self
@@ -194,8 +219,8 @@ impl Definition {
             b"definition-v2",
             self.agent.as_bytes(),
             self.source_kind.as_bytes(),
-            &self.source_path,
-            &path_bytes,
+            &fs_encode(&self.source_path),
+            &fs_encode(&path_bytes),
             self.raw_name.as_bytes(),
             raw_fingerprint.as_bytes(),
         ]);

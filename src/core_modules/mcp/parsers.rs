@@ -1,4 +1,4 @@
-use super::value::Cfg;
+use super::value::{Cfg, SURROGATE_PLACEHOLDER_BASE};
 use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde_json::{Map, Value};
 use std::fmt;
@@ -180,8 +180,82 @@ fn nonfinite_token(text: &str) -> bool {
     false
 }
 
+fn hex_escape(characters: &[char], index: usize) -> Option<u32> {
+    if characters.get(index) != Some(&'\\') || characters.get(index + 1) != Some(&'u') {
+        return None;
+    }
+    let mut point = 0u32;
+    for offset in 2..6 {
+        let digit = characters.get(index + offset)?.to_digit(16)?;
+        point = point * 16 + digit;
+    }
+    Some(point)
+}
+
+pub fn substitute_lone_surrogates(text: &str) -> Option<String> {
+    let characters: Vec<char> = text.chars().collect();
+    let mut output = String::with_capacity(text.len());
+    let mut index = 0;
+    let mut quoted = false;
+    let mut replaced = false;
+    while index < characters.len() {
+        let character = characters[index];
+        if !quoted {
+            if character == '"' {
+                quoted = true;
+            }
+            output.push(character);
+            index += 1;
+            continue;
+        }
+        if character == '"' {
+            quoted = false;
+            output.push(character);
+            index += 1;
+            continue;
+        }
+        if character != '\\' {
+            output.push(character);
+            index += 1;
+            continue;
+        }
+        let Some(point) = hex_escape(&characters, index) else {
+            output.push(character);
+            output.extend(characters.get(index + 1));
+            index += 2;
+            continue;
+        };
+        if (0xD800..0xDC00).contains(&point)
+            && hex_escape(&characters, index + 6).is_some_and(|low| (0xDC00..0xE000).contains(&low))
+        {
+            output.extend(&characters[index..index + 12]);
+            index += 12;
+            continue;
+        }
+        if (0xD800..0xE000).contains(&point) {
+            let placeholder = char::from_u32(SURROGATE_PLACEHOLDER_BASE + point - 0xD800)?;
+            output.push(placeholder);
+            replaced = true;
+            index += 6;
+            continue;
+        }
+        output.extend(&characters[index..index + 6]);
+        index += 6;
+    }
+    if replaced && !quoted {
+        Some(output)
+    } else {
+        None
+    }
+}
+
 pub fn parse_json(data: &[u8]) -> Result<Cfg, ParseFailure> {
     let text = std::str::from_utf8(data).map_err(|_| failure("invalid-json"))?;
+    let substituted = match serde_json::from_str::<UniqueValue>(text) {
+        Err(error) if error.to_string().contains("surrogate") => substitute_lone_surrogates(text),
+        _ => None,
+    };
+    let text = substituted.as_deref().unwrap_or(text);
     let parsed = match serde_json::from_str::<UniqueValue>(text) {
         Ok(UniqueValue(value)) => value,
         Err(error) => {

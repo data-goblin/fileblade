@@ -1,7 +1,7 @@
-use super::model::{Definition, SCHEMA_VERSION, core_agent_id, digest_bytes};
+use super::model::{Definition, SCHEMA_VERSION, core_agent_id, digest_bytes, fs_encode};
 use super::parsers::{ParseFailure, parse_json, parse_jsonc, parse_toml};
 use super::safeio::{
-    Deadline, Options, absolute, artifact_metrics, bounded_directories, bounded_files,
+    Deadline, Options, Timeout, absolute, artifact_metrics, bounded_directories, bounded_files,
     bounded_read, safe_relative_file,
 };
 use super::value::Cfg;
@@ -56,8 +56,6 @@ pub struct PluginSource<'a> {
     pub enabled: Option<bool>,
     pub precedence_known: bool,
 }
-
-pub struct Timeout;
 
 type Timed<T> = Result<T, Timeout>;
 
@@ -404,7 +402,7 @@ impl Inventory {
         let trimmed: String = code.chars().take(64).collect();
         self.warnings.push(json!({
             "code": trimmed,
-            "sourceId": digest_bytes(&[b"source-v1", agent.as_bytes(), source_kind.as_bytes(), &logical]),
+            "sourceId": digest_bytes(&[b"source-v1", agent.as_bytes(), source_kind.as_bytes(), &fs_encode(&logical)]),
         }));
     }
 
@@ -561,7 +559,7 @@ impl Inventory {
         chain
     }
 
-    fn nested_directories(&mut self, root: &Path, depth: usize) -> Vec<PathBuf> {
+    fn nested_directories(&mut self, root: &Path, depth: usize) -> Timed<Vec<PathBuf>> {
         let mut current = vec![root.to_path_buf()];
         for _ in 0..depth {
             let mut following: Vec<PathBuf> = Vec::new();
@@ -572,7 +570,7 @@ impl Inventory {
                     break;
                 }
                 let found =
-                    bounded_directories(&mut self.plan, parent, remaining, &mut self.deadline);
+                    bounded_directories(&mut self.plan, parent, remaining, &mut self.deadline)?;
                 following.extend(found);
             }
             current = following;
@@ -580,7 +578,7 @@ impl Inventory {
                 break;
             }
         }
-        current
+        Ok(current)
     }
 }
 
@@ -1157,7 +1155,7 @@ impl Inventory {
                 &codex_home,
                 MAX_PROFILE_FILES,
                 &mut self.deadline,
-            )
+            )?
         } else {
             Vec::new()
         };
@@ -1206,7 +1204,7 @@ impl Inventory {
             .join("plugins")
             .join("cache");
         let versions = if self.settings.scope != "project" {
-            self.nested_directories(&cache_root, 3)
+            self.nested_directories(&cache_root, 3)?
         } else {
             Vec::new()
         };
@@ -1696,7 +1694,7 @@ impl Inventory {
             .join(".copilot")
             .join("installed-plugins");
         let plugins = if self.settings.scope != "project" {
-            self.nested_directories(&installed_root, 2)
+            self.nested_directories(&installed_root, 2)?
         } else {
             Vec::new()
         };
@@ -1823,7 +1821,7 @@ impl Inventory {
                 &plugin_root,
                 MAX_PLUGIN_DIRS,
                 &mut self.deadline,
-            )
+            )?
         } else {
             Vec::new()
         };
