@@ -2468,3 +2468,35 @@ fn every_surface_that_takes_input_lets_go_before_it_cleans_up() {
         "the drag overlay never takes pointer input"
     );
 }
+
+#[test]
+fn no_test_mutates_files_in_process_where_the_journal_is_the_developers_own() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut offenders = Vec::new();
+    for entry in fs::read_dir(root.join("tests")).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension() != Some(OsStr::new("rs")) || path.ends_with("source_contract.rs") {
+            continue;
+        }
+        let source = text(&path);
+        for call in [
+            "create_path(",
+            "rename_path(",
+            "trash_paths(",
+            "delete_paths(",
+        ] {
+            let imported = source.contains("use fileblade::operations::")
+                && source.lines().any(|line| {
+                    line.contains("use fileblade::operations::")
+                        && line.contains(call.trim_end_matches('('))
+                });
+            if imported {
+                offenders.push(format!("{}: {call}", path.display()));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "a mutating operation called in the test process records into the real journal and lands in the developer's undo history; run it through the isolated backend instead: {offenders:?}"
+    );
+}

@@ -950,7 +950,7 @@ fn clipboard_text_refuses_outside_the_resident_session() {
 
 #[test]
 fn entry_names_refuse_only_whitespace_and_keep_every_legal_name() {
-    use fileblade::operations::{checked_name, create_path, rename_path};
+    use fileblade::operations::checked_name;
 
     for refused in [
         "", " ", "   ", "\t", "\n", "\u{00a0}", "\u{3000}", ".", "..", "a/b", "a\0b",
@@ -981,16 +981,23 @@ fn entry_names_refuse_only_whitespace_and_keep_every_legal_name() {
 
     let temporary = tempdir().unwrap();
     let root = temporary.path();
+    let parent = root.to_str().unwrap();
     assert_eq!(
-        create_path(root.to_str().unwrap(), " ", false, "")["ok"],
+        backend(root, &["create", "--parent", parent, "--name", " "])["ok"],
         false
     );
     assert_eq!(
-        create_path(root.to_str().unwrap(), " ", true, "")["ok"],
+        backend(
+            root,
+            &["create", "--parent", parent, "--name", " ", "--directory"]
+        )["ok"],
         false
     );
     assert_eq!(
-        create_path(root.to_str().unwrap(), "  spaced  ", false, "")["ok"],
+        backend(
+            root,
+            &["create", "--parent", parent, "--name", "  spaced  "]
+        )["ok"],
         true
     );
     assert!(root.join("  spaced  ").is_file());
@@ -998,7 +1005,16 @@ fn entry_names_refuse_only_whitespace_and_keep_every_legal_name() {
     let existing = root.join(" ");
     fs::write(&existing, "made outside fileblade").unwrap();
     assert_eq!(
-        rename_path(existing.to_str().unwrap(), "recovered.txt", "")["ok"],
+        backend(
+            root,
+            &[
+                "rename",
+                "--path",
+                existing.to_str().unwrap(),
+                "--name",
+                "recovered.txt"
+            ]
+        )["ok"],
         true,
         "an entry that is already named \" \" must still be renameable to something valid"
     );
