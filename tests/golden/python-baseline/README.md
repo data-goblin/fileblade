@@ -28,6 +28,7 @@ manifest.json:            the root, the frozen date and the row counts per modul
 skills/list.json:         agent-skillsctl list on the tests/core_modules/skills fixtures
 memory/list.json:         agent-memoryctl list on the tests/core_modules/memory fixtures
 hooks/list.json:          agent-hooksctl list on the tests/core_modules/hooks fixtures
+                          (the Rust hooks module is compared against it row for row)
 hooks/prepare-remove.json:   the prepared removal payload for the first removable row
 hooks/remove-prepared.json:  the result of performing that prepared removal
 hooks/recovery-record.json:  the record fileblade_recovery.RecoveryStore wrote for it

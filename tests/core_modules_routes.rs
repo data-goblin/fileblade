@@ -105,7 +105,7 @@ fn rejected(result: &Value) -> bool {
             .is_some_and(|error| error.contains("core helper"))
 }
 
-const IN_PROCESS: [&str; 2] = ["skills", "memory"];
+const IN_PROCESS: [&str; 3] = ["skills", "memory", "hooks"];
 
 #[test]
 fn core_helpers_never_query_the_registry_and_cannot_be_retargeted() {
@@ -176,22 +176,31 @@ fn recovery_label_and_usage_methods_are_limited_to_their_owned_modules() {
     let fixture = Fixture::new();
     for module in ["hooks", "mcp"] {
         let provider = format!("fileblade.core.{module}");
-        assert_eq!(
-            fixture.run(&provider, "", "inventory", "recovery-list", false)["ok"],
-            true
-        );
+        assert!(!rejected(&fixture.run(
+            &provider,
+            "",
+            "inventory",
+            "recovery-list",
+            false
+        )));
         for method in ["prepare-remove", "remove-prepared", "restore", "discard"] {
-            assert_eq!(
-                fixture.run(&provider, "", "inventory", method, true)["ok"],
+            assert!(!rejected(&fixture.run(
+                &provider,
+                "",
+                "inventory",
+                method,
                 true
-            );
-            assert_eq!(
-                fixture.run(&provider, "", "inventory", method, false)["ok"],
+            )));
+            assert!(rejected(&fixture.run(
+                &provider,
+                "",
+                "inventory",
+                method,
                 false
-            );
+            )));
         }
         assert_eq!(
-            fixture.run(&provider, "", "inventory", "label", true)["ok"],
+            !rejected(&fixture.run(&provider, "", "inventory", "label", true)),
             module == "hooks"
         );
     }

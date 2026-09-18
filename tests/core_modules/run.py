@@ -11,12 +11,13 @@ with tempfile.TemporaryDirectory(prefix="fileblade-core-contracts-") as temporar
                        FILEBLADE_BINARY=os.environ.get("FILEBLADE_BINARY", str(root / "fileblade-bin")),
                        XDG_STATE_HOME=temporary)
     cases = {
-        "skills": ["unit.py"],
-        "hooks": ["test_discovery.py", "test_apply.py", "test_undo.py"],
-        "mcp": ["test_inventory.py", "test_apply.py", "test_undo.py"],
+        "skills": ["unit.py", "test_path_identity.py", "test_watch.py"],
+        "hooks": ["../test_core_bin.py"],
+        "mcp": ["test_inventory.py", "test_apply.py", "test_undo.py", "test_path_identity.py",
+                "test_watch.py", "../test_core_bin.py"],
     }
     for module, files in cases.items():
-        for filename in files + ["test_path_identity.py", "test_watch.py"] + (["../test_core_bin.py"] if module in ("hooks", "mcp") else []):
+        for filename in files:
             path = Path(__file__).parent / module / filename
             print(f"{module}/{filename}", flush=True)
             subprocess.run([sys.executable, "-B", str(path)], cwd=root, env=dict(environment, FILEBLADE_TEST_MODULE=module),

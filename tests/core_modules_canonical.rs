@@ -36,7 +36,8 @@ fn ascii_encoding_matches_python_json_dumps() {
     );
     assert_eq!(
         compact_ascii_json(&json!({"b": 1, "a": 2})),
-        "{\"a\":2,\"b\":1}"
+        "{\"b\":1,\"a\":2}",
+        "the compact encoder keeps insertion order, as json.dumps does"
     );
 }
 

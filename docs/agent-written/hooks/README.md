@@ -3,7 +3,7 @@ This file was written by an agent.
 # Hooks module
 
 The Hooks blade lists the hook definitions each agent's settings declare and
-lets you add, label, remove and restore them through `python/agent_hooks`
+lets you add, label, remove and restore them through the in-process hooks core module
 (`list`, `recovery-list`, `apply`, `label`, `prepare-remove`,
 `remove-prepared`, `restore`, `discard`). A modification that would leave the
 settings file unparsable, or drop a top-level key it did not mean to remove,

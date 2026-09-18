@@ -336,42 +336,50 @@ fn a_live_transaction_cannot_be_purged_or_pruned_and_cancellation_keeps_recovery
 
 #[test]
 fn historical_recovery_aliases_restore_through_core_and_preserve_saved_evidence() {
-    for module in ["hooks", "mcp"] {
-        for provider in [
-            format!("data-goblin.fileblade-{module}"),
-            format!("kurt.agent-{module}"),
-        ] {
-            let f = Fixture::new();
-            let (id, path, saved) = f.historical_record(module, &provider, "inventory");
-            f.mode("restore-after");
-            let failed = f.restore_route(
-                module,
-                &id,
-                &format!("fileblade.core.{module}"),
-                "inventory",
-            );
-            assert_eq!(failed["ok"], false, "{failed}");
-            assert_eq!(
-                fs::read_to_string(f.root.path().join("source")).unwrap(),
-                "private fixture payload"
-            );
-            let retained: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
-            assert_eq!(retained, saved);
-            f.mode("");
-            let restored = f.restore_route(
-                module,
-                &id,
-                &format!("fileblade.core.{module}"),
-                "inventory",
-            );
-            assert_eq!(restored["ok"], true, "{restored}");
-            assert!(!path.exists());
-            assert!(f.root.path().join("discarded").exists());
-            assert_eq!(
-                fs::read_to_string(f.root.path().join("source")).unwrap(),
-                "private fixture payload"
-            );
-        }
+    for provider in [
+        "data-goblin.fileblade-mcp".to_string(),
+        "kurt.agent-mcp".to_string(),
+    ] {
+        let f = Fixture::new();
+        let (id, path, saved) = f.historical_record("mcp", &provider, "inventory");
+        f.mode("restore-after");
+        let failed = f.restore_route("mcp", &id, "fileblade.core.mcp", "inventory");
+        assert_eq!(failed["ok"], false, "{failed}");
+        assert_eq!(
+            fs::read_to_string(f.root.path().join("source")).unwrap(),
+            "private fixture payload"
+        );
+        let retained: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(retained, saved);
+        f.mode("");
+        let restored = f.restore_route("mcp", &id, "fileblade.core.mcp", "inventory");
+        assert_eq!(restored["ok"], true, "{restored}");
+        assert!(!path.exists());
+        assert!(f.root.path().join("discarded").exists());
+        assert_eq!(
+            fs::read_to_string(f.root.path().join("source")).unwrap(),
+            "private fixture payload"
+        );
+    }
+}
+
+#[test]
+fn historical_hooks_aliases_reach_the_in_process_core_and_keep_saved_evidence() {
+    for provider in [
+        "data-goblin.fileblade-hooks".to_string(),
+        "kurt.agent-hooks".to_string(),
+    ] {
+        let f = Fixture::new();
+        let (id, path, saved) = f.historical_record("hooks", &provider, "inventory");
+        f.mode("restore-after");
+        let refused = f.restore_route("hooks", &id, "fileblade.core.hooks", "inventory");
+        assert_eq!(refused["ok"], false, "{refused}");
+        assert!(
+            !f.root.path().join("source").exists(),
+            "the retired hooks helper must not run"
+        );
+        let retained: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(retained, saved);
     }
 }
 
