@@ -735,9 +735,12 @@ Extensions scaffolded before this change keep working untouched: their
 `bin/fileblade-host-status`, `tests/test_contract.py` and
 `scripts/fileblade-extension-image.py` are ordinary files in their own
 repositories and FileBlade never reads them. Move to the verbs when it suits
-you: point `HostGuard.qml` at `fileblade --output json host-status --companion
-<id>`, replace the contract run in `tests/run` with `fileblade extension check
-.`, and delete the three files.
+you: point `HostGuard.qml` and `tests/run` at the host binary the way the
+scaffold does, resolving
+`${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/data-goblin.fileblade/fileblade`
+first and `PATH` only as a fallback, then call `--output json host-status
+--companion <id>` from the guard and `extension check .` from the gate, and
+delete the three files.
 
 ## Writing one, step by step
 

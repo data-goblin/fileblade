@@ -156,7 +156,8 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
             .starts_with(b"\x89PNG")
     );
     let gate = text(&rendered(&files, "tests/run"));
-    assert!(gate.contains("fileblade extension check ."));
+    assert!(gate.contains("\"$host\" extension check ."));
+    assert!(gate.contains("omarchy/plugins/data-goblin.fileblade/fileblade"));
     assert!(!gate.contains("python3"));
     let guard = text(&rendered(&files, "HostGuard.js"));
     assert!(guard.contains("--output json host-status --companion"));
@@ -422,4 +423,59 @@ fn the_host_guard_finds_a_plugin_route_install_without_a_path_entry() {
         .output()
         .unwrap();
     assert_eq!(absent.status.code(), Some(127));
+}
+
+#[test]
+fn the_scaffolded_gate_finds_a_plugin_route_install_without_a_path_entry() {
+    let scaffold = extension_template::scaffold(&request("acme.fileblade-weather")).unwrap();
+    let files = extension_template::render(&scaffold).unwrap();
+    let temporary = tempfile::tempdir().unwrap();
+    let extension = temporary.path().join("extension");
+    fs::create_dir_all(extension.join("tests")).unwrap();
+    let gate = extension.join("tests/run");
+    fs::write(&gate, text(&rendered(&files, "tests/run"))).unwrap();
+    fs::set_permissions(&gate, fs::Permissions::from_mode(0o755)).unwrap();
+    let config = temporary.path().join("config");
+    let host = config.join("omarchy/plugins/data-goblin.fileblade");
+    fs::create_dir_all(&host).unwrap();
+    let bare = temporary.path().join("bare");
+    fs::create_dir_all(&bare).unwrap();
+    std::os::unix::fs::symlink(which("dirname"), bare.join("dirname")).unwrap();
+    let launcher = host.join("fileblade");
+    fs::write(&launcher, "#!/bin/sh\nprintf '%s' \"$*\" >&2\nexit 9\n").unwrap();
+    fs::set_permissions(&launcher, fs::Permissions::from_mode(0o755)).unwrap();
+
+    let found = Command::new("/bin/bash")
+        .arg(&gate)
+        .env("PATH", &bare)
+        .env("XDG_CONFIG_HOME", &config)
+        .output()
+        .unwrap();
+    assert_eq!(found.status.code(), Some(9));
+    assert_eq!(
+        String::from_utf8(found.stderr).unwrap(),
+        "extension check ."
+    );
+
+    fs::remove_file(&launcher).unwrap();
+    let absent = Command::new("/bin/bash")
+        .arg(&gate)
+        .env("PATH", &bare)
+        .env("XDG_CONFIG_HOME", &config)
+        .output()
+        .unwrap();
+    assert_eq!(absent.status.code(), Some(127));
+    assert!(
+        String::from_utf8(absent.stderr)
+            .unwrap()
+            .contains("FileBlade is not installed")
+    );
+}
+
+fn which(program: &str) -> std::path::PathBuf {
+    ["/usr/bin", "/bin", "/usr/local/bin"]
+        .into_iter()
+        .map(|directory| std::path::Path::new(directory).join(program))
+        .find(|candidate| candidate.is_file())
+        .unwrap()
 }
