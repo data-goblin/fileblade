@@ -105,7 +105,7 @@ fn rejected(result: &Value) -> bool {
             .is_some_and(|error| error.contains("core helper"))
 }
 
-const IN_PROCESS: [&str; 3] = ["skills", "memory", "hooks"];
+const IN_PROCESS: [&str; 4] = ["skills", "memory", "hooks", "mcp"];
 
 #[test]
 fn core_helpers_never_query_the_registry_and_cannot_be_retargeted() {

@@ -13,8 +13,7 @@ with tempfile.TemporaryDirectory(prefix="fileblade-core-contracts-") as temporar
     cases = {
         "skills": ["unit.py", "test_path_identity.py", "test_watch.py"],
         "hooks": ["../test_core_bin.py"],
-        "mcp": ["test_inventory.py", "test_apply.py", "test_undo.py", "test_path_identity.py",
-                "test_watch.py", "../test_core_bin.py"],
+        "mcp": ["../test_core_bin.py"],
     }
     for module, files in cases.items():
         for filename in files:

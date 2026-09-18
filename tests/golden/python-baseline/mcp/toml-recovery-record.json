@@ -1,0 +1,12 @@
+{
+  "original": "# codex configuration\nmodel = \"gpt-5\"\n\n[mcp_servers.alpha]\ncommand = \"alpha-server\"\nargs = [\"--stdio\"]\n\n[mcp_servers.alpha.env]\nALPHA_HOME = \"/opt/alpha\"\n\n[mcp_servers.beta]\ncommand = \"beta-server\"\n\n[profile]\nname = \"default\"\n",
+  "updated": "# codex configuration\nmodel = \"gpt-5\"\n\n[mcp_servers.beta]\ncommand = \"beta-server\"\n\n[profile]\nname = \"default\"\n",
+  "record": {
+    "kind": "toml",
+    "name": "alpha",
+    "text": "\n[mcp_servers.alpha]\ncommand = \"alpha-server\"\nargs = [\"--stdio\"]\n\n[mcp_servers.alpha.env]\nALPHA_HOME = \"/opt/alpha\"\n",
+    "offset": 38,
+    "after": "91c85df14480c628811a9be1e9695ffdd0c991a8d5a0d13be3d429115e16a009",
+    "definition": "c69bd28a032d97855b71e9383620ab332eb7fa0425f9d540b8abe79b60b24081"
+  }
+}

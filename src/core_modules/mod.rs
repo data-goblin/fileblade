@@ -3,6 +3,7 @@ pub mod emit;
 pub mod frontmatter;
 pub mod glob;
 pub mod hooks;
+pub mod mcp;
 pub mod memory;
 pub mod metrics;
 pub mod path;
@@ -58,7 +59,7 @@ pub fn registered(route: CoreRoute, method: &str) -> Option<CoreHandler> {
         CoreRoute::Skills => skills::handler(method),
         CoreRoute::Memory => memory::handler(method),
         CoreRoute::Hooks => hooks::handler(method),
-        CoreRoute::Mcp => usage::handler(method),
+        CoreRoute::Mcp => mcp::handler(method),
     }
 }
 

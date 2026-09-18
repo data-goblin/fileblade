@@ -82,10 +82,10 @@ runtime integration.
 
 Known Hooks and MCP recovery payloads also pass their production restore
 validators before Ready, including when revisiting a completed receipt.
-`python/bin/validate-recovery` validates the inventoried payloads in one bounded
-isolated Python process; it never opens a live source or recovery store.
-Hooks restoration shares `validate_record`; JSON/TOML MCP restoration shares
-`validate_json_record`/`validate_toml_record`, including typed fingerprints and
-the isolated TOML table. Unknown extension payloads remain opaque.
-Missing Python/helper code or a parser refusal preserves the originals and
-refuses writable migration. No additional runtime dependency is introduced.
+`src/migration/artifacts.rs` validates the inventoried payloads in process with
+the same restore parsers the modules use; it never opens a live source or
+recovery store. Hooks restoration shares `validate_record`; JSON/TOML MCP
+restoration shares `validate_json_record`/`validate_toml_record`, including
+typed fingerprints and the isolated TOML table. Unknown extension payloads
+remain opaque. A parser refusal preserves the originals and refuses writable
+migration. No additional runtime dependency is introduced.

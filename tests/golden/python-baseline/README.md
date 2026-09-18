@@ -33,9 +33,13 @@ hooks/prepare-remove.json:   the prepared removal payload for the first removabl
 hooks/remove-prepared.json:  the result of performing that prepared removal
 hooks/recovery-record.json:  the record fileblade_recovery.RecoveryStore wrote for it
 mcp/list.json:            agent-mcpctl list on the tests/core_modules/mcp fixtures
+                          (the Rust mcp module is compared against it row for row)
 mcp/prepare-remove.json:     the prepared removal payload for the first removable row
 mcp/remove-prepared.json:    the result of performing that prepared removal
 mcp/recovery-record.json:    the record fileblade_recovery.RecoveryStore wrote for it
+mcp/toml-recovery-record.json: a codex config.toml, the text agent_mcp.records.detach_toml
+                             left behind, and the TOML recovery record it wrote, so a Rust
+                             restore can be checked at the recorded character offset
 usage/agent-usage.sqlite3:   the store python/agent_usage wrote from a synthetic
                              claude transcript of three days of skill, command and
                              MCP calls. A Rust store must answer this file identically

@@ -1,0 +1,367 @@
+use super::value::Cfg;
+use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
+use serde_json::{Map, Value};
+use std::fmt;
+
+pub const MAX_NESTING: usize = 32;
+pub const MAX_CONTAINER_ITEMS: usize = 4096;
+pub const MAX_KEY_CHARS: usize = 1024;
+pub const MAX_STRING_CHARS: usize = 1_048_576;
+
+const DUPLICATE_MARKER: &str = "fileblade-duplicate-json-key";
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseFailure(pub String);
+
+impl ParseFailure {
+    pub fn code(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for ParseFailure {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+
+fn failure(code: &str) -> ParseFailure {
+    ParseFailure(code.to_string())
+}
+
+struct UniqueValue(Value);
+
+struct UniqueVisitor;
+
+impl<'de> Visitor<'de> for UniqueVisitor {
+    type Value = Value;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("any valid JSON value")
+    }
+
+    fn visit_bool<E>(self, value: bool) -> Result<Value, E> {
+        Ok(Value::Bool(value))
+    }
+
+    fn visit_i64<E>(self, value: i64) -> Result<Value, E> {
+        Ok(Value::from(value))
+    }
+
+    fn visit_u64<E>(self, value: u64) -> Result<Value, E> {
+        Ok(Value::from(value))
+    }
+
+    fn visit_f64<E>(self, value: f64) -> Result<Value, E> {
+        Ok(Value::from(value))
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(Value::from(value.to_string()))
+    }
+
+    fn visit_unit<E>(self) -> Result<Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_none<E>(self) -> Result<Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(UniqueVisitor)
+    }
+
+    fn visit_seq<A>(self, mut access: A) -> Result<Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut items = Vec::new();
+        while let Some(UniqueValue(item)) = access.next_element()? {
+            items.push(item);
+        }
+        Ok(Value::Array(items))
+    }
+
+    fn visit_map<A>(self, mut access: A) -> Result<Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut entries = Map::new();
+        while let Some(key) = access.next_key::<String>()? {
+            let UniqueValue(value) = access.next_value()?;
+            if entries.contains_key(&key) {
+                return Err(de::Error::custom(DUPLICATE_MARKER));
+            }
+            entries.insert(key, value);
+        }
+        Ok(Value::Object(entries))
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for UniqueValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(UniqueVisitor).map(UniqueValue)
+    }
+}
+
+fn bounded_shape(value: &Cfg, depth: usize) -> Result<(), ParseFailure> {
+    if depth > MAX_NESTING {
+        return Err(failure("too-deep"));
+    }
+    match value {
+        Cfg::Table(entries) => {
+            if entries.len() > MAX_CONTAINER_ITEMS {
+                return Err(failure("too-many-items"));
+            }
+            for (key, child) in entries {
+                if key.chars().count() > MAX_KEY_CHARS {
+                    return Err(failure("invalid-key"));
+                }
+                bounded_shape(child, depth + 1)?;
+            }
+            Ok(())
+        }
+        Cfg::Array(items) => {
+            if items.len() > MAX_CONTAINER_ITEMS {
+                return Err(failure("too-many-items"));
+            }
+            for child in items {
+                bounded_shape(child, depth + 1)?;
+            }
+            Ok(())
+        }
+        Cfg::Str(text) if text.chars().count() > MAX_STRING_CHARS => {
+            Err(failure("oversized-string"))
+        }
+        _ => Ok(()),
+    }
+}
+
+fn nonfinite_token(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    let mut index = 0;
+    let mut quoted = false;
+    let mut escaped = false;
+    while index < bytes.len() {
+        let byte = bytes[index];
+        if quoted {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                quoted = false;
+            }
+            index += 1;
+            continue;
+        }
+        if byte == b'"' {
+            quoted = true;
+            index += 1;
+            continue;
+        }
+        for token in ["NaN", "Infinity"] {
+            if bytes[index..].starts_with(token.as_bytes()) {
+                return true;
+            }
+        }
+        index += 1;
+    }
+    false
+}
+
+pub fn parse_json(data: &[u8]) -> Result<Cfg, ParseFailure> {
+    let text = std::str::from_utf8(data).map_err(|_| failure("invalid-json"))?;
+    let parsed = match serde_json::from_str::<UniqueValue>(text) {
+        Ok(UniqueValue(value)) => value,
+        Err(error) => {
+            if error.to_string().contains(DUPLICATE_MARKER) {
+                return Err(failure("duplicate-json-key"));
+            }
+            if nonfinite_token(text) {
+                return Err(failure("nonfinite-json-number"));
+            }
+            return Err(failure("invalid-json"));
+        }
+    };
+    if !parsed.is_object() {
+        return Err(failure("root-not-object"));
+    }
+    let value = Cfg::from_json(&parsed);
+    bounded_shape(&value, 0)?;
+    Ok(value)
+}
+
+pub fn strip_jsonc(text: &str) -> Result<String, ParseFailure> {
+    let characters: Vec<char> = text.chars().collect();
+    let mut output: Vec<char> = Vec::with_capacity(characters.len());
+    let mut index = 0;
+    let mut quoted = false;
+    let mut escaped = false;
+    while index < characters.len() {
+        let character = characters[index];
+        let following = characters.get(index + 1).copied().unwrap_or('\0');
+        if quoted {
+            output.push(character);
+            if escaped {
+                escaped = false;
+            } else if character == '\\' {
+                escaped = true;
+            } else if character == '"' {
+                quoted = false;
+            }
+            index += 1;
+            continue;
+        }
+        if character == '"' {
+            quoted = true;
+            output.push(character);
+            index += 1;
+            continue;
+        }
+        if character == '/' && following == '/' {
+            output.push(' ');
+            output.push(' ');
+            index += 2;
+            while index < characters.len() && characters[index] != '\r' && characters[index] != '\n'
+            {
+                output.push(' ');
+                index += 1;
+            }
+            continue;
+        }
+        if character == '/' && following == '*' {
+            output.push(' ');
+            output.push(' ');
+            index += 2;
+            let mut closed = false;
+            while index < characters.len() {
+                if characters[index] == '*' && characters.get(index + 1) == Some(&'/') {
+                    output.push(' ');
+                    output.push(' ');
+                    index += 2;
+                    closed = true;
+                    break;
+                }
+                output.push(if characters[index] == '\n' { '\n' } else { ' ' });
+                index += 1;
+            }
+            if !closed {
+                return Err(failure("invalid-jsonc"));
+            }
+            continue;
+        }
+        output.push(character);
+        index += 1;
+    }
+
+    let mut quoted = false;
+    let mut escaped = false;
+    let mut index = 0;
+    while index < output.len() {
+        let character = output[index];
+        if quoted {
+            if escaped {
+                escaped = false;
+            } else if character == '\\' {
+                escaped = true;
+            } else if character == '"' {
+                quoted = false;
+            }
+        } else if character == '"' {
+            quoted = true;
+        } else if character == ',' {
+            let mut lookahead = index + 1;
+            while lookahead < output.len() && output[lookahead].is_whitespace() {
+                lookahead += 1;
+            }
+            if lookahead < output.len() && (output[lookahead] == '}' || output[lookahead] == ']') {
+                output[index] = ' ';
+            }
+        }
+        index += 1;
+    }
+    Ok(output.into_iter().collect())
+}
+
+pub fn parse_jsonc(data: &[u8]) -> Result<Cfg, ParseFailure> {
+    let text = std::str::from_utf8(data).map_err(|_| failure("invalid-utf8"))?;
+    parse_json(strip_jsonc(text)?.as_bytes())
+}
+
+fn stamp(value: &toml::value::Datetime) -> Cfg {
+    let date = value.date;
+    let time = value.time;
+    let mut text = String::new();
+    if let Some(date) = date {
+        text.push_str(&format!(
+            "{:04}-{:02}-{:02}",
+            date.year, date.month, date.day
+        ));
+    }
+    if let Some(time) = time {
+        if date.is_some() {
+            text.push('T');
+        }
+        text.push_str(&format!(
+            "{:02}:{:02}:{:02}",
+            time.hour, time.minute, time.second
+        ));
+        let microseconds = time.nanosecond / 1000;
+        if microseconds > 0 {
+            text.push_str(&format!(".{microseconds:06}"));
+        }
+    }
+    let kind = match (date.is_some(), time.is_some()) {
+        (true, true) => "datetime",
+        (true, false) => "date",
+        _ => "time",
+    };
+    if let Some(offset) = value.offset {
+        let minutes = match offset {
+            toml::value::Offset::Z => 0,
+            toml::value::Offset::Custom { minutes } => minutes,
+        };
+        let sign = if minutes < 0 { '-' } else { '+' };
+        let absolute = minutes.unsigned_abs() as u32;
+        text.push_str(&format!("{sign}{:02}:{:02}", absolute / 60, absolute % 60));
+    }
+    Cfg::Stamp { kind, text }
+}
+
+fn from_toml(value: &toml::Value) -> Cfg {
+    match value {
+        toml::Value::String(text) => Cfg::Str(text.clone()),
+        toml::Value::Integer(number) => Cfg::Num((*number).into()),
+        toml::Value::Float(number) => serde_json::Number::from_f64(*number)
+            .map(Cfg::Num)
+            .unwrap_or(Cfg::Null),
+        toml::Value::Boolean(flag) => Cfg::Bool(*flag),
+        toml::Value::Datetime(value) => stamp(value),
+        toml::Value::Array(items) => Cfg::Array(items.iter().map(from_toml).collect()),
+        toml::Value::Table(entries) => Cfg::Table(
+            entries
+                .iter()
+                .map(|(key, item)| (key.clone(), from_toml(item)))
+                .collect(),
+        ),
+    }
+}
+
+pub fn parse_toml(data: &[u8]) -> Result<Cfg, ParseFailure> {
+    let text = std::str::from_utf8(data).map_err(|_| failure("invalid-toml"))?;
+    let table: toml::Table = text.parse().map_err(|_| failure("invalid-toml"))?;
+    let value = from_toml(&toml::Value::Table(table));
+    bounded_shape(&value, 0)?;
+    Ok(value)
+}

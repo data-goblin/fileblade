@@ -117,14 +117,8 @@ def build_hooks(home: Path, project: Path) -> None:
 
 
 def build_mcp(home: Path, project: Path) -> None:
-    test_inventory = loaded("baseline_mcp_inventory", REPO / "tests/core_modules/mcp/test_inventory.py")
-    case = test_inventory.InventoryCase("test_schema_sources_precedence_and_secret_redaction")
-    case.home = home
-    case.project = project
-    case.config = home / ".config"
-    case.etc = home / "etc"
-    project.mkdir(parents=True, exist_ok=True)
-    case.populate()
+    mcp_fixtures = loaded("baseline_mcp_fixtures", REPO / "tests/core_modules/mcp/fixtures.py")
+    mcp_fixtures.build_all(home, project)
 
 
 BUILDERS = {"skills": build_skills, "memory": build_memory, "hooks": build_hooks, "mcp": build_mcp}

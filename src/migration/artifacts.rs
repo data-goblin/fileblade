@@ -83,30 +83,43 @@ fn validate_payloads(records: Vec<Value>) -> AppResult<()> {
     if records.is_empty() {
         return Ok(());
     }
-    let root = crate::paths::app_root()?;
-    let program = crate::actions::resolve_plugin_program("python/bin/validate-recovery", &root)
-        .map_err(AppError::invalid)?;
     let bytes = serde_json::to_vec(&serde_json::json!({"records": records}))?;
     if bytes.len() > 24 * 1024 * 1024 {
         return Err(refuse("helper payloads exceed byte bound"));
     }
-    let output = crate::command::CommandSpec::new("/usr/bin/python3")
-        .args(["-I", "-B"])
-        .args([program])
-        .env_clear()
-        .stdin(bytes)
-        .timeout(std::time::Duration::from_secs(8))
-        .limits(128, 4096)
-        .resource_limits(0, 256 * 1024 * 1024)
-        .run()?;
-    if !output.status.success()
-        || output.stdout_truncated
-        || !serde_json::from_slice::<Value>(&output.stdout)
-            .is_ok_and(|response| response == serde_json::json!({"ok": true}))
-    {
+    if records.len() > 4096 {
         return Err(refuse("helper payload does not satisfy the restore parser"));
     }
+    for record in &records {
+        if validated_payload(record).is_err() {
+            return Err(refuse("helper payload does not satisfy the restore parser"));
+        }
+    }
     Ok(())
+}
+
+fn validated_payload(record: &Value) -> Result<(), ()> {
+    use crate::core_modules::mcp::{parsers, records as mcp_records};
+    let module = record.get("module").and_then(Value::as_str).ok_or(())?;
+    let encoded = serde_json::to_vec(record.get("payload").ok_or(())?).map_err(|_| ())?;
+    let payload = parsers::parse_json(&encoded).map_err(|_| ())?.to_json();
+    let kind = payload
+        .get("kind")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    match (module, kind) {
+        ("hooks", _) => {
+            let entries = payload.as_object().ok_or(())?;
+            crate::core_modules::hooks::records::validate_record(entries).map_err(|_| ())
+        }
+        ("mcp", "json") => mcp_records::validate_json_record(&payload)
+            .map(|_| ())
+            .map_err(|_| ()),
+        ("mcp", "toml") => mcp_records::validate_toml_record(&payload)
+            .map(|_| ())
+            .map_err(|_| ()),
+        _ => Err(()),
+    }
 }
 
 fn manifest(
