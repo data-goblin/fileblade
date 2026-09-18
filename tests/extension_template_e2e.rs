@@ -159,7 +159,7 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
     assert!(gate.contains("fileblade extension check ."));
     assert!(!gate.contains("python3"));
     let guard = text(&rendered(&files, "HostGuard.js"));
-    assert!(guard.contains("fileblade --output json host-status --companion"));
+    assert!(guard.contains("--output json host-status --companion"));
     assert!(rendered(&files, "tests/run").executable);
     assert!(!rendered(&files, "manifest.json").executable);
 
@@ -357,4 +357,69 @@ fn generated_extensions_ship_no_automatic_agent_instruction_path() {
         );
     }
     rendered(&files, "docs/agent-guidelines.md");
+}
+
+fn status_script(guard: &str) -> String {
+    let body = guard
+        .split_once("var STATUS_SCRIPT = [\n")
+        .expect("the guard carries a status script")
+        .1
+        .split_once("].join")
+        .expect("the status script is a joined array")
+        .0;
+    body.lines()
+        .map(|line| {
+            let line = line.trim().trim_end_matches(',');
+            let line = line.strip_prefix('"').unwrap_or(line);
+            let line = line.strip_suffix('"').unwrap_or(line);
+            line.replace("\" + HOST_ID + \"", "data-goblin.fileblade")
+                .replace("\\\"", "\"")
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[test]
+fn the_host_guard_finds_a_plugin_route_install_without_a_path_entry() {
+    let scaffold = extension_template::scaffold(&request("acme.fileblade-weather")).unwrap();
+    let files = extension_template::render(&scaffold).unwrap();
+    let script = status_script(&text(&rendered(&files, "HostGuard.js")));
+    let temporary = tempfile::tempdir().unwrap();
+    let config = temporary.path().join("config");
+    let host = config.join("omarchy/plugins/data-goblin.fileblade");
+    fs::create_dir_all(&host).unwrap();
+    let launcher = host.join("fileblade");
+    fs::write(&launcher, "#!/bin/sh\nprintf '%s' \"$*\"\n").unwrap();
+    fs::set_permissions(&launcher, fs::Permissions::from_mode(0o755)).unwrap();
+
+    let found = Command::new("/bin/sh")
+        .args([
+            "-c",
+            &script,
+            "fileblade-host-status",
+            "acme.fileblade-weather",
+        ])
+        .env("PATH", temporary.path().join("empty"))
+        .env("XDG_CONFIG_HOME", &config)
+        .output()
+        .unwrap();
+    assert!(found.status.success());
+    assert_eq!(
+        String::from_utf8(found.stdout).unwrap(),
+        "--output json host-status --companion acme.fileblade-weather"
+    );
+
+    fs::remove_file(&launcher).unwrap();
+    let absent = Command::new("/bin/sh")
+        .args([
+            "-c",
+            &script,
+            "fileblade-host-status",
+            "acme.fileblade-weather",
+        ])
+        .env("PATH", temporary.path().join("empty"))
+        .env("XDG_CONFIG_HOME", &config)
+        .output()
+        .unwrap();
+    assert_eq!(absent.status.code(), Some(127));
 }

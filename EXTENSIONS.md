@@ -722,6 +722,12 @@ fileblade extension check <dir>:         the manifest-shape and host-guard rules
 fileblade extension image:               writes assets/fileblade-extension-logo.svg with the extension name outlined under the wordmark; --png and --host-logo rasterize with rsvg-convert
 ```
 
+The scaffolded `HostGuard.js` resolves that binary from
+`${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/data-goblin.fileblade/fileblade`
+before falling back to `PATH`, because a plugin-route install adds nothing to
+`PATH`. Only exit code 127, meaning neither route resolved, reports the host as
+missing.
+
 `fileblade extension image --name "Agent Skills"` reproduces the satellite
 banners exactly, so a renamed extension keeps the shared look.
 

@@ -7,8 +7,9 @@ var DISABLED_MESSAGE = "This is a FileBlade extension. FileBlade is installed bu
 var STARTING_MESSAGE = "FileBlade is enabled but is not responding yet. Wait for it to start, or restart the shell if it stays unavailable."
 var HOST_ABSENT = 127
 var STATUS_SCRIPT = [
-  "command -v fileblade >/dev/null 2>&1 || exit 127",
-  "exec fileblade --output json host-status --companion \"$1\""
+  "host=\"${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/" + HOST_ID + "/fileblade\"",
+  "[ -x \"$host\" ] || host=$(command -v fileblade) || exit 127",
+  "exec \"$host\" --output json host-status --companion \"$1\""
 ].join("\n")
 var UNKNOWN_MESSAGE = "FileBlade availability could not be checked. The check will retry automatically."
 
