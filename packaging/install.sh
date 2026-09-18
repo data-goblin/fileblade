@@ -69,7 +69,7 @@ check_activation() {
   [[ -n $active_payload ]] || return 0
   [[ -d $installation/versions/$active_payload && ! -L $installation/versions/$active_payload ]] || fail 'active runtime is missing'
   [[ $(sha256sum -- "$installation/versions/$active_payload/payload.json") == "$active_payload "* ]] || fail 'active manifest identity differs'
-  [[ $(dependency_contract "$native_root/packaging/runtime.json") == "$(dependency_contract "$installation/versions/$active_payload/packaging/runtime.json")" ]] || fail 'active runtime dependency contract differs; contract-changing updates require explicit compatibility support'
+  contract_compatible "$native_root/packaging/runtime.json" "$installation/versions/$active_payload/packaging/runtime.json" || fail 'active runtime dependency contract differs; the payload does not list that contract digest under upgrades'
 }
 
 lifecycle() {

@@ -51,6 +51,18 @@ if "$work/contract/tools/native" install "$work/contract"; then exit 1; fi
 "$native" rollback
 [[ $(jq -r .payload "$installation/active/receipt.json") == "$first" ]]
 printf 'PASS E-91-09 changed dependency contract refused with rollback intact\n'
+cp -a -- "$work/contract" "$work/compat"
+active_digest=$(jq -cS '{schema, backend, commands, packages}' "$payload/packaging/runtime.json" | sha256sum | cut -d ' ' -f 1)
+jq --arg digest "$active_digest" '.upgrades = [$digest]' "$work/contract/packaging/runtime.json" > "$work/compat/packaging/runtime.json"
+compat_digest=$(sha256sum "$work/compat/packaging/runtime.json")
+jq --arg digest "${compat_digest%% *}" '.files |= map(if .path == "packaging/runtime.json" then .sha256 = $digest else . end)' "$payload/payload.json" > "$work/compat/payload.json"
+"$work/compat/tools/native" check "$work/compat"
+"$work/compat/tools/native" install "$work/compat"
+compat=$(jq -r .payload "$installation/active/receipt.json")
+[[ $compat != "$first" && $(jq -r .previous "$installation/active/receipt.json") == "$first" ]]
+"$installation/versions/$compat/tools/native" rollback
+[[ $(jq -r .payload "$installation/active/receipt.json") == "$first" ]]
+printf 'PASS E-91-10 declared contract upgrade installs and rolls back\n'
 cp -- "$installation/active/receipt.json" "$work/receipt"
 jq '.owner = "unrelated"' "$work/receipt" > "$installation/active/receipt.json"
 if "$native" install "$work/next"; then exit 1; fi

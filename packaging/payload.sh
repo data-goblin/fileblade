@@ -46,6 +46,15 @@ dependency_contract() {
   jq -cS '{schema, backend, commands, packages}' "$1"
 }
 
+contract_digest() {
+  dependency_contract "$1" | sha256sum | cut -d ' ' -f 1
+}
+
+contract_compatible() {
+  [[ $(dependency_contract "$1") == "$(dependency_contract "$2")" ]] && return 0
+  jq -e --arg digest "$(contract_digest "$2")" '(.upgrades // []) | index($digest) != null' "$1" >/dev/null
+}
+
 verify_payload() {
   local root manifest actual expected target required
   root=$(realpath -e -- "$1")
@@ -70,7 +79,7 @@ verify_payload() {
   done < <(jq -r '.required[]' "$native_root/packaging/runtime.json")
   [[ -x $root/app/launch && -x $root/bin/fileblade && -x $root/tools/native ]] || fail 'runtime entrypoint is not executable'
   [[ $(jq -r .version "$root/manifest.json") == "$(jq -r .version "$manifest")" ]] || fail 'runtime version differs'
-  [[ $(dependency_contract "$native_root/packaging/runtime.json") == "$(dependency_contract "$root/packaging/runtime.json")" ]] || fail 'payload dependency contract differs from installer'
+  contract_compatible "$native_root/packaging/runtime.json" "$root/packaging/runtime.json" || fail 'payload dependency contract differs from installer'
   target=$(jq -r .target "$manifest")
   check_elf "$root/bin/fileblade" "$target"
   printf 'Verified FileBlade %s (%s)\n' "$(jq -r .version "$manifest")" "$target"

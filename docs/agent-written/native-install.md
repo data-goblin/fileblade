@@ -96,8 +96,11 @@ Package-owned conventional executable paths and unrelated launchers are
 refused. Modified owned launchers, invalid receipts and receipt/pointer
 disagreement are also refused. Arch package mapping is described below;
 external package removal recovery remains task 9.4 work. Current payload and installer
-dependency contracts must match; a contract-changing upgrade needs explicit
-compatibility work before it can be accepted.
+dependency contracts must match unless the new payload lists the digest of
+the current contract under `upgrades` in `packaging/runtime.json`. The digest
+is `sha256sum` of `jq -cS '{schema, backend, commands, packages}'` over that
+file. The Python-era contract is listed so the interpreter-free runtime
+installs over it, and rollback to that version stays possible.
 
 `tests/vm/expectations/91-delivery-install.sh PAYLOAD` checks collision
 preservation, repeated install, distinct activation/rollback, busy refusal,

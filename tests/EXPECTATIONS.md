@@ -1642,6 +1642,10 @@ already saved on disk; they do not prove that unsaved edits survive shutdown.
 - **E-91-09** An update with a different dependency contract is refused even
   when its own dependency check succeeds. My current version stays selected,
   and I can still roll back and return to it.
+- **E-91-10** An update whose dependency contract changed installs when its
+  `packaging/runtime.json` lists the digest of my current contract under
+  `upgrades` and its own dependency check succeeds. I can roll back to the
+  previous version afterwards.
 
 ## 92. Installing and removing the Arch package
 
