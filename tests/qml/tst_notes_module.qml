@@ -162,18 +162,20 @@ TestCase {
   }
 
   function test_footer_reports_last_edit_words_and_characters() {
-    compare(view.footerText, "Last Edit: never\tWords: 2\tCharacters: 13")
+    compare(view.footerText, "󰦨 2\t󰀬 13")
+    var footer = findChild(view, "notesFooter")
+    verify(footer)
+    compare(footer.Accessible.name, "Words: 2, Characters: 13")
     var before = Date.now()
     editor.text = "three 😀 words"
     var edited = view.activeNote.edited
     verify(edited >= before && edited <= Date.now())
-    compare(view.footerText, "Last Edit: " + Qt.formatDateTime(new Date(edited), "yyyy-MM-dd HH:mm") + "\tWords: 3\tCharacters: 13")
+    compare(view.footerText, "󱦻 " + Qt.formatDateTime(new Date(edited), "yyyy-MM-dd HH:mm") + "\t󰦨 3\t󰀬 13")
+    verify(footer.Accessible.name.indexOf("Last edit: ") === 0)
     view.createNote()
-    compare(view.footerText, "Last Edit: never\tWords: 0\tCharacters: 0")
+    compare(view.footerText, "󰦨 0\t󰀬 0")
     view.selectNote(0)
     compare(view.activeNote.edited, edited)
-    var footer = findChild(view, "notesFooter")
-    verify(footer)
     var parts = footer.text.split("\t")
     compare(parts.length, 3)
     var offset = 0

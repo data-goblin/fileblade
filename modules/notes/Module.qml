@@ -45,11 +45,12 @@ FocusScope {
   property bool closeAfterSave: false
   readonly property var host: context ? context.host : null
   readonly property bool temporary: !!context && !!context.inPopout
-  readonly property string footerText: [
-    "Last Edit: " + (activeNote.edited ? Qt.formatDateTime(new Date(activeNote.edited), "yyyy-MM-dd HH:mm") : "never"),
-    "Words: " + (activeNote.text.match(/\S+/g) || []).length,
-    "Characters: " + [...activeNote.text].length
-  ].join("\t")
+  readonly property var footerFields: [
+    { glyph: "󱦻", label: "Last edit", value: activeNote.edited ? Qt.formatDateTime(new Date(activeNote.edited), "yyyy-MM-dd HH:mm") : "" },
+    { glyph: "󰦨", label: "Words", value: String((activeNote.text.match(/\S+/g) || []).length) },
+    { glyph: "󰀬", label: "Characters", value: String([...activeNote.text].length) }
+  ].filter(function(field) { return field.value !== "" })
+  readonly property string footerText: footerFields.map(function(field) { return field.glyph + " " + field.value }).join("\t")
 
   function takeFocus(part) {
     editor.forceActiveFocus()
@@ -398,6 +399,7 @@ FocusScope {
     spacing: Style.space(3)
     TextEdit {
       objectName: "notesFooter"
+      Accessible.name: module.footerFields.map(function(field) { return field.label + ": " + field.value }).join(", ")
       width: parent.width - parent.leftPadding - parent.rightPadding
       text: module.footerText.replace(/ /g, "\u00A0")
       tabStopDistance: NotesState.tabStop(text.split("\t").map(function(field) { return footerFont.advanceWidth(field) }), Style.space(24))
@@ -406,7 +408,7 @@ FocusScope {
       activeFocusOnPress: false
       textFormat: TextEdit.PlainText
       wrapMode: TextEdit.WordWrap
-      color: Color.foreground
+      color: Color.muted
       font: footerFont.font
       FontMetrics {
         id: footerFont
