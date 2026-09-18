@@ -14,7 +14,7 @@ use crate::module_helpers::Request;
 use crate::{AppError, AppResult};
 use apply::{Applier, Removal};
 use inventory::{Environ, Inventory, PROJECT_SCOPES, Settings};
-use serde_json::{Map, Value, json};
+use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
 pub const DEFAULT_ETC_ROOT: &str = "/etc";
@@ -279,8 +279,4 @@ pub fn handler(method: &str) -> Option<crate::core_modules::CoreHandler> {
         "restore" | "discard" => Some(restoring),
         _ => usage::handler(method),
     }
-}
-
-pub fn document_map(value: &Value) -> Map<String, Value> {
-    value.as_object().cloned().unwrap_or_default()
 }

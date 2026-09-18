@@ -55,14 +55,7 @@ pub fn fs_encode(raw: &[u8]) -> Vec<u8> {
 }
 
 pub fn digest_bytes(parts: &[&[u8]]) -> String {
-    let mut joined: Vec<u8> = Vec::new();
-    for (index, part) in parts.iter().enumerate() {
-        if index > 0 {
-            joined.push(0);
-        }
-        joined.extend_from_slice(part);
-    }
-    sha256_hex(&joined)[..24].to_string()
+    sha256_hex(&parts.join(&0u8))[..24].to_string()
 }
 
 pub fn digest(parts: &[&str]) -> String {

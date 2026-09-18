@@ -1,14 +1,11 @@
 use super::value::{Cfg, SURROGATE_PLACEHOLDER_BASE};
-use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
-use serde_json::{Map, Value};
+use crate::core_modules::canonical::{DUPLICATE_MARKER, UniqueValue};
 use std::fmt;
 
 pub const MAX_NESTING: usize = 32;
 pub const MAX_CONTAINER_ITEMS: usize = 4096;
 pub const MAX_KEY_CHARS: usize = 1024;
 pub const MAX_STRING_CHARS: usize = 1_048_576;
-
-const DUPLICATE_MARKER: &str = "fileblade-duplicate-json-key";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseFailure(pub String);
@@ -27,91 +24,6 @@ impl fmt::Display for ParseFailure {
 
 fn failure(code: &str) -> ParseFailure {
     ParseFailure(code.to_string())
-}
-
-struct UniqueValue(Value);
-
-struct UniqueVisitor;
-
-impl<'de> Visitor<'de> for UniqueVisitor {
-    type Value = Value;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("any valid JSON value")
-    }
-
-    fn visit_bool<E>(self, value: bool) -> Result<Value, E> {
-        Ok(Value::Bool(value))
-    }
-
-    fn visit_i64<E>(self, value: i64) -> Result<Value, E> {
-        Ok(Value::from(value))
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<Value, E> {
-        Ok(Value::from(value))
-    }
-
-    fn visit_f64<E>(self, value: f64) -> Result<Value, E> {
-        Ok(Value::from(value))
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Value, E>
-    where
-        E: de::Error,
-    {
-        Ok(Value::from(value.to_string()))
-    }
-
-    fn visit_unit<E>(self) -> Result<Value, E> {
-        Ok(Value::Null)
-    }
-
-    fn visit_none<E>(self) -> Result<Value, E> {
-        Ok(Value::Null)
-    }
-
-    fn visit_some<D>(self, deserializer: D) -> Result<Value, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_any(UniqueVisitor)
-    }
-
-    fn visit_seq<A>(self, mut access: A) -> Result<Value, A::Error>
-    where
-        A: SeqAccess<'de>,
-    {
-        let mut items = Vec::new();
-        while let Some(UniqueValue(item)) = access.next_element()? {
-            items.push(item);
-        }
-        Ok(Value::Array(items))
-    }
-
-    fn visit_map<A>(self, mut access: A) -> Result<Value, A::Error>
-    where
-        A: MapAccess<'de>,
-    {
-        let mut entries = Map::new();
-        while let Some(key) = access.next_key::<String>()? {
-            let UniqueValue(value) = access.next_value()?;
-            if entries.contains_key(&key) {
-                return Err(de::Error::custom(DUPLICATE_MARKER));
-            }
-            entries.insert(key, value);
-        }
-        Ok(Value::Object(entries))
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for UniqueValue {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_any(UniqueVisitor).map(UniqueValue)
-    }
 }
 
 fn bounded_shape(value: &Cfg, depth: usize) -> Result<(), ParseFailure> {

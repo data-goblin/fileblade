@@ -1,7 +1,7 @@
 use fileblade::common::parse_path;
 use fileblade::core_modules::canonical::{
     canonical_json, compact_ascii_json, fingerprint, path_id, python_float_hex, python_float_repr,
-    scoped_path_id, sha256_hex, short_digest, stable_id, stable_id_bytes, typed_fingerprint,
+    scoped_path_id, sha256_hex, short_digest, stable_id, stable_id_bytes,
 };
 use serde_json::{Value, json};
 use std::ffi::OsStr;
@@ -147,7 +147,7 @@ fn golden_mcp_definition_fingerprint_reproduces_from_its_raw_configuration() {
     let record = baseline("mcp/recovery-record.json");
     let payload = &record["payload"];
     assert_eq!(
-        typed_fingerprint(&payload["raw"]),
+        fileblade::core_modules::mcp::value::fingerprint_json(&payload["raw"]),
         payload["definition"].as_str().expect("definition digest")
     );
 }

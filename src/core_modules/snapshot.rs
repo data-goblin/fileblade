@@ -3,6 +3,7 @@ use crate::{AppError, AppResult};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use rustix::fs::{Mode, OFlags};
 use std::io;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 pub const MAX_CONTENT: usize = 8 * 1024 * 1024;
@@ -56,18 +57,11 @@ impl Snapshot {
             return Err(failed("configuration is not a bounded regular file"));
         }
         let mut data: Vec<u8> = Vec::new();
-        let mut buffer = [0u8; 65536];
-        let mut remaining = limit + 1;
-        while remaining > 0 {
-            let wanted = remaining.min(buffer.len());
-            let count = rustix::io::read(&descriptor, &mut buffer[..wanted])?;
-            if count == 0 {
-                break;
-            }
-            data.extend_from_slice(&buffer[..count]);
-            remaining -= count;
-        }
-        let after = rustix::fs::fstat(&descriptor)?;
+        let mut file = std::fs::File::from(descriptor);
+        Read::by_ref(&mut file)
+            .take(limit as u64 + 1)
+            .read_to_end(&mut data)?;
+        let after = rustix::fs::fstat(&file)?;
         let unchanged = (
             before.st_size,
             before.st_mtime,

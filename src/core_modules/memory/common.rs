@@ -1,5 +1,4 @@
 use crate::core_modules::glob::fnmatch_bytes;
-use crate::core_modules::path::realpath;
 use crate::core_modules::watch::WatchPlan;
 use rustix::fs::{AtFlags, Dir, Mode, OFlags};
 use serde_json::Value;
@@ -95,17 +94,9 @@ pub fn expanded_os(value: &OsStr) -> PathBuf {
     }
 }
 
-pub fn expanded_path(path: &Path) -> PathBuf {
-    crate::common::expanded_os_path(path)
-}
-
-pub fn realpath_of(path: &Path) -> PathBuf {
-    realpath(path)
-}
-
-pub fn stable_id(target: &Path) -> String {
-    crate::core_modules::canonical::path_id(target)
-}
+pub use crate::common::expanded_os_path as expanded_path;
+pub use crate::core_modules::canonical::path_id as stable_id;
+pub use crate::core_modules::path::realpath as realpath_of;
 
 fn open_regular(plan: &mut WatchPlan, path: &Path) -> Option<(rustix::fd::OwnedFd, u64)> {
     plan.watch_path(path, false);

@@ -10,7 +10,7 @@ use crate::core_modules::watch::WatchPlan;
 use serde_json::{Map, Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsString;
-use std::os::unix::ffi::{OsStrExt, OsStringExt};
+use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
 pub const MAX_CLAUDE_BYTES: usize = 4 * 1024 * 1024;
@@ -437,23 +437,21 @@ impl Inventory {
             Options::default()
         };
         let result = bounded_read(&mut self.plan, path, limit, &options);
-        if result.error == Some("missing") {
+        if result == Err("missing") {
             return Ok(None);
         }
         self.sources += 1;
         let logical = self.logical_path(path);
-        if let Some(data) = &result.data {
-            let metrics = artifact_metrics(path, data);
-            self.source_metrics.insert(logical, metrics);
-        }
-        let Some(data) = result.data else {
-            self.warn(
-                agent,
-                source_kind,
-                path,
-                result.error.unwrap_or("unreadable"),
-            );
-            return Ok(None);
+        let data = match result {
+            Ok(data) => {
+                let metrics = artifact_metrics(path, &data);
+                self.source_metrics.insert(logical, metrics);
+                data
+            }
+            Err(reason) => {
+                self.warn(agent, source_kind, path, reason);
+                return Ok(None);
+            }
         };
         match parser(&data) {
             Ok(value) => Ok(Some(value)),
@@ -2153,8 +2151,4 @@ pub fn expanded(value: &str) -> PathBuf {
         Ok(parsed) => crate::common::expanded_os_path(&parsed),
         Err(_) => crate::common::expanded_os_path(Path::new(value)),
     }
-}
-
-pub fn os_from_bytes(bytes: &[u8]) -> OsString {
-    OsString::from_vec(bytes.to_vec())
 }

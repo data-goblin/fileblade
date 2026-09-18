@@ -341,9 +341,8 @@ impl Applier {
         );
         self.inventory.plan = plan;
         let packages = result
-            .data
-            .as_deref()
-            .and_then(|data| parse_json(data).ok())
+            .ok()
+            .and_then(|data| parse_json(&data).ok())
             .map(|document| self.inventory.pi_packages(&document))
             .unwrap_or_default();
         if packages.contains("pi-mcp-adapter") {

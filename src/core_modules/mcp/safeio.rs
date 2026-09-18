@@ -7,27 +7,6 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, UNIX_EPOCH};
 
-pub struct ReadResult {
-    pub data: Option<Vec<u8>>,
-    pub error: Option<&'static str>,
-}
-
-impl ReadResult {
-    fn failed(error: &'static str) -> Self {
-        Self {
-            data: None,
-            error: Some(error),
-        }
-    }
-
-    fn ok(data: Vec<u8>) -> Self {
-        Self {
-            data: Some(data),
-            error: None,
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct Timeout;
 
@@ -126,48 +105,48 @@ pub fn bounded_read(
     path: &Path,
     limit: usize,
     options: &Options,
-) -> ReadResult {
+) -> Result<Vec<u8>, &'static str> {
     plan.watch_path(path, false);
     let resolved = match std::fs::canonicalize(path) {
         Ok(resolved) => resolved,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return ReadResult::failed("missing");
+            return Err("missing");
         }
-        Err(_) => return ReadResult::failed("unreadable"),
+        Err(_) => return Err("unreadable"),
     };
     let Some(parent) = resolved.parent() else {
-        return ReadResult::failed("unreadable");
+        return Err("unreadable");
     };
     let Some(name) = resolved.file_name() else {
-        return ReadResult::failed("unreadable");
+        return Err("unreadable");
     };
     let Some(directory) = open_directory_nofollow(parent) else {
-        return ReadResult::failed("unreadable");
+        return Err("unreadable");
     };
     let flags = OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW | OFlags::NONBLOCK;
     let descriptor = match rustix::fs::openat(&directory, name, flags, Mode::empty()) {
         Ok(descriptor) => descriptor,
-        Err(rustix::io::Errno::NOENT) => return ReadResult::failed("missing"),
-        Err(_) => return ReadResult::failed("unreadable"),
+        Err(rustix::io::Errno::NOENT) => return Err("missing"),
+        Err(_) => return Err("unreadable"),
     };
     let Ok(metadata) = rustix::fs::fstat(&descriptor) else {
-        return ReadResult::failed("unreadable");
+        return Err("unreadable");
     };
     if metadata.st_mode & libc::S_IFMT != libc::S_IFREG {
-        return ReadResult::failed("not-regular");
+        return Err("not-regular");
     }
     if let Some(owner) = options.required_owner_uid
         && metadata.st_uid != owner
     {
-        return ReadResult::failed("insecure-owner");
+        return Err("insecure-owner");
     }
     if options.reject_group_or_world_writable
         && metadata.st_mode & (libc::S_IWGRP | libc::S_IWOTH) != 0
     {
-        return ReadResult::failed("insecure-mode");
+        return Err("insecure-mode");
     }
     if metadata.st_size as usize > limit {
-        return ReadResult::failed("oversized");
+        return Err("oversized");
     }
     let mut data: Vec<u8> = Vec::new();
     let mut buffer = vec![0u8; 65536];
@@ -175,7 +154,7 @@ pub fn bounded_read(
     while remaining > 0 {
         let wanted = remaining.min(buffer.len());
         let Ok(count) = rustix::io::read(&descriptor, &mut buffer[..wanted]) else {
-            return ReadResult::failed("unreadable");
+            return Err("unreadable");
         };
         if count == 0 {
             break;
@@ -184,9 +163,9 @@ pub fn bounded_read(
         remaining -= count;
     }
     if data.len() > limit {
-        return ReadResult::failed("oversized");
+        return Err("oversized");
     }
-    ReadResult::ok(data)
+    Ok(data)
 }
 
 pub fn safe_relative_file(root: &Path, relative: &str) -> Option<PathBuf> {

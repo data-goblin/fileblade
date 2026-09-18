@@ -522,8 +522,8 @@ fn symlinked_regular_files_resolve_with_output_bounds() {
     write(&target, "{}");
     std::os::unix::fs::symlink(&target, &link).unwrap();
     assert_eq!(
-        bounded_read(&mut plan, &link, 100, &safeio::Options::default()).data,
-        Some(b"{}".to_vec())
+        bounded_read(&mut plan, &link, 100, &safeio::Options::default()),
+        Ok(b"{}".to_vec())
     );
     let real = case.base.join("real");
     fs::create_dir_all(&real).unwrap();
@@ -536,9 +536,8 @@ fn symlinked_regular_files_resolve_with_output_bounds() {
             &directory_link.join("inside.json"),
             100,
             &safeio::Options::default()
-        )
-        .data,
-        Some(b"{}".to_vec())
+        ),
+        Ok(b"{}".to_vec())
     );
     write(&case.base.join("large.json"), &"x".repeat(101));
     assert_eq!(
@@ -547,9 +546,8 @@ fn symlinked_regular_files_resolve_with_output_bounds() {
             &case.base.join("large.json"),
             100,
             &safeio::Options::default()
-        )
-        .error,
-        Some("oversized")
+        ),
+        Err("oversized")
     );
     let owner = rustix::process::getuid().as_raw();
     assert_eq!(
@@ -561,15 +559,14 @@ fn symlinked_regular_files_resolve_with_output_bounds() {
                 required_owner_uid: Some(owner + 1),
                 reject_group_or_world_writable: false,
             }
-        )
-        .error,
-        Some("insecure-owner")
+        ),
+        Err("insecure-owner")
     );
     for mode in [0o664, 0o666] {
         fs::set_permissions(&target, fs::Permissions::from_mode(mode)).unwrap();
         assert_eq!(
-            bounded_read(&mut plan, &target, 100, &safeio::Options::managed(owner)).error,
-            Some("insecure-mode")
+            bounded_read(&mut plan, &target, 100, &safeio::Options::managed(owner)),
+            Err("insecure-mode")
         );
     }
 

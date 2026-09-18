@@ -1,5 +1,7 @@
-use serde_json::Value;
+use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
+use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
+use std::fmt;
 use std::fmt::Write as _;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
@@ -16,14 +18,7 @@ pub fn sha256_hex(data: &[u8]) -> String {
 }
 
 pub fn stable_id_bytes(parts: &[&[u8]]) -> String {
-    let mut joined: Vec<u8> = Vec::new();
-    for (index, part) in parts.iter().enumerate() {
-        if index > 0 {
-            joined.push(0);
-        }
-        joined.extend_from_slice(part);
-    }
-    sha256_hex(&joined)[..16].to_string()
+    sha256_hex(&parts.join(&0u8))[..16].to_string()
 }
 
 pub fn stable_id(parts: &[&str]) -> String {
@@ -72,24 +67,7 @@ pub fn escape_ascii(text: &str, out: &mut String) {
 }
 
 pub fn escape_unicode(text: &str, out: &mut String) {
-    out.push('"');
-    for character in text.chars() {
-        match character {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            '\u{8}' => out.push_str("\\b"),
-            '\u{c}' => out.push_str("\\f"),
-            _ if (character as u32) < 0x20 => {
-                let code = character as u32;
-                let _ = write!(out, "\\u{code:04x}");
-            }
-            _ => out.push(character),
-        }
-    }
-    out.push('"');
+    out.push_str(&serde_json::to_string(text).expect("JSON string"));
 }
 
 pub fn python_float_repr(value: f64) -> String {
@@ -242,37 +220,89 @@ pub fn fingerprint(value: &Value) -> String {
     sha256_hex(canonical_json(value).as_bytes())
 }
 
-fn typed(value: &Value) -> Value {
-    match value {
-        Value::Null => Value::Array(vec![Value::from("NoneType"), Value::Null]),
-        Value::Bool(item) => Value::Array(vec![Value::from("bool"), Value::Bool(*item)]),
-        Value::Number(item) => {
-            if item.is_f64() {
-                Value::Array(vec![
-                    Value::from("float"),
-                    Value::from(python_float_hex(item.as_f64().unwrap_or_default())),
-                ])
-            } else {
-                Value::Array(vec![Value::from("int"), Value::Number(item.clone())])
+pub const DUPLICATE_MARKER: &str = "fileblade-duplicate-json-key";
+
+pub struct UniqueValue(pub Value);
+
+struct UniqueVisitor;
+
+impl<'de> Visitor<'de> for UniqueVisitor {
+    type Value = Value;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("any valid JSON value")
+    }
+
+    fn visit_bool<E>(self, value: bool) -> Result<Value, E> {
+        Ok(Value::Bool(value))
+    }
+
+    fn visit_i64<E>(self, value: i64) -> Result<Value, E> {
+        Ok(Value::from(value))
+    }
+
+    fn visit_u64<E>(self, value: u64) -> Result<Value, E> {
+        Ok(Value::from(value))
+    }
+
+    fn visit_f64<E>(self, value: f64) -> Result<Value, E> {
+        Ok(Value::from(value))
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(Value::from(value.to_string()))
+    }
+
+    fn visit_unit<E>(self) -> Result<Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_none<E>(self) -> Result<Value, E> {
+        Ok(Value::Null)
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(UniqueVisitor)
+    }
+
+    fn visit_seq<A>(self, mut access: A) -> Result<Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut items = Vec::new();
+        while let Some(UniqueValue(item)) = access.next_element()? {
+            items.push(item);
+        }
+        Ok(Value::Array(items))
+    }
+
+    fn visit_map<A>(self, mut access: A) -> Result<Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut entries = Map::new();
+        while let Some(key) = access.next_key::<String>()? {
+            let UniqueValue(value) = access.next_value()?;
+            if entries.contains_key(&key) {
+                return Err(de::Error::custom(DUPLICATE_MARKER));
             }
+            entries.insert(key, value);
         }
-        Value::String(text) => Value::Array(vec![Value::from("str"), Value::from(text.clone())]),
-        Value::Array(items) => Value::Array(vec![
-            Value::from("array"),
-            Value::Array(items.iter().map(typed).collect()),
-        ]),
-        Value::Object(entries) => {
-            let mut keys: Vec<&String> = entries.keys().collect();
-            keys.sort();
-            let pairs = keys
-                .into_iter()
-                .map(|key| Value::Array(vec![Value::from(key.clone()), typed(&entries[key])]))
-                .collect();
-            Value::Array(vec![Value::from("object"), Value::Array(pairs)])
-        }
+        Ok(Value::Object(entries))
     }
 }
 
-pub fn typed_fingerprint(value: &Value) -> String {
-    sha256_hex(compact_ascii_json(&typed(value)).as_bytes())
+impl<'de> serde::Deserialize<'de> for UniqueValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(UniqueVisitor).map(UniqueValue)
+    }
 }

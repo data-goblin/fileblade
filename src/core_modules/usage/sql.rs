@@ -2,7 +2,8 @@ use crate::command::{CommandSpec, which};
 use serde::de::{MapAccess, Visitor};
 use serde_json::Value;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::fmt::Write as _;
+use std::path::PathBuf;
 use std::time::Duration;
 
 pub const PROGRAM: &str = "sqlite3";
@@ -52,82 +53,28 @@ pub enum Bound {
     Blob(Vec<u8>),
 }
 
-impl From<i64> for Bound {
-    fn from(value: i64) -> Self {
-        Self::Integer(value)
-    }
-}
-
 impl From<&str> for Bound {
     fn from(value: &str) -> Self {
         Self::Text(value.to_string())
     }
 }
 
-impl From<String> for Bound {
-    fn from(value: String) -> Self {
-        Self::Text(value)
+fn hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2 + 3);
+    out.push_str("X'");
+    for byte in bytes {
+        let _ = write!(out, "{byte:02x}");
     }
-}
-
-impl From<Vec<u8>> for Bound {
-    fn from(value: Vec<u8>) -> Self {
-        Self::Blob(value)
-    }
-}
-
-impl From<Option<i64>> for Bound {
-    fn from(value: Option<i64>) -> Self {
-        value.map_or(Self::Null, Self::Integer)
-    }
-}
-
-impl From<Option<&str>> for Bound {
-    fn from(value: Option<&str>) -> Self {
-        value.map_or(Self::Null, |value| Self::Text(value.to_string()))
-    }
-}
-
-impl From<Option<String>> for Bound {
-    fn from(value: Option<String>) -> Self {
-        value.map_or(Self::Null, Self::Text)
-    }
+    out.push('\'');
+    out
 }
 
 pub fn literal(value: &Bound) -> String {
     match value {
         Bound::Null => "NULL".to_string(),
         Bound::Integer(number) => number.to_string(),
-        Bound::Text(text) => {
-            if text.contains('\0') {
-                let mut out = String::with_capacity(text.len() * 2 + 16);
-                out.push_str("CAST(X'");
-                for byte in text.as_bytes() {
-                    out.push_str(&format!("{byte:02x}"));
-                }
-                out.push_str("' AS TEXT)");
-                return out;
-            }
-            let mut out = String::with_capacity(text.len() + 2);
-            out.push('\'');
-            for character in text.chars() {
-                if character == '\'' {
-                    out.push('\'');
-                }
-                out.push(character);
-            }
-            out.push('\'');
-            out
-        }
-        Bound::Blob(bytes) => {
-            let mut out = String::with_capacity(bytes.len() * 2 + 3);
-            out.push_str("X'");
-            for byte in bytes {
-                out.push_str(&format!("{byte:02x}"));
-            }
-            out.push('\'');
-            out
-        }
+        Bound::Text(text) => format!("CAST({} AS TEXT)", hex(text.as_bytes())),
+        Bound::Blob(bytes) => hex(bytes),
     }
 }
 
@@ -159,19 +106,10 @@ pub fn bind(statement: &str, values: &[Bound]) -> Result<String> {
 
 #[derive(Clone, Debug, Default)]
 pub struct Row {
-    names: Vec<String>,
     values: Vec<Value>,
 }
 
 impl Row {
-    pub fn name(&self, index: usize) -> &str {
-        self.names.get(index).map_or("", String::as_str)
-    }
-
-    pub fn width(&self) -> usize {
-        self.values.len()
-    }
-
     pub fn value(&self, index: usize) -> &Value {
         self.values.get(index).unwrap_or(&Value::Null)
     }
@@ -243,13 +181,11 @@ impl<'de> serde::Deserialize<'de> for Row {
             where
                 A: MapAccess<'de>,
             {
-                let mut names = Vec::new();
                 let mut values = Vec::new();
-                while let Some((name, value)) = entries.next_entry::<String, Value>()? {
-                    names.push(name);
+                while let Some((_, value)) = entries.next_entry::<String, Value>()? {
                     values.push(value);
                 }
-                Ok(Row { names, values })
+                Ok(Row { values })
             }
         }
 
@@ -294,10 +230,6 @@ impl Sql {
     pub fn with_busy(mut self, milliseconds: u64) -> Self {
         self.busy = milliseconds;
         self
-    }
-
-    pub fn path(&self) -> &Path {
-        &self.path
     }
 
     pub fn execute(&self, script: &str) -> Result<()> {

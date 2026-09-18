@@ -7,11 +7,10 @@ use super::safeio::{
     Budget, MAX_FILE_BYTES, bounded_depth, document_kind, expanded, expanded_os, refuse_update,
 };
 use crate::common::{parse_path, path_text};
+use crate::core_modules::canonical::UniqueValue;
 use crate::core_modules::recovery_store::{RecoveryError, RecoveryStore};
 use crate::core_modules::snapshot::Snapshot;
-use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde_json::{Map, Value, json};
-use std::fmt;
 use std::path::{Path, PathBuf};
 
 pub const SCHEMA_VERSION: i64 = 1;
@@ -51,91 +50,6 @@ pub fn target_path(agent: &str, home: &Path, environ: &Environ) -> PathBuf {
             base.join("hooks").join("hooks.json")
         }
         _ => home.join(".gemini").join("config").join("hooks.json"),
-    }
-}
-
-struct UniqueValue(Value);
-
-struct UniqueVisitor;
-
-impl<'de> Visitor<'de> for UniqueVisitor {
-    type Value = Value;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("any valid JSON value")
-    }
-
-    fn visit_bool<E>(self, value: bool) -> Result<Value, E> {
-        Ok(Value::Bool(value))
-    }
-
-    fn visit_i64<E>(self, value: i64) -> Result<Value, E> {
-        Ok(Value::from(value))
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<Value, E> {
-        Ok(Value::from(value))
-    }
-
-    fn visit_f64<E>(self, value: f64) -> Result<Value, E> {
-        Ok(Value::from(value))
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Value, E>
-    where
-        E: de::Error,
-    {
-        Ok(Value::from(value.to_string()))
-    }
-
-    fn visit_unit<E>(self) -> Result<Value, E> {
-        Ok(Value::Null)
-    }
-
-    fn visit_none<E>(self) -> Result<Value, E> {
-        Ok(Value::Null)
-    }
-
-    fn visit_some<D>(self, deserializer: D) -> Result<Value, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_any(UniqueVisitor)
-    }
-
-    fn visit_seq<A>(self, mut access: A) -> Result<Value, A::Error>
-    where
-        A: SeqAccess<'de>,
-    {
-        let mut items = Vec::new();
-        while let Some(UniqueValue(item)) = access.next_element()? {
-            items.push(item);
-        }
-        Ok(Value::Array(items))
-    }
-
-    fn visit_map<A>(self, mut access: A) -> Result<Value, A::Error>
-    where
-        A: MapAccess<'de>,
-    {
-        let mut entries = Map::new();
-        while let Some(key) = access.next_key::<String>()? {
-            let UniqueValue(value) = access.next_value()?;
-            if entries.contains_key(&key) {
-                return Err(de::Error::custom("duplicate JSON member"));
-            }
-            entries.insert(key, value);
-        }
-        Ok(Value::Object(entries))
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for UniqueValue {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_any(UniqueVisitor).map(UniqueValue)
     }
 }
 
