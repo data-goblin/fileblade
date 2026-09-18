@@ -13,7 +13,8 @@ impl Fixture {
         let root = tempfile::tempdir().unwrap();
         let path = root.path();
         fs::write(path.join("manifest.json"), "{}").unwrap();
-        fs::write(path.join("Service.qml"), "").unwrap();
+        fs::create_dir(path.join("app")).unwrap();
+        fs::write(path.join("app/shell.qml"), "").unwrap();
         fs::create_dir(path.join("scripts")).unwrap();
         let registry = path.join("scripts/omarchy");
         fs::write(

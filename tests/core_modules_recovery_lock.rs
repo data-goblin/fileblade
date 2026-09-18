@@ -8,7 +8,8 @@ fn standalone_bin_put_locks_recovery_with_app_root_override() {
         let root = tempfile::tempdir().unwrap();
         if app_ready {
             fs::write(root.path().join("manifest.json"), "{}").unwrap();
-            fs::write(root.path().join("Service.qml"), "").unwrap();
+            fs::create_dir_all(root.path().join("app")).unwrap();
+            fs::write(root.path().join("app/shell.qml"), "").unwrap();
         }
         let data = root.path().join("data");
         let output = Command::new(

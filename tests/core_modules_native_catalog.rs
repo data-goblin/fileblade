@@ -26,7 +26,8 @@ fn native_discovery_without_authority_cannot_create_activation_receipts() {
         let app = root.path().join("app");
         fs::create_dir_all(&app).unwrap();
         fs::write(app.join("manifest.json"), "{}").unwrap();
-        fs::write(app.join("Service.qml"), "").unwrap();
+        fs::create_dir_all(app.join("app")).unwrap();
+        fs::write(app.join("app/shell.qml"), "").unwrap();
         let executable = if receipt_selected {
             let installation = data.join("fileblade/installation");
             let payload = "a".repeat(64);

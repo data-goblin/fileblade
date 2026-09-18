@@ -44,6 +44,8 @@ impl Fixture {
     fn new() -> Self {
         let root = tempfile::tempdir().unwrap();
         fs::create_dir(root.path().join("bin")).unwrap();
+        fs::create_dir(root.path().join("app")).unwrap();
+        fs::write(root.path().join("app/shell.qml"), "").unwrap();
         plugin_environment::install(root.path(), "test.recovery");
         fs::write(root.path().join("manifest.json"), json!({"id":"test.recovery", "extensions":{"data-goblin.fileblade/helper":[{
             "id":"inventory", "entry":"bin/helper", "read":[], "write":["prepare-remove","remove-prepared","restore","discard"], "timeoutMs":500

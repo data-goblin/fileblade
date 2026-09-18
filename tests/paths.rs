@@ -68,13 +68,17 @@ fn a_replaced_binary_path_drops_the_deleted_suffix_when_the_file_exists() {
 }
 
 #[test]
-fn a_declared_app_root_must_carry_the_manifest_and_the_service() {
+fn a_declared_app_root_must_carry_the_manifest_and_the_shell() {
     let root = scratch("app-root");
     unsafe { std::env::set_var("FILEBLADE_APP_ROOT", &root) };
     assert!(fileblade::paths::app_root().is_err());
 
     fs::write(root.join("manifest.json"), "{}").unwrap();
     fs::write(root.join("Service.qml"), "").unwrap();
+    assert!(fileblade::paths::app_root().is_err());
+
+    fs::create_dir_all(root.join("app")).unwrap();
+    fs::write(root.join("app/shell.qml"), "").unwrap();
     assert_eq!(fileblade::paths::app_root().unwrap(), root);
 
     unsafe { std::env::set_var("FILEBLADE_APP_ROOT", "relative/root") };
@@ -83,7 +87,7 @@ fn a_declared_app_root_must_carry_the_manifest_and_the_service() {
     unsafe { std::env::remove_var("FILEBLADE_APP_ROOT") };
     if let Ok(found) = fileblade::paths::app_root() {
         assert!(found.join("manifest.json").symlink_metadata().is_ok());
-        assert!(found.join("Service.qml").symlink_metadata().is_ok());
+        assert!(found.join("app/shell.qml").symlink_metadata().is_ok());
         assert!(std::env::current_exe().unwrap().starts_with(&found));
     }
 
