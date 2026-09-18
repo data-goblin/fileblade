@@ -30,8 +30,16 @@ PanelWindow {
   readonly property string barPos: bar ? bar.position : "top"
 
   function close() {
-    if (owner && "close" in owner) owner.close()
-    else root.open = false
+    if (!owner || !("close" in owner)) {
+      root.open = false
+      return
+    }
+    try {
+      owner.close()
+    } catch (error) {
+      console.warn("FileBlade: panel owner failed to close, hiding the panel: " + error)
+      root.open = false
+    }
   }
 
   function beginFocusPrime() {

@@ -392,6 +392,7 @@ focusRight:     host bind (Super+Right)
 focusBladeOn:   host bind helper, focuses a blade on a named screen
 quickNav:       in-app key (Shift+Z); no host bind
 undo:           host bind (Super+Z), also the in-app undo
+releaseInput:   drops whatever holds input (an open drop wheel, a blade focus grab) and says what it released; for an agent or a TTY when the pointer seems trapped
 reloadKeybindings: explicit reread after editing the user keymap; normally handled by its file watcher
 cancelPick:     picker dialog flow, driven by the pick blade itself
 openBranches:   `fileblade branches`; also the Expand row of the Switch branch popup; opens or focuses the Branches module in the left blade

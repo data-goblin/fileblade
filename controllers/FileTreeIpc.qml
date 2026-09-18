@@ -750,6 +750,16 @@ QtObject {
     return "closed"
   }
 
+  function releaseInput(): string {
+    var released = []
+    if (service.dropWheel.wheelOpen) {
+      service.dropWheel.close()
+      released.push("drop-wheel")
+    }
+    if (bladeHost.releaseFocus("")) released.push("blade-focus")
+    return released.length ? released.join(",") : "nothing-held"
+  }
+
   function toggleBlade(edge: string): string {
     return bladeHost.toggleOpen(edge) ? "open" : "closed"
   }

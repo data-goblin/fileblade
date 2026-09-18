@@ -646,6 +646,10 @@ Item {
   }
 
   function close() {
+    wheelOpen = false
+    wheelFromDrag = false
+    keyboardFocusReleased = false
+    loading = false
     clearPendingRelease()
     dragKeys.cancelRelease()
     runGeneration++
@@ -655,10 +659,6 @@ Item {
       contextGeneration++
       contextRequestId = ""
     }
-    wheelOpen = false
-    wheelFromDrag = false
-    keyboardFocusReleased = false
-    loading = false
     ringItems = []
     resetHighlight()
     status = ""
@@ -681,6 +681,28 @@ Item {
   Timer {
     id: toastTimer
     onTriggered: wheelController.toast = ""
+  }
+
+  property int idleCloseMs: 30000
+  readonly property string idleActivity: [highlighted, outerHighlighted, subHighlighted, outerFocus, subFocus, loading, runRequestId, ringItems.length].join(":")
+  onIdleActivityChanged: if (wheelOpen) idleClose.restart()
+  onWheelOpenChanged: {
+    if (wheelOpen) idleClose.restart()
+    else idleClose.stop()
+  }
+
+  Timer {
+    id: idleClose
+    interval: wheelController.idleCloseMs
+    onTriggered: {
+      if (!wheelController.wheelOpen) return
+      if (wheelController.runRequestId !== "") {
+        restart()
+        return
+      }
+      console.warn("FileBlade: drop wheel closed after " + wheelController.idleCloseMs + " ms without input")
+      wheelController.close()
+    }
   }
 
   Variants {

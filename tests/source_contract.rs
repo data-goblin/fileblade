@@ -2410,3 +2410,61 @@ fn every_directory_the_runtime_qml_imports_ships_in_the_native_payload() {
         missing.join(", ")
     );
 }
+
+#[test]
+fn every_surface_that_takes_input_lets_go_before_it_cleans_up() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+
+    let wheel = text(&root.join("controllers/DropWheelController.qml"));
+    let close = wheel
+        .split("  function close() {")
+        .nth(1)
+        .and_then(|rest| rest.split("\n  }\n").next())
+        .expect("the drop wheel close function");
+    let hidden = close
+        .find("wheelOpen = false")
+        .expect("close hides the wheel");
+    for later in [
+        "clearPendingRelease()",
+        "dragKeys.cancelRelease()",
+        "service.cancelBackendRequest(",
+        "resetHighlight()",
+    ] {
+        let at = close.find(later).expect(later);
+        assert!(
+            hidden < at,
+            "the wheel takes the whole screen and exclusive keys; it hides before {later} can throw"
+        );
+    }
+    assert!(
+        wheel.contains("id: idleClose") && wheel.contains("wheelController.close()"),
+        "a wheel nobody touches closes itself"
+    );
+    assert!(
+        wheel.contains("if (wheelController.runRequestId !== \"\") {"),
+        "the idle close waits for a running drop action"
+    );
+
+    let panel = text(&root.join("app/Ui/KeyboardPanel.qml"));
+    let close = panel
+        .split("  function close() {")
+        .nth(1)
+        .and_then(|rest| rest.split("\n  }\n").next())
+        .expect("the keyboard panel close function");
+    assert!(
+        close.contains("try {") && close.contains("} catch (error) {"),
+        "a throwing owner cannot keep a full-screen panel open"
+    );
+    assert!(close.matches("root.open = false").count() == 2);
+
+    let ipc = text(&root.join("controllers/FileTreeIpc.qml"));
+    assert!(ipc.contains("function releaseInput(): string {"));
+    assert!(ipc.contains("service.dropWheel.close()"));
+    assert!(ipc.contains("bladeHost.releaseFocus(\"\")"));
+
+    let drag = text(&root.join("blades/BladeDragOverlay.qml"));
+    assert!(
+        drag.contains("mask: Region { }"),
+        "the drag overlay never takes pointer input"
+    );
+}

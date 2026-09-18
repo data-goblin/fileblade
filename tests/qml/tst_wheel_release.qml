@@ -20,7 +20,8 @@ TestCase {
       else suite.launches.push(args)
       return String(suite.callbacks.length + suite.launches.length)
     }
-    function cancelBackendRequest(id, generation) {}
+    property bool cancelThrows: false
+    function cancelBackendRequest(id, generation) { if (cancelThrows) throw new Error("cancel failed") }
     function yieldFocusForExternalLaunch() {}
     function referenceScreen(value) { return null }
   }
@@ -60,6 +61,27 @@ TestCase {
       { id: "terminal", label: "Terminal", key: "t", placements: [] },
       { id: "open", label: "Open", key: "o", placements: [] }
     ] }
+  }
+
+  function test_close_hides_the_wheel_even_when_cleanup_throws() {
+    begin()
+    verify(wheel.wheelOpen)
+    service.cancelThrows = true
+    var threw = false
+    try { wheel.close() } catch (error) { threw = true }
+    service.cancelThrows = false
+    verify(threw)
+    compare(wheel.wheelOpen, false)
+    compare(wheel.keyboardFocusReleased, false)
+    compare(wheel.wheelFromDrag, false)
+  }
+
+  function test_untouched_wheel_closes_itself() {
+    wheel.idleCloseMs = 60
+    begin()
+    verify(wheel.wheelOpen)
+    tryCompare(wheel, "wheelOpen", false, 1000)
+    wheel.idleCloseMs = 30000
   }
 
   function test_icon_resolver_receives_desktop_entry_and_override() {

@@ -87,6 +87,9 @@ Changes from upstream:
   instance does not receive Omarchy shell theme IPC.
 - BarWidget and KeyboardPanel accept a dynamic bar facade, matching their
   existing accesses to host-provided members.
+- KeyboardPanel.close() catches a throwing owner and hides the panel itself.
+  The panel takes input over the whole screen, so an owner whose close path
+  throws would otherwise leave every click on the desktop going to it.
 - Module registration files expose only this dependency closure.
 
 ## Evidence limits
