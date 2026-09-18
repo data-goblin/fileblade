@@ -40,12 +40,13 @@ expect E-40-19 "Super+B opens and focuses the left blade" focusedBlade left
 "$OVM" key shift-meta_l-b
 sleep 1
 expect E-40-19 "Super+Shift+B opens and focuses the right blade" focusedBlade right
+ctl createEntry undo-probe.txt false "$fixture"
+sleep 1
+expect_true E-40-19 "the probe file exists before undo" "guest 'test -e $(printf '%q' "$fixture")/undo-probe.txt'"
 "$OVM" key meta_l-z
 sleep 1
-expect E-40-19 "Super+Z opens quick navigation" quickNavActive true
-"$OVM" key esc
-sleep 1
-expect E-40-19 "Escape leaves quick navigation" quickNavActive false
+expect_true E-40-19 "Super+Z undoes the file creation" "! guest 'test -e $(printf '%q' "$fixture")/undo-probe.txt'"
+expect E-40-19 "Super+Z does not open quick navigation" quickNavActive false
 guest "$launcher extension template acme.fileblade-audit $(printf '%q' "$fixture/extension") --author Audit" >/dev/null
 result=$(guest "python3 $(printf '%q' "$fixture/extension/bin/fileblade-host-status")")
 expect_true E-40-20 "a generated extension recognizes the native host" "[[ \$(jq -r .state <<<\"\$result\") == ready ]]"

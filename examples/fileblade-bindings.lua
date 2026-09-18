@@ -47,4 +47,4 @@ hl.bind("SUPER + mouse:273", hl.dsp.global("fileblade:resize-blade"), { non_cons
 hl.bind("SUPER + mouse:273", hl.dsp.global("fileblade:resize-blade-end"), { release = true, non_consuming = true })
 hl.bind("mouse:273", hl.dsp.global("fileblade:resize-blade-end"), { release = true, non_consuming = true })
 
-o.bind("SUPER + Z", "File tree quick navigation", fileblade("quickNav"))
+o.bind("SUPER + Z", "Undo the last FileBlade file operation", fileblade("undo false false"))

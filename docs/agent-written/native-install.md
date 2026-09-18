@@ -360,7 +360,8 @@ Reproduce the generated-binding and extension checks in an isolated installed
 native VM with `FILEBLADE_SHAPE=native`, the native OVM adapter and
 `tests/vm/expectations/49-native-bindings.sh`. The scenario installs the bindings
 twice, sends Super+B, Super+Shift+B and Super+Z through virtual keyboard input,
-checks Escape, and runs a newly generated extension's host check.
+checks that Super+Z undoes a file creation and does not open quick navigation,
+and runs a newly generated extension's host check.
 
 VM qualification exposed another native migration gap: the public preferences
 command tried to access protected state directly instead of using the resident

@@ -190,7 +190,7 @@ falls back to the plain dispatcher, so nothing breaks when the shell is down.
 - Super + W closes the focused sidebar, or a regular Hyprland window when no sidebar has focus
 - Super + Arrows, Super + Shift + Arrows, and Super + T are also blade-aware: they focus, swap, and dock/undock a sidebar when one has focus, and otherwise behave like normal
 - Super + Minus / Super + Equals resize the focused sidebar instead of the window when a sidebar has focus
-- Super + Z opens the `zoxide`-like quick nav
+- Super + Z undoes the last file operation; Shift + Z inside a file tree opens the `zoxide`-like quick nav
 
 ### Windows and focus; interaction with Hyprland
 

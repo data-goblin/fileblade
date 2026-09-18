@@ -1851,7 +1851,8 @@ This file was written by an agent.
 
 - **E-40-19** Native FileBlade's desktop bindings reach the standalone app through its stable
   launcher. Super+B opens or focuses the left blade, Super+Shift+B the right,
-  and Super+Z quick navigation even when the legacy host plugin is absent.
+  and Super+Z undoes the last file operation without opening quick navigation,
+  even when the legacy host plugin is absent.
   Repeated binding installation does not leave duplicate Super+B actions.
 - **E-40-20** A generated extension recognizes a running native FileBlade without the old
   host plugin in Omarchy's catalogue. If installed but stopped, it asks me to

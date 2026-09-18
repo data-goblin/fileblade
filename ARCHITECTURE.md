@@ -390,7 +390,8 @@ setScrollMarks: settings sheet toggle for Git marks on the scroll ruler; the VM 
 setAutoHideSearch: settings sheet toggle for hiding unfocused search bars; VM section 32 checks visibility and persistence
 focusRight:     host bind (Super+Right)
 focusBladeOn:   host bind helper, focuses a blade on a named screen
-quickNav:       host bind (Super+Z)
+quickNav:       in-app key (Shift+Z); no host bind
+undo:           host bind (Super+Z), also the in-app undo
 reloadKeybindings: explicit reread after editing the user keymap; normally handled by its file watcher
 cancelPick:     picker dialog flow, driven by the pick blade itself
 openBranches:   `fileblade branches`; also the Expand row of the Switch branch popup; opens or focuses the Branches module in the left blade
