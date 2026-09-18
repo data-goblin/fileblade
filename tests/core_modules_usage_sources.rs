@@ -662,3 +662,55 @@ fn offset_of(fixture: &Fixture, path: &Path) -> i64 {
         .flatten()
         .map_or(0, |row| row.integer(0))
 }
+
+fn opencode_named(fixture: &Fixture, name: &str, skill: &str, as_blob: bool) {
+    let path = opencode_directory(fixture).join(name);
+    let database = Sql::open(&path).expect("opencode store");
+    let at = fixture.day.timestamp_millis();
+    let mut script = String::from(
+        "CREATE TABLE session (id TEXT PRIMARY KEY, project_id TEXT, directory TEXT, title TEXT, version TEXT, \
+         time_created INTEGER, time_updated INTEGER);\n\
+         CREATE TABLE part (id TEXT PRIMARY KEY, message_id TEXT, session_id TEXT, time_created INTEGER, time_updated INTEGER, data BLOB);\n",
+    );
+    script.push_str(
+        &bind(
+            "INSERT INTO session VALUES ('ses_1', 'p', '/work/project', 't', '1.18.30', ?, ?);",
+            &[Bound::Integer(at), Bound::Integer(at)],
+        )
+        .expect("session row"),
+    );
+    script.push('\n');
+    let data = json!({"type": "tool", "callID": "call_a", "tool": "skill",
+                      "state": {"status": "completed", "input": {"name": skill},
+                                "time": {"start": at, "end": at + 1}}});
+    let encoded = serde_json::to_string(&data).expect("part data");
+    let stored = if as_blob {
+        Bound::Blob(encoded.into_bytes())
+    } else {
+        Bound::Text(encoded)
+    };
+    script.push_str(
+        &bind(
+            "INSERT INTO part VALUES ('prt_0', 'msg_1', 'ses_1', ?, ?, ?);",
+            &[Bound::Integer(at), Bound::Integer(at), stored],
+        )
+        .expect("part row"),
+    );
+    script.push('\n');
+    database.execute(&script).expect("opencode schema");
+}
+
+#[test]
+fn an_opencode_call_naming_a_non_ascii_skill_is_attributed_from_text_and_blob_storage() {
+    for as_blob in [false, true] {
+        use_utc();
+        let fixture = Fixture::new();
+        opencode_named(&fixture, "opencode.db", "café-雪", as_blob);
+        let items = vec![stub("skill-cafe", "café-雪", "user")];
+        assert_eq!(
+            fixture.counts(&items)["counts"]["skill-cafe"]["usesAgent"],
+            json!(1),
+            "as_blob={as_blob}"
+        );
+    }
+}

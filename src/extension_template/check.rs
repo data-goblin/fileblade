@@ -1,4 +1,4 @@
-use super::image;
+use super::{image, read_bounded};
 use crate::{AppError, AppResult};
 use regex::Regex;
 use serde_json::Value;
@@ -38,18 +38,6 @@ fn check(condition: bool, message: &str) -> AppResult<()> {
     } else {
         Err(AppError::invalid(message.to_string()))
     }
-}
-
-fn read_bounded(path: &Path, limit: u64) -> AppResult<Vec<u8>> {
-    let bytes = std::fs::read(path)
-        .map_err(|error| AppError::invalid(format!("cannot read {}: {error}", path.display())))?;
-    if bytes.len() as u64 > limit {
-        return Err(AppError::invalid(format!(
-            "{} is larger than {limit} bytes",
-            path.display()
-        )));
-    }
-    Ok(bytes)
 }
 
 fn manifest(root: &Path) -> AppResult<Value> {

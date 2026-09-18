@@ -63,6 +63,17 @@ old cache:    $XDG_CACHE_HOME/omarchy/fileblade/agent-usage.json and agent-usage
 It is state, not cache: a cache cleaner must not erase history. Uninstalling
 the plugin keeps it with the rest of `~/.local/state/omarchy/fileblade/`.
 
+The `-json` output of the sqlite3 tool renders a TEXT column as its characters
+and a BLOB column as one character per byte. Reading a column byte for byte is
+therefore only correct when the statement casts it: `SELECT CAST(<column> AS
+BLOB)` paired with `Row::blob` or `Row::text_bytes`, which reverse that
+per-byte rendering. Reading an uncast TEXT column through those accessors
+truncates every code point to its low byte, so `雪` arrives as the single
+byte `0xea`. Columns read without a cast use `Row::text`, and a column whose
+bytes matter (NUL-carrying identities, foreign OpenCode payloads that may be
+stored as either TEXT or BLOB) is cast in the statement and decoded once,
+before anything parses it.
+
 ```sql
 CREATE TABLE source (
   id INTEGER PRIMARY KEY,

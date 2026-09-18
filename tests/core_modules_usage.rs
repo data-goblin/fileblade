@@ -876,3 +876,16 @@ fn a_nul_byte_in_a_record_does_not_break_the_store() {
     assert_eq!(row.text_bytes(0), "alpha\u{0}");
     assert_eq!(row.text_bytes(1), "toolu_n\u{0}1");
 }
+
+#[test]
+fn byte_accessors_round_trip_non_ascii_text_only_through_a_blob_cast() {
+    let database = Sql::open(":memory:").expect("memory store");
+    let row = database
+        .query_one("SELECT 'caf\u{e9} \u{96ea}', CAST('caf\u{e9} \u{96ea}' AS BLOB)")
+        .expect("literal row")
+        .expect("literal row");
+    assert_eq!(row.text(0), "café 雪");
+    assert_eq!(row.blob(1), "café 雪".as_bytes());
+    assert_eq!(row.text_bytes(1), "café 雪");
+    assert_ne!(row.blob(0), "café 雪".as_bytes());
+}

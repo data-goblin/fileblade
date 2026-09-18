@@ -26,6 +26,7 @@ pub enum Cfg {
     Null,
     Bool(bool),
     Num(Number),
+    Nonfinite(&'static str),
     Str(String),
     Stamp { kind: &'static str, text: String },
     Array(Vec<Cfg>),
@@ -38,6 +39,7 @@ impl PartialEq for Cfg {
             (Self::Null, Self::Null) => true,
             (Self::Bool(left), Self::Bool(right)) => left == right,
             (Self::Num(left), Self::Num(right)) => left == right,
+            (Self::Nonfinite(left), Self::Nonfinite(right)) => left == right,
             (Self::Str(left), Self::Str(right)) => left == right,
             (
                 Self::Stamp { kind, text },
@@ -174,6 +176,7 @@ impl Cfg {
             Self::Null => Value::Null,
             Self::Bool(flag) => Value::Bool(*flag),
             Self::Num(number) => Value::Number(number.clone()),
+            Self::Nonfinite(_) => Value::Null,
             Self::Str(text) => Value::String(text.clone()),
             Self::Stamp { text, .. } => Value::String(text.clone()),
             Self::Array(items) => Value::Array(items.iter().map(Self::to_json).collect()),
@@ -204,6 +207,7 @@ fn typed(value: &Cfg) -> Value {
                 Value::Array(vec![Value::from("int"), Value::Number(number.clone())])
             }
         }
+        Cfg::Nonfinite(text) => Value::Array(vec![Value::from("float"), Value::from(*text)]),
         Cfg::Str(text) => Value::Array(vec![Value::from("str"), Value::from(text.clone())]),
         Cfg::Stamp { kind, text } => {
             Value::Array(vec![Value::from(*kind), Value::from(text.clone())])

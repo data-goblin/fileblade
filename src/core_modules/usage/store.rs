@@ -704,14 +704,14 @@ fn read_opencode(
     let has = |name: &str| tables.iter().any(|entry| entry == name);
     let (query, table) = if has("part") && has("session") {
         (
-            "SELECT part.id, part.time_updated, part.time_created, part.data, session.directory FROM part \
+            "SELECT part.id, part.time_updated, part.time_created, CAST(part.data AS BLOB), session.directory FROM part \
              LEFT JOIN session ON session.id = part.session_id WHERE part.time_updated > ? \
              AND instr(part.data, '\"tool\"') > 0 ORDER BY part.time_updated LIMIT ?",
             "session",
         )
     } else if has("session_message") && has("session_v2") {
         (
-            "SELECT m.id, m.time_updated, m.time_created, m.data, s.directory FROM session_message m \
+            "SELECT m.id, m.time_updated, m.time_created, CAST(m.data AS BLOB), s.directory FROM session_message m \
              LEFT JOIN session_v2 s ON s.id = m.session_id WHERE m.time_updated > ? AND m.type = 'assistant' \
              AND instr(m.data, '\"tool\"') > 0 ORDER BY m.time_updated LIMIT ?",
             "session_v2",
@@ -746,7 +746,7 @@ fn read_opencode(
         }
         let created = row.optional_integer(2);
         batch.offset = batch.offset.max(row.optional_integer(1).unwrap_or(0));
-        let Some(document) = payload(row.value(3)) else {
+        let Some(document) = payload(&row.blob(3)) else {
             continue;
         };
         let project = row.optional_text(4).filter(|value| !value.is_empty());
@@ -807,18 +807,8 @@ fn read_opencode(
     Ok(())
 }
 
-fn payload(value: &Value) -> Option<serde_json::Map<String, Value>> {
-    let Value::String(text) = value else {
-        return None;
-    };
-    if let Ok(Value::Object(document)) = serde_json::from_str::<Value>(text) {
-        return Some(document);
-    }
-    let bytes: Vec<u8> = text
-        .chars()
-        .map(|character| (character as u32 & 0xff) as u8)
-        .collect();
-    match serde_json::from_str::<Value>(&clean_bytes(&bytes)) {
+fn payload(bytes: &[u8]) -> Option<serde_json::Map<String, Value>> {
+    match serde_json::from_str::<Value>(&clean_bytes(bytes)) {
         Ok(Value::Object(document)) => Some(document),
         _ => None,
     }

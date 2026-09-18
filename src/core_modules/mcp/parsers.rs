@@ -417,9 +417,12 @@ fn from_toml(value: &toml::Value) -> Cfg {
     match value {
         toml::Value::String(text) => Cfg::Str(text.clone()),
         toml::Value::Integer(number) => Cfg::Num((*number).into()),
-        toml::Value::Float(number) => serde_json::Number::from_f64(*number)
-            .map(Cfg::Num)
-            .unwrap_or(Cfg::Null),
+        toml::Value::Float(number) => match serde_json::Number::from_f64(*number) {
+            Some(number) => Cfg::Num(number),
+            None if number.is_nan() => Cfg::Nonfinite("nan"),
+            None if *number < 0.0 => Cfg::Nonfinite("-inf"),
+            None => Cfg::Nonfinite("inf"),
+        },
         toml::Value::Boolean(flag) => Cfg::Bool(*flag),
         toml::Value::Datetime(value) => stamp(value),
         toml::Value::Array(items) => Cfg::Array(items.iter().map(from_toml).collect()),

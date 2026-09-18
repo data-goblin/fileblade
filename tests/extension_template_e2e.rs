@@ -479,3 +479,56 @@ fn which(program: &str) -> std::path::PathBuf {
         .find(|candidate| candidate.is_file())
         .unwrap()
 }
+
+#[test]
+fn a_bounded_read_refuses_an_oversized_manifest_and_a_non_regular_one() {
+    let temporary = tempfile::tempdir().unwrap();
+    let target = temporary.path().join("weather");
+    assert!(
+        fileblade()
+            .args(["extension", "template", "acme.fileblade-weather"])
+            .arg(&target)
+            .args(["--author", "Jane Doe"])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
+    let manifest = target.join("manifest.json");
+
+    let mut oversized = fs::read(&manifest).unwrap();
+    oversized.extend(std::iter::repeat_n(b' ', 1024 * 1024 + 1));
+    fs::write(&manifest, &oversized).unwrap();
+    let refused = fileblade()
+        .args(["extension", "check"])
+        .arg(&target)
+        .output()
+        .unwrap();
+    assert!(!refused.status.success());
+    assert!(
+        String::from_utf8_lossy(&refused.stderr).contains("is larger than"),
+        "{}",
+        String::from_utf8_lossy(&refused.stderr)
+    );
+
+    fs::remove_file(&manifest).unwrap();
+    assert_eq!(
+        Command::new("mkfifo")
+            .arg(&manifest)
+            .status()
+            .unwrap()
+            .code(),
+        Some(0)
+    );
+    let piped = fileblade()
+        .args(["extension", "check"])
+        .arg(&target)
+        .output()
+        .unwrap();
+    assert!(!piped.status.success());
+    assert!(
+        String::from_utf8_lossy(&piped.stderr).contains("not a regular file"),
+        "{}",
+        String::from_utf8_lossy(&piped.stderr)
+    );
+}

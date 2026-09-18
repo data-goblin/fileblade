@@ -1,0 +1,12 @@
+{
+  "original": "# codex configuration\nmodel = \"gpt-5\"\n\n[mcp_servers.alpha]\ncommand = \"alpha-server\"\nscale = inf\nfloor = -inf\ndrift = nan\nratio = 1.5\n\n[profile]\nname = \"default\"\n",
+  "updated": "# codex configuration\nmodel = \"gpt-5\"\n\n[profile]\nname = \"default\"\n",
+  "record": {
+    "kind": "toml",
+    "name": "alpha",
+    "text": "\n[mcp_servers.alpha]\ncommand = \"alpha-server\"\nscale = inf\nfloor = -inf\ndrift = nan\nratio = 1.5\n",
+    "offset": 38,
+    "after": "4c22f684a541c188c392c84fafbc0c97919e5e9ab5518b2cfc8c324b9ebab2a1",
+    "definition": "eb053dbe640ac0d468331297c9b6a71090b80de4386b55d64c9703e6ac8c32ca"
+  }
+}

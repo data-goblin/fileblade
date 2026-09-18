@@ -107,6 +107,7 @@ fn python_text(value: &Cfg) -> String {
                 number.to_string()
             }
         }
+        Cfg::Nonfinite(text) => (*text).to_string(),
         Cfg::Stamp { text, .. } => text.clone(),
         _ => String::new(),
     }

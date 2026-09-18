@@ -17,6 +17,38 @@ pub const HOST_ID: &str = "data-goblin.fileblade";
 pub mod check;
 pub mod image;
 
+pub(crate) fn read_bounded(path: &Path, limit: u64) -> AppResult<Vec<u8>> {
+    use std::io::Read;
+    use std::os::unix::fs::OpenOptionsExt;
+
+    let refuse =
+        |reason: String| AppError::invalid(format!("cannot read {}: {reason}", path.display()));
+    let mut file = fs::OpenOptions::new()
+        .read(true)
+        .custom_flags(libc::O_NONBLOCK)
+        .open(path)
+        .map_err(|error| refuse(error.to_string()))?;
+    if !file
+        .metadata()
+        .map_err(|error| refuse(error.to_string()))?
+        .is_file()
+    {
+        return Err(refuse("it is not a regular file".to_string()));
+    }
+    let mut bytes = Vec::new();
+    file.by_ref()
+        .take(limit + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| refuse(error.to_string()))?;
+    if bytes.len() as u64 > limit {
+        return Err(AppError::invalid(format!(
+            "{} is larger than {limit} bytes",
+            path.display()
+        )));
+    }
+    Ok(bytes)
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Request {
     pub id: String,

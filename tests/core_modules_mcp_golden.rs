@@ -251,3 +251,31 @@ fn a_python_written_toml_recovery_record_restores_at_its_recorded_offset() {
     assert_ne!(appended, original);
     assert!(appended.contains("[mcp_servers.alpha]"));
 }
+
+#[test]
+fn a_python_written_record_with_nonfinite_floats_restores() {
+    let recorded = fixture("toml-recovery-record-nonfinite.json");
+    let original = recorded.get("original").and_then(Value::as_str).unwrap();
+    let updated = recorded.get("updated").and_then(Value::as_str).unwrap();
+    let record = recorded.get("record").cloned().unwrap();
+
+    let parsed = fileblade::core_modules::mcp::records::validate_toml_record(&record).unwrap();
+    assert_eq!(parsed.name, "alpha");
+    assert_eq!(
+        parsed.raw.get("scale"),
+        Some(&fileblade::core_modules::mcp::value::Cfg::Nonfinite("inf"))
+    );
+    assert_eq!(
+        parsed.raw.get("floor"),
+        Some(&fileblade::core_modules::mcp::value::Cfg::Nonfinite("-inf"))
+    );
+    assert_eq!(
+        parsed.raw.get("drift"),
+        Some(&fileblade::core_modules::mcp::value::Cfg::Nonfinite("nan"))
+    );
+
+    let restored = fileblade::core_modules::mcp::records::attach_toml(updated, &record)
+        .unwrap()
+        .unwrap();
+    assert_eq!(restored, original);
+}

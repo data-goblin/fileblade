@@ -355,15 +355,7 @@ pub fn rasterize(svg: &str, target: &Path, width: u32) -> AppResult<()> {
 }
 
 pub fn manifest_name(manifest: &Path) -> AppResult<String> {
-    let bytes = std::fs::read(manifest).map_err(|error| {
-        AppError::invalid(format!("cannot read {}: {error}", manifest.display()))
-    })?;
-    if bytes.len() as u64 > MANIFEST_LIMIT {
-        return Err(AppError::invalid(format!(
-            "cannot read {}: the manifest is larger than {MANIFEST_LIMIT} bytes",
-            manifest.display()
-        )));
-    }
+    let bytes = super::read_bounded(manifest, MANIFEST_LIMIT)?;
     let document: serde_json::Value = serde_json::from_slice(&bytes).map_err(|error| {
         AppError::invalid(format!("cannot read {}: {error}", manifest.display()))
     })?;
