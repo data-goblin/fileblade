@@ -86,4 +86,10 @@ expect E-17-11 "and can be hidden" modeBadge hidden
 ctl setModeBadge "${before_badge:-header}" >/dev/null; sleep 1
 expect E-17-11 "and the tree reports its mode" editorMode NORMAL
 
+before_drag=$(field dragOut)
+ctl setDragOut system >/dev/null; sleep 1
+expect E-17-15 "dragging out hands files to the system" dragOut system
+ctl setDragOut "${before_drag:-paste}" >/dev/null; sleep 1
+expect E-17-15 "and paste path comes back" dragOut paste
+
 summary

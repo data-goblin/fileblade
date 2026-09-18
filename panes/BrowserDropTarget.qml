@@ -1,4 +1,6 @@
 import QtQuick
+import "../lib/DragPlan.js" as DragPlan
+import "../lib/PathText.js" as PathText
 
 DropArea {
   id: target
@@ -6,14 +8,26 @@ DropArea {
   required property var controller
   required property var rowItem
 
-  keys: ["fileblade-entry"]
+  keys: ["fileblade-entry", "text/uri-list"]
   enabled: rowItem.dropAllowed
+
+  function droppedPaths(drop) {
+    if (!drop.hasUrls) return rowItem.draggedPaths.slice()
+    var paths = []
+    for (var i = 0; i < drop.urls.length; i++) {
+      var path = PathText.droppedPath(drop.urls[i])
+      if (path) paths.push(path)
+    }
+    return paths
+  }
 
   onEntered: if (rowItem.treeMode && !rowItem.expanded) hoverExpand.restart()
   onExited: hoverExpand.stop()
   onDropped: function(drop) {
     hoverExpand.stop()
-    controller.moveSelectionTo(rowItem.path, drop.proposedAction === Qt.CopyAction, rowItem.draggedPaths.slice())
+    var paths = target.droppedPaths(drop)
+    if (!DragPlan.canDrop(paths, rowItem.path)) return
+    controller.moveSelectionTo(rowItem.path, drop.proposedAction === Qt.CopyAction, paths)
     drop.acceptProposedAction()
   }
 

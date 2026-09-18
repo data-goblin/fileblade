@@ -182,6 +182,7 @@ Item {
   property alias autoHideSearch: stateController.autoHideSearch
   property alias showSystemVolumes: stateController.showSystemVolumes
   property alias modeBadge: stateController.modeBadge
+  property alias dragOut: stateController.dragOut
   property string editorMode: "NORMAL"
   readonly property color editorModeColor: editorMode === "VISUAL" ? themedFolderColor("magenta", "#c678dd") : (editorMode === "INSERT" ? themedFolderColor("green", "#98c379") : themedFolderColor("blue", "#61afef"))
   property alias folderColorScope: stateController.folderColorScope
@@ -531,6 +532,7 @@ Item {
     id: dropWheelController
     service: service
     modifierName: String(service.pluginConfig().dropModifier || "space").toLowerCase()
+    systemDragOut: service.dragOut === "system"
   }
 
   LaunchController {
@@ -646,6 +648,7 @@ Item {
   function numberValue(value, fallback, minimum, maximum) { return configController.numberValue(value, fallback, minimum, maximum) }
   function normalizePlacement(value) { return configController.normalizePlacement(value) }
   function normalizeModeBadge(value) { return configController.normalizeModeBadge(value) }
+  function normalizeDragOut(value) { return configController.normalizeDragOut(value) }
   function normalizeMonitorMode(value) { return configController.normalizeMonitorMode(value) }
   function normalizePriorityProperty(value) { return configController.normalizePriorityProperty(value) }
   function priorityPropertyLabel(value) { return configController.priorityPropertyLabel(value, false) }
@@ -1055,6 +1058,12 @@ Item {
     modeBadge = normalizeModeBadge(value)
     scheduleStateSave()
     return modeBadge
+  }
+
+  function setDragOut(value) {
+    dragOut = normalizeDragOut(value)
+    scheduleStateSave()
+    return dragOut
   }
 
   function makeRow(entry, depth) { return selectionController.makeRow(entry, depth) }

@@ -57,6 +57,7 @@ Item {
   property alias autoHideSearch: persisted.autoHideSearch
   property alias showSystemVolumes: persisted.showSystemVolumes
   property alias modeBadge: persisted.modeBadge
+  property alias dragOut: persisted.dragOut
   property alias folderColorScope: persisted.folderColorScope
   property alias treeSort: persisted.treeSort
   property alias treeFilter: persisted.treeFilter
@@ -99,6 +100,7 @@ Item {
     property bool autoHideSearch: false
     property bool showSystemVolumes: false
     property string modeBadge: "footer"
+    property string dragOut: "paste"
     property string folderColorScope: "icon"
     property var treeSort: []
     property var treeFilter: ({})
@@ -574,6 +576,7 @@ Item {
       autoHideSearch: service.boolValue(config.autoHideSearch, false),
       showSystemVolumes: service.boolValue(config.showSystemVolumes, false),
       modeBadge: service.normalizeModeBadge(config.modeBadge),
+      dragOut: service.normalizeDragOut(config.dragOut),
       folderColorScope: normalizedFolderColorScope(config.folderColorScope),
       trashRetentionDays: 0
     }
@@ -601,6 +604,7 @@ Item {
     autoHideSearch = base.autoHideSearch
     showSystemVolumes = base.showSystemVolumes
     modeBadge = base.modeBadge
+    dragOut = base.dragOut
     folderColorScope = base.folderColorScope
     treeSort = TreeOrder.normalizeSorts([])
     treeFilter = TreeOrder.normalizeFilter({})
@@ -663,6 +667,7 @@ Item {
     autoHideSearch = service.boolValue(state.autoHideSearch, base.autoHideSearch)
     showSystemVolumes = service.boolValue(state.showSystemVolumes, base.showSystemVolumes)
     modeBadge = state.modeBadge === undefined ? base.modeBadge : service.normalizeModeBadge(state.modeBadge)
+    dragOut = state.dragOut === undefined ? base.dragOut : service.normalizeDragOut(state.dragOut)
     folderColorScope = state.folderColorScope === undefined ? base.folderColorScope : normalizedFolderColorScope(state.folderColorScope)
     treeSort = TreeOrder.normalizeSorts(state.treeSort)
     treeFilter = TreeOrder.normalizeFilter(state.treeFilter)
@@ -729,6 +734,7 @@ Item {
       autoHideSearch: autoHideSearch,
       showSystemVolumes: showSystemVolumes,
       modeBadge: modeBadge,
+      dragOut: dragOut,
       folderColorScope: folderColorScope,
       treeSort: treeSort,
       treeFilter: treeFilter,

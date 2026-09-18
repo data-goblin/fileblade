@@ -69,7 +69,8 @@ Rectangle {
   readonly property string displayName: homeEntry ? FileIcons.homeName() : name
   readonly property bool favoriteAvailable: favoriteMode || (!moreRow && !customInteraction)
   readonly property var draggedPaths: controller.dropWheel.dragPaths
-  readonly property bool dropAllowed: !customInteraction && row.isDir && DragPlan.canDrop(draggedPaths, row.path)
+  readonly property bool dropAllowed: !customInteraction && row.isDir
+    && (!controller.dropWheel.dragActive || DragPlan.canDrop(draggedPaths, row.path))
   readonly property bool dropHovered: dropTarget.containsDrag && dropAllowed
   property real dragScrollStep: 0
   property bool dragCanceled: false
@@ -528,6 +529,9 @@ Rectangle {
 
   HoverHandler { id: hoverTracker }
 
+  property bool systemDragActive: false
+  property bool wheelGesture: false
+
   Drag.active: false
   Drag.source: row
   Drag.keys: ["fileblade-entry"]
@@ -563,6 +567,14 @@ Rectangle {
     updateDragScroll()
   }
 
+  function systemDragWanted(buttons, modifiers) {
+    var held = Number(buttons) || 0
+    var keys = Number(modifiers) || 0
+    if (held & Qt.RightButton) return false
+    if (keys & (Qt.ShiftModifier | Qt.ControlModifier)) return false
+    return controller.dropWheel.systemDragOut
+  }
+
   function updateDragScroll() {
     if (!ownerView || ownerView.height <= 0) {
       dragScrollStep = 0
@@ -583,23 +595,31 @@ Rectangle {
   DragHandler {
     id: dragHandler
     target: null
-    acceptedButtons: Qt.LeftButton
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
     enabled: !row.customInteraction && row.selectable && !row.gitDeleted
     cursorShape: active ? Qt.ClosedHandCursor : Qt.PointingHandCursor
     onActiveChanged: {
       if (active) {
         row.dragCanceled = false
         if (!controller.isSelected(row.path)) row.choose(Qt.NoModifier)
+        row.wheelGesture = (Number(dragHandler.centroid.pressedButtons) & Qt.RightButton) !== 0
+        row.systemDragActive = row.systemDragWanted(dragHandler.centroid.pressedButtons, dragHandler.centroid.modifiers)
+        row.Drag.dragType = row.systemDragActive ? Drag.Automatic : Drag.Internal
         row.beginDropDrag()
         row.Drag.active = true
         return
       }
       row.dragScrollStep = 0
+      row.systemDragActive = false
+      var openWheelNow = row.wheelGesture && !row.dragCanceled && controller.dropWheel.dragOutside && !controller.dropWheel.wheelOpen
+      row.wheelGesture = false
       if (row.Drag.active) {
         if (row.dragCanceled) row.Drag.cancel()
         else row.Drag.drop()
       }
+      if (openWheelNow) controller.dropWheel.dragConsumed = true
       controller.dropWheel.endDrag(undefined, undefined, undefined)
+      if (openWheelNow) controller.dropWheel.openAfterDrag()
     }
     onCanceled: row.dragCanceled = true
     onCentroidChanged: if (active) row.updateDropDrag()

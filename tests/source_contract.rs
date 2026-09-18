@@ -1252,6 +1252,59 @@ fn shared_folder_context_defaults_to_selection_and_can_follow_the_git_project() 
 }
 
 #[test]
+fn a_drag_leaving_a_blade_only_reaches_the_system_when_the_setting_asks_for_it() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let state = text(&root.join("controllers/StateController.qml"));
+    let config = text(&root.join("controllers/ConfigController.qml"));
+    let settings = text(&root.join("modules/files/FilesSettings.qml"));
+    let row = text(&root.join("panes/BrowserRow.qml"));
+    let wheel = text(&root.join("controllers/DropWheelController.qml"));
+    let drop_target = text(&root.join("panes/BrowserDropTarget.qml"));
+    let paths = text(&root.join("lib/PathText.js"));
+    let ipc = text(&root.join("controllers/FileTreeIpc.qml"));
+
+    assert!(state.contains("property string dragOut: \"paste\""));
+    assert!(state.contains("dragOut: service.normalizeDragOut(config.dragOut)"));
+    assert!(state.contains("dragOut: dragOut,"));
+    assert!(
+        config.contains("return [\"paste\", \"system\"].indexOf(mode) >= 0 ? mode : \"paste\"")
+    );
+    let service = text(&root.join("Service.qml"));
+    assert!(service.contains(
+        "function normalizeDragOut(value) { return configController.normalizeDragOut(value) }"
+    ));
+    assert!(service.contains("function setDragOut(value)"));
+    assert!(settings.contains("label: \"Drag out\""));
+    assert!(settings.contains("{ key: \"system\", label: \"System drag\" }"));
+    assert!(ipc.contains("dragOut: service.dragOut,"));
+
+    assert!(row.contains("if (held & Qt.RightButton) return false"));
+    assert!(row.contains("if (keys & (Qt.ShiftModifier | Qt.ControlModifier)) return false"));
+    assert!(row.contains("acceptedButtons: Qt.LeftButton | Qt.RightButton"));
+    assert!(row.contains("if (openWheelNow) controller.dropWheel.openAfterDrag()"));
+    assert!(wheel.contains("function openAfterDrag()"));
+    assert!(row.contains(
+        "row.wheelGesture = (Number(dragHandler.centroid.pressedButtons) & Qt.RightButton) !== 0"
+    ));
+    assert!(
+        row.contains("row.Drag.dragType = row.systemDragActive ? Drag.Automatic : Drag.Internal")
+    );
+    assert!(row.contains(
+        "row.systemDragActive = row.systemDragWanted(dragHandler.centroid.pressedButtons, dragHandler.centroid.modifiers)"
+    ));
+    assert!(wheel.contains("readonly property string pathForm:"));
+    assert!(drop_target.contains("keys: [\"fileblade-entry\", \"text/uri-list\"]"));
+    assert!(drop_target.contains("PathText.droppedPath(drop.urls[i])"));
+    assert!(drop_target.contains("if (!DragPlan.canDrop(paths, rowItem.path)) return"));
+    assert!(row.contains(
+        "&& (!controller.dropWheel.dragActive || DragPlan.canDrop(draggedPaths, row.path))"
+    ));
+    assert!(paths.contains("if (/[?#]/.test(body)) return \"\""));
+    assert!(paths.contains("return path === \"/\" ? \"\" : path"));
+    assert!(paths.contains("function droppedPath(value)"));
+}
+
+#[test]
 fn drop_drag_leaves_the_blade_at_the_sheet_edge_not_the_layer_edge() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let surface = text(&root.join("blades/BladeSurface.qml"));
@@ -1277,10 +1330,12 @@ fn drop_drag_leaves_the_blade_at_the_sheet_edge_not_the_layer_edge() {
     assert!(row.contains("else row.Drag.drop()"));
     assert!(row.contains("if (row.dragCanceled) row.Drag.cancel()"));
     assert!(row.contains("Drag.keys: [\"fileblade-entry\"]"));
-    assert!(drop_target.contains("keys: [\"fileblade-entry\"]"));
+    assert!(drop_target.contains("keys: [\"fileblade-entry\", \"text/uri-list\"]"));
     assert!(drop_target.contains("interval: 500"));
     assert!(drop_target.contains("controller.setDirectoryExpanded(rowItem.path, true)"));
-    assert!(drop_target.contains("controller.moveSelectionTo(rowItem.path, drop.proposedAction === Qt.CopyAction, rowItem.draggedPaths.slice())"));
+    assert!(drop_target.contains(
+        "controller.moveSelectionTo(rowItem.path, drop.proposedAction === Qt.CopyAction, paths)"
+    ));
     assert!(row.contains("ownerView.contentY = Math.max"));
     assert!(
         row.contains(

@@ -156,6 +156,7 @@ QtObject {
       modeBadge: service.modeBadge,
       pointerResizeEdge: bladeHost.pointerResizeEdge,
       pointerEdge: bladeHost.pointerEdge,
+      dragOut: service.dragOut,
       editorMode: service.editorMode,
       trashCount: service.trashCount,
       trashSelectedId: service.trashSelectedId,
@@ -702,6 +703,10 @@ QtObject {
 
   function setModeBadge(placement: string): string {
     return service.setModeBadge(placement)
+  }
+
+  function setDragOut(mode: string): string {
+    return service.setDragOut(mode)
   }
 
   function focusBlade(edge: string): string {

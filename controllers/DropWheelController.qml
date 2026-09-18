@@ -23,6 +23,7 @@ Item {
   readonly property int modifierFlag: modifierSpec.flag
   readonly property int modifierKey: modifierSpec.key
 
+  property bool systemDragOut: false
   property bool dragActive: false
   property Item dragSource: null
   property bool dragDocked: true
@@ -257,6 +258,12 @@ Item {
     wheelOpen = true
     requestContext()
     openedAt(wheelScreen, wheelX, wheelY)
+  }
+
+  function openAfterDrag() {
+    if (wheelOpen || dragPaths.length === 0) return false
+    openWheel(dragScreen, pointerX, pointerY, false)
+    return true
   }
 
   function resetHighlight() {
