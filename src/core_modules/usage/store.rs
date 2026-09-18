@@ -1002,18 +1002,19 @@ pub fn ingest(
     let (found, mut unreadable) = transcripts(environment);
     let mut known: HashMap<String, Known> = HashMap::new();
     for row in database.query(
-        "SELECT source.path, device, inode, size, mtime, offset, project.path FROM source \
+        "SELECT CAST(source.path AS BLOB), device, inode, size, mtime, offset, \
+         CAST(project.path AS BLOB) FROM source \
          LEFT JOIN project ON project.id = source.project",
     )? {
         known.insert(
-            row.text(0),
+            row.text_bytes(0),
             Known {
                 device: row.integer(1),
                 inode: row.integer(2),
                 size: row.integer(3),
                 mtime: row.integer(4),
                 offset: row.integer(5),
-                project: row.optional_text(6),
+                project: row.optional_text_bytes(6),
             },
         );
     }

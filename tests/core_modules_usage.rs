@@ -3,6 +3,7 @@ mod usage_fixtures;
 
 use chrono::{Duration, Utc};
 use fileblade::core_modules::usage::sql::Sql;
+use fileblade::core_modules::usage::store::identity;
 use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
@@ -515,6 +516,33 @@ fn forgotten_history_stays_forgotten_after_replacement_and_truncation() {
 }
 
 #[test]
+fn a_forgotten_call_with_a_nul_byte_keeps_its_whole_identity() {
+    use_utc();
+    let fixture = Fixture::new();
+    let items = vec![alpha()];
+    let future = Utc::now() + Duration::days(365);
+    fixture.transcript(
+        "session.jsonl",
+        &[skill_call(future, "toolu_n\u{0}1", "alpha")],
+    );
+    fixture.counts(&items);
+    let row = fixture
+        .open_store()
+        .query_one("SELECT CAST(agent AS BLOB), CAST(call AS BLOB) FROM event")
+        .expect("event rows")
+        .expect("event row");
+    let expected = identity(&row.text_bytes(0), &row.text_bytes(1));
+    assert_eq!(row.text_bytes(1), "toolu_n\u{0}1");
+    fixture.forget(None);
+    let row = fixture
+        .open_store()
+        .query_one("SELECT identity FROM forgotten")
+        .expect("forgotten rows")
+        .expect("forgotten row");
+    assert_eq!(row.blob(0), expected);
+}
+
+#[test]
 fn forgetting_a_future_dated_event_does_not_block_new_uses() {
     use_utc();
     let fixture = Fixture::new();
@@ -831,11 +859,20 @@ fn a_nul_byte_in_a_record_does_not_break_the_store() {
     let items = vec![alpha(), beta()];
     let document = fixture.counts(&items);
     assert_eq!(document["ok"], json!(true));
-    assert_eq!(document["counts"]["skill-alpha"]["uses"], json!(2));
-    let row = fixture
-        .open_store()
+    assert_eq!(document["counts"]["skill-alpha"]["uses"], json!(1));
+    let store = fixture.open_store();
+    let row = store
         .query_one("SELECT count(*) FROM event")
         .expect("event rows")
         .expect("event row");
     assert_eq!(row.integer(0), 2);
+    let row = store
+        .query_one(
+            "SELECT CAST(name AS BLOB), CAST(call AS BLOB) FROM event \
+             WHERE kind = 'skill' AND name <> 'alpha'",
+        )
+        .expect("nul row")
+        .expect("nul event");
+    assert_eq!(row.text_bytes(0), "alpha\u{0}");
+    assert_eq!(row.text_bytes(1), "toolu_n\u{0}1");
 }

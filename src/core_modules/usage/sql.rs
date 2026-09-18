@@ -202,6 +202,18 @@ impl Row {
         }
     }
 
+    pub fn text_bytes(&self, index: usize) -> String {
+        self.optional_text_bytes(index).unwrap_or_default()
+    }
+
+    pub fn optional_text_bytes(&self, index: usize) -> Option<String> {
+        match self.value(index) {
+            Value::Null => None,
+            Value::String(_) => Some(String::from_utf8_lossy(&self.blob(index)).into_owned()),
+            other => Some(other.to_string()),
+        }
+    }
+
     pub fn blob(&self, index: usize) -> Vec<u8> {
         match self.value(index) {
             Value::String(text) => text

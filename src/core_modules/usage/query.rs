@@ -105,7 +105,8 @@ type Tallies = HashMap<String, [i64; 4]>;
 fn skill_tallies(database: &Sql, where_clause: &str, parameters: &[Bound]) -> sql::Result<Tallies> {
     let statement = sql::bind(
         &format!(
-            "SELECT kind, name, origin, count(*), sum(failed) FROM event WHERE kind IN ('skill', 'command') \
+            "SELECT CAST(kind AS BLOB), CAST(name AS BLOB), CAST(origin AS BLOB), count(*), sum(failed) \
+             FROM event WHERE kind IN ('skill', 'command') \
              {where_clause} GROUP BY kind, name, origin"
         ),
         parameters,
@@ -113,9 +114,9 @@ fn skill_tallies(database: &Sql, where_clause: &str, parameters: &[Bound]) -> sq
     let mut tallies: Tallies = HashMap::new();
     for row in database.query(&statement)? {
         let (kind, name, origin, total, failed) = (
-            row.text(0),
-            row.text(1),
-            row.text(2),
+            row.text_bytes(0),
+            row.text_bytes(1),
+            row.text_bytes(2),
             row.integer(3),
             row.integer(4),
         );
@@ -338,17 +339,18 @@ fn attached_mcp(
         HashMap::new();
     {
         let statement = format!(
-            "SELECT agent, server, kind, name, origin, count(*), sum(failed), \
+            "SELECT CAST(agent AS BLOB), CAST(server AS BLOB), CAST(kind AS BLOB), \
+             CAST(name AS BLOB), CAST(origin AS BLOB), count(*), sum(failed), \
              date(max(at) / 1000, 'unixepoch', 'localtime') FROM event WHERE {MCP_EVENTS} \
              GROUP BY agent, server, kind, name, origin"
         );
         for row in session.database.query(&statement)? {
             let (agent, mut server, mut kind, mut name, origin, total, failed, last) = (
-                row.text(0),
-                row.text(1),
-                row.text(2),
-                row.text(3),
-                row.text(4),
+                row.text_bytes(0),
+                row.text_bytes(1),
+                row.text_bytes(2),
+                row.text_bytes(3),
+                row.text_bytes(4),
                 row.integer(5),
                 row.integer(6),
                 row.text(7),
@@ -589,15 +591,18 @@ fn forgotten(environment: &Environment, before: Option<&str>) -> sql::Result<Val
                 .unwrap_or(0)
                 + 1;
             let statement = sql::bind(
-                "SELECT agent, call FROM event WHERE at >= ? UNION \
-                 SELECT agent, call FROM failure WHERE at >= ?",
+                "SELECT CAST(agent AS BLOB), CAST(call AS BLOB) FROM event WHERE at >= ? UNION \
+                 SELECT CAST(agent AS BLOB), CAST(call AS BLOB) FROM failure WHERE at >= ?",
                 &[Bound::Integer(cutoff), Bound::Integer(cutoff)],
             )?;
             let mut prelude = String::new();
             for row in database.query(&statement)? {
                 prelude.push_str(&format!(
                     "INSERT OR IGNORE INTO forgotten VALUES ({});\n",
-                    literal(&Bound::Blob(identity(&row.text(0), &row.text(1))))
+                    literal(&Bound::Blob(identity(
+                        &row.text_bytes(0),
+                        &row.text_bytes(1)
+                    )))
                 ));
             }
             prelude.push_str(
