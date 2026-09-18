@@ -37,6 +37,12 @@ FocusScope {
   property var dayIds: null
   property int dayGeneration: 0
   property string dayRequestId: ""
+  property string selectedSkillId: ""
+  readonly property var selectedSkill: items.find(function(item) { return item.id === selectedSkillId }) || null
+  readonly property string skillHistoryItems: selectedSkill ? JSON.stringify(skillStubs([selectedSkill])) : ""
+  property var skillHistory: null
+  property var skillHistoryRequest: null
+  property string skillHistoryError: ""
   property bool caseSensitive: false
   property bool regex: false
   readonly property bool applying: inventory ? inventory.applying : false
@@ -99,10 +105,14 @@ FocusScope {
     if (bin.item) bin.item.refresh()
   }
 
-  function clearDay() {
+  function cancelDayRequest() {
     dayGeneration++
     if (dayRequestId && files) files.cancelBackendRequest(dayRequestId, dayGeneration - 1, true)
     dayRequestId = ""
+  }
+
+  function clearDay() {
+    cancelDayRequest()
     dayFilter = ""
     dayLabel = ""
     dayIds = null
@@ -115,22 +125,72 @@ FocusScope {
       focusTree()
       return
     }
-    clearDay()
+    cancelDayRequest()
     var generation = dayGeneration
     var requested = String(key)
+    dayFilter = requested
+    dayLabel = String(label || requested)
+    binError = ""
     dayRequestId = files.backendRequest("helper-read", inventory.argumentsFor("usage-day",
-      ["--json", "--project", anchorPath, "--day", requested].concat(projectArguments)), generation, function(response) {
+      ["--json", "--day", requested, "--items", JSON.stringify(skillStubs(items))]), generation, function(response) {
       if (generation !== module.dayGeneration) return
       module.dayRequestId = ""
       if (!response || response.ok !== true || !Array.isArray(response.items)) {
+        module.clearDay()
         module.binError = String(response && response.error || "Day filter unavailable").slice(0, 200)
         return
       }
-      module.dayFilter = requested
-      module.dayLabel = String(label || requested)
       module.dayIds = response.items.map(function(entry) { return String(entry.id || "") })
       module.focusTree()
     }, null, 15000)
+  }
+
+  function skillStubs(rows) {
+    return rows.map(function(item) { return { id: String(item.id || ""), name: String(item.name || ""), source: String(item.source || "") } })
+  }
+
+  function selectSkill(entry) {
+    var path = entry && entry.kind !== "bin" ? String(entry.path || "") : ""
+    var selected = items.find(function(item) { return path === item.path || path.indexOf(item.path + "/") === 0 })
+    selectedSkillId = selected ? selected.id : ""
+  }
+
+  function cancelSkillHistory() {
+    historyDebounce.stop()
+    var request = skillHistoryRequest
+    skillHistoryRequest = null
+    if (request) request.files.cancelBackendRequest(request.id, 0, true)
+  }
+
+  function refreshSkillHistory() {
+    cancelSkillHistory()
+    skillHistory = null
+    skillHistoryError = ""
+    if (heatmap.active && inventory && files && skillHistoryItems !== "") historyDebounce.restart()
+  }
+
+  function requestSkillHistory() {
+    if (!heatmap.active || !inventory || !files || skillHistoryItems === "") return
+    var request = { id: "", files: files }
+    skillHistoryRequest = request
+    request.id = files.backendRequest("helper-read", inventory.argumentsFor("usage",
+      ["--json", "--items", skillHistoryItems]), 0, function(response) {
+      if (module.skillHistoryRequest !== request) return
+      module.skillHistoryRequest = null
+      if (!response || response.ok !== true || response.schemaVersion !== 1 || !Array.isArray(response.days)) {
+        module.skillHistoryError = String(response && response.error || "Skill activity unavailable").slice(0, 200)
+        return
+      }
+      module.skillHistory = response
+    }, null, 15000)
+  }
+
+  onSkillHistoryItemsChanged: refreshSkillHistory()
+  onAnchorPathChanged: { clearDay(); selectedSkillId = ""; refreshSkillHistory() }
+  Timer { id: historyDebounce; interval: 120; onTriggered: module.requestSkillHistory() }
+  Connections {
+    target: module.inventory
+    function onActivityChanged() { module.refreshSkillHistory() }
   }
 
   function livePath(item) {
@@ -290,7 +350,9 @@ FocusScope {
     if (module.loadError) return "error"
     if (module.applying) return "Applying…"
     if (module.applyError) return module.applyError
+    if (module.dayRequestId) return "Filtering " + module.dayLabel + "…"
     if (module.dayFilter) return module.dayLabel + ": " + (module.dayIds ? module.dayIds.length : 0) + " used  ·  Esc clears"
+    if (heatmap.active && module.skillHistoryError) return "Activity: " + module.skillHistoryError
     if (heatmap.active && inventory && inventory.activityError) return "Activity: " + inventory.activityError
     if (heatmap.active && inventory && inventory.activity && inventory.activity.ingestPending) return "Reading activity…"
     if (module.busy) return "Scanning…"
@@ -302,9 +364,16 @@ FocusScope {
   onProviderChanged: syncProvider()
   onContextChanged: syncProvider()
   onItemsChanged: if (bin.item) bin.item.refresh()
-  onSuspendedChanged: syncProvider()
+  onSuspendedChanged: {
+    syncProvider()
+    if (suspended) cancelDayRequest()
+  }
   Component.onCompleted: syncProvider()
-  Component.onDestruction: if (attachedProvider) attachedProvider.detach(attachedContext)
+  Component.onDestruction: {
+    cancelDayRequest()
+    cancelSkillHistory()
+    if (attachedProvider) attachedProvider.detach(attachedContext)
+  }
 
   Keys.onPressed: function(event) {
     if (event.key === Qt.Key_Escape && module.dayFilter !== "") {
@@ -386,7 +455,10 @@ FocusScope {
 
   Loader {
     id: heatmap
-    onActiveChanged: if (!active && !module.suspended) module.focusTree()
+    onActiveChanged: {
+      module.refreshSkillHistory()
+      if (!active && !module.suspended) module.focusTree()
+    }
     anchors.top: search.bottom
     anchors.topMargin: height > 0 ? Style.space(4) : 0
     anchors.left: parent.left
@@ -399,6 +471,11 @@ FocusScope {
     onLoaded: {
       item.unitLabel = "skill uses"
       item.inventory = Qt.binding(function() { return module.inventory })
+      item.selectedDay = Qt.binding(function() { return module.dayFilter })
+      item.payload = Qt.binding(function() {
+        if (!module.selectedSkill) return module.inventory ? module.inventory.activity : null
+        return module.skillHistory || (module.inventory && module.inventory.activity ? Object.assign({}, module.inventory.activity, { days: [] }) : null)
+      })
       item.dismissed.connect(function() { module.focusTree() })
       item.previousRequested.connect(function() { module.openSearch() })
       item.dayActivated.connect(function(day, key) { module.toggleDay(key, item.dateLabel(day)) })
@@ -449,6 +526,7 @@ FocusScope {
         return entry && entry.skillRoot ? module.skillDescriptorPath(entry) : String(entry && entry.path || "")
       }
       item.changed.connect(function() { module.rescan() })
+      item.selectionChanged.connect(function(entry) { module.selectSkill(entry) })
       item.items = Qt.binding(function() { return module.allRows() })
       item.query = Qt.binding(function() { return module.query })
       item.idFilter = Qt.binding(function() { return module.dayIds })

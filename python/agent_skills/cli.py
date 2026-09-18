@@ -37,6 +37,8 @@ def listing(args: argparse.Namespace) -> dict[str, Any]:
     return payload
 
 def usage(args: argparse.Namespace) -> dict[str, Any]:
+    if args.items is not None:
+        return agent_usage.skill_usage(item_stubs(args.items), scoped=True)
     return agent_usage.skill_usage(discovery.collect(environment(args))["items"])
 
 def item_stubs(raw: str) -> list[dict[str, Any]]:
@@ -50,7 +52,8 @@ def usage_counts(args: argparse.Namespace) -> dict[str, Any]:
     return agent_usage.skill_counts(item_stubs(args.items))
 
 def usage_day(args: argparse.Namespace) -> dict[str, Any]:
-    return agent_usage.skill_day(discovery.collect(environment(args))["items"], args.day)
+    items = item_stubs(args.items) if args.items is not None else discovery.collect(environment(args))["items"]
+    return agent_usage.skill_day(items, args.day)
 
 def roots(args: argparse.Namespace) -> dict[str, Any]:
     env = environment(args)
@@ -104,6 +107,8 @@ def build_parser() -> argparse.ArgumentParser:
             command.add_argument("--scope", choices=SCOPES, default="all")
         if name == "usage-counts":
             command.add_argument("--items", default="[]")
+        if name in ("usage", "usage-day"):
+            command.add_argument("--items")
         if name == "usage-day":
             command.add_argument("--day", required=True)
         if name == "apply":

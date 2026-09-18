@@ -464,6 +464,22 @@ observed entry becomes a leaf child with a kind glyph, its `uses` and `failed`
 as metrics, and no actions. Right or `l` expands a definition, then moves to
 its first child; physical folder navigation keeps its existing behavior.
 
+Skills scopes its heatmap to the explicitly selected skill, including selected
+files below that skill. A group restores aggregate history. Each tab owns a
+debounced, cancellable `usage --items` request; responses from an earlier
+selection cannot replace the current view. These scoped reads reuse loaded
+skill identities and the existing usage store without discovery or ingestion.
+The shared inventory continues refreshing aggregate history and counts.
+
+Day selection sends the current skill identities to `usage-day --items`,
+avoiding a filesystem discovery pass. Local-day boundaries become timestamp
+ranges so SQLite can use the existing event-time index, including daylight-saving
+changes. Changing the selected day retains the previous rows until the new
+answer arrives, and generation checks reject stale answers. The tree builds a
+set for the returned IDs instead of searching the ID list for every item.
+A selected square uses an inset theme foreground border and the other cells
+render at 25% opacity.
+
 User-visible behaviour is listed in section 48 of the
 [UI expectations](../../tests/EXPECTATIONS.md).
 

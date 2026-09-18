@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../lib/MediaDates.js" as Dates
+import "../theme"
 
 Item {
   id: heatmap
@@ -10,6 +11,7 @@ Item {
   property var payload: inventory ? inventory.activity : null
   property var calendarRule: Dates.localeRule(Qt.locale().name, Qt.locale().firstDayOfWeek)
   property string unitLabel: "uses"
+  property string selectedDay: ""
   property int cursor: -1
   readonly property int cell: Style.space(8)
   readonly property int gap: Style.space(2)
@@ -143,6 +145,9 @@ Item {
       height: heatmap.cell
       visible: day <= heatmap.today
       color: heatmap.fill(day)
+      opacity: heatmap.selectedDay === "" || heatmap.selectedDay === Dates.dayKey(day) ? 1 : 0.25
+      border.width: heatmap.selectedDay === Dates.dayKey(day) ? 1 : 0
+      border.color: Color.bar.text
     }
   }
 

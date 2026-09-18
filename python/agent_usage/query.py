@@ -99,7 +99,9 @@ def skill_day(items: list[dict[str, Any]], day: str) -> dict[str, Any]:
         return {"ok": False, "schemaVersion": SCHEMA_VERSION, "error": "day must be YYYY-MM-DD"}
     try:
         with session(ingest_history=False) as (connection, _):
-            tallies = skill_tallies(connection, "AND date(at / 1000, 'unixepoch', 'localtime') = ?", (day,))
+            tallies = skill_tallies(connection,
+                                    "AND at >= CAST(strftime('%s', ?, 'utc') AS INTEGER) * 1000 "
+                                    "AND at < CAST(strftime('%s', ?, '+1 day', 'utc') AS INTEGER) * 1000", (day, day))
             used = []
             for item in items:
                 values = item_counts(item, tallies)
@@ -157,9 +159,9 @@ def attach_mcp(definitions: list[dict[str, Any]]) -> dict[str, Any]:
         return {"usageError": UNAVAILABLE}
 
 
-def history(kind: str, agents: tuple[str, ...], where: str, parameters: tuple[Any, ...] = ()) -> dict[str, Any]:
+def history(kind: str, agents: tuple[str, ...], where: str, parameters: tuple[Any, ...] = (), *, ingest: bool = True) -> dict[str, Any]:
     try:
-        with session() as (connection, (pending, _)):
+        with session(ingest_history=ingest) as (connection, (pending, _)):
             start, until = connection.execute(
                 "SELECT date(min(first_at) / 1000, 'unixepoch', 'localtime'), date('now', 'localtime') FROM coverage "
                 "WHERE agent IN (SELECT value FROM json_each(?))", (json.dumps(agents),)).fetchone()
@@ -175,8 +177,11 @@ def history(kind: str, agents: tuple[str, ...], where: str, parameters: tuple[An
         return {"ok": False, "schemaVersion": SCHEMA_VERSION, "kind": kind, "error": UNAVAILABLE}
 
 
-def skill_usage(items: list[dict[str, Any]]) -> dict[str, Any]:
+def skill_usage(items: list[dict[str, Any]], *, scoped: bool = False) -> dict[str, Any]:
     names = sorted({name for item in items for name in skill_names(item)})
+    if scoped:
+        return history("skill", SKILL_AGENTS,
+                       "kind IN ('skill', 'command') AND name IN (SELECT value FROM json_each(?))", (json.dumps(names),), ingest=False)
     return history("skill", SKILL_AGENTS,
                    "(kind = 'skill' OR (kind = 'command' AND name IN (SELECT value FROM json_each(?))))", (json.dumps(names),))
 

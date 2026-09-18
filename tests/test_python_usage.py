@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sqlite3
 import stat
 import subprocess
@@ -200,6 +201,39 @@ class UsageHistory(unittest.TestCase):
         self.assertEqual(document["ok"], True)
         self.assertEqual(uses(document["counts"][alpha["id"]]), {"uses": 2, "usesAgent": 1, "usesUser": 1, "usesScheduled": 0, "failed": 0})
         self.assertEqual(document["counts"]["ghost"]["uses"], 0)
+
+    def test_selected_skill_history_and_day_filter_reuse_loaded_items(self):
+        self.skill(self.claude / "skills", "alpha")
+        self.skill(self.claude / "skills", "beta")
+        self.transcript("selection.jsonl", opening(), called(self.day, "a", "Skill", skill="alpha"),
+                        called(self.day, "b", "Skill", skill="beta"), typed(self.day, "u", "alpha"),
+                        called(self.day, "p", "Skill", skill="tools:alpha"))
+        rows = self.skills()["items"]
+        alpha = self.row(rows, "alpha")
+        stubs = [{key: row.get(key, "") for key in ("id", "name", "source")} for row in rows]
+        shutil.rmtree(self.claude / "skills")
+        history = self.helper("skills", "usage", "--json", "--items", json.dumps([stubs[rows.index(alpha)]]))
+        self.assertEqual(history["days"], [[self.date(self.day), 2, 1, 1, 0, 0]])
+        plugin = self.helper("skills", "usage", "--json", "--items", json.dumps([dict(stubs[rows.index(alpha)], source="plugin:tools@market")]))
+        self.assertEqual(plugin["days"], [[self.date(self.day), 3, 2, 1, 0, 0]])
+        day = self.helper("skills", "usage-day", "--json", "--day", self.date(self.day), "--items", json.dumps(stubs))
+        self.assertEqual({row["name"]: row["uses"] for row in day["items"]}, {"alpha": 2, "beta": 1})
+        empty = self.helper("skills", "usage", "--json", "--items", "[]")
+        self.assertEqual(empty["days"], [])
+
+    def test_day_filter_uses_local_midnight_across_daylight_saving(self):
+        from zoneinfo import ZoneInfo
+        zone = ZoneInfo("Europe/Brussels")
+        start = datetime(2026, 3, 29, tzinfo=zone).astimezone(timezone.utc)
+        end = datetime(2026, 3, 30, tzinfo=zone).astimezone(timezone.utc)
+        self.skill(self.claude / "skills", "alpha")
+        self.transcript("dst.jsonl", opening(), called(start - timedelta(milliseconds=1), "before", "Skill", skill="alpha"),
+                        called(start, "start", "Skill", skill="alpha"),
+                        called(end - timedelta(milliseconds=1), "last", "Skill", skill="alpha"),
+                        called(end, "after", "Skill", skill="alpha"))
+        rows = self.skills()["items"]
+        day = self.helper("skills", "usage-day", "--json", "--day", "2026-03-29", "--items", json.dumps(rows), zone="Europe/Brussels")
+        self.assertEqual([(row["name"], row["uses"]) for row in day["items"]], [("alpha", 2)])
 
     @unittest.skipIf(os.geteuid() == 0, "root can read a mode 000 file")
     def test_a_complete_transcript_is_never_reopened(self):

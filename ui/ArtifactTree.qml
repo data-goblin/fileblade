@@ -23,6 +23,7 @@ FocusScope {
   property var leafLabel: function(item) { return String(item.name || "") }
   property var leafDetail: function(item) { return String(item.detail || "") }
   property var leafGlyph: function(item) { return tree.defaultGlyph(item) }
+  property var leafGlyphColor: function(item) { return item && (item.is_dir || item.isDir) ? Color.accent : Color.muted }
   property bool expandableItems: false
   property bool loadFolderChildren: false
   property var childrenFor: function(item) { return directories.children(tree.itemPath(item)) }
@@ -88,6 +89,7 @@ FocusScope {
   signal actionRequested(var item)
   signal folderToggled(var item, bool expanded)
   signal changed(var response)
+  signal selectionChanged(var item)
 
   ArtifactDirectories {
     id: directories
@@ -434,9 +436,9 @@ FocusScope {
 
   function filterItems() {
     var result = []
-    var ids = Array.isArray(idFilter) ? idFilter : null
+    var ids = Array.isArray(idFilter) ? new Set(idFilter) : null
     for (var i = 0; i < items.length; i++) {
-      if (ids && ids.indexOf(String(items[i].id || "")) < 0) continue
+      if (ids && !ids.has(String(items[i].id || ""))) continue
       if (matches(items[i]) && passesFilter(items[i])) result.push(items[i])
     }
     return result
@@ -570,7 +572,20 @@ FocusScope {
 
   onCurrentIndexChanged: {
     cursorKey = rowKey(rowAt(currentIndex))
-    if (!syncingRows) Qt.callLater(showCurrent)
+    if (!syncingRows) {
+      publishSelection()
+      Qt.callLater(showCurrent)
+    }
+  }
+
+  function publishSelection() {
+    var row = rowAt(currentIndex)
+    selectionChanged(row && row.kind === "leaf" ? row.item : null)
+  }
+
+  function selectIndex(index) {
+    if (currentIndex === index) publishSelection()
+    else currentIndex = index
   }
 
   Component.onCompleted: { syncRows(); markRefresh.restart() }
@@ -794,7 +809,7 @@ FocusScope {
         : (!isGroup && ArtifactTreeFolders.isFolder(tree, entry) ? (ArtifactTreeFolders.expanded(tree, entry) ? "" : "") : "")
       glyph: folderGroup ? (String(tree.groupGlyph((tree.rowAt(index) || {}).path || []) || "") || FileIcons.folderIcon(!tree.isCollapsed(groupKey)))
         : (isGroup ? (tree.isCollapsed(groupKey) ? "›" : "⌄") : (entry ? String(tree.leafGlyph(entry) || "") : ""))
-      glyphColor: (folderGroup && !glyphStruck) || (!isGroup && entry && (entry.is_dir || entry.isDir)) ? Color.accent : Color.muted
+      glyphColor: isGroup ? (folderGroup && !glyphStruck ? Color.accent : Color.muted) : tree.leafGlyphColor(entry)
       label: folderGroup ? groupLabel : (isGroup ? groupLabel.toUpperCase() : (entry ? tree.leafLabel(entry) : ""))
       badge: isGroup ? tree.groupText(tree.rowAt(index)) : (showsMetrics ? tree.metricText(entry) : "")
       badgeMarkup: !isGroup && showsMetrics && entry ? String(tree.metricMarkup(entry, tree.metricKey) || "") : ""
@@ -835,7 +850,7 @@ FocusScope {
         cursorShape: active ? Qt.ClosedHandCursor : Qt.PointingHandCursor
         onActiveChanged: {
           if (active) {
-            tree.currentIndex = row.index
+            tree.selectIndex(row.index)
             tree.beginDropDrag(row.entry, centroid.scenePosition)
             return
           }
@@ -867,7 +882,7 @@ FocusScope {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-              tree.currentIndex = row.index
+              tree.selectIndex(row.index)
               tree.actionRequested(row.entry)
             }
           }
@@ -894,7 +909,7 @@ FocusScope {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: rowDrag.active ? Qt.ClosedHandCursor : Qt.PointingHandCursor
         onClicked: function(mouse) {
-          tree.currentIndex = row.index
+          tree.selectIndex(row.index)
           tree.forceActiveFocus()
           if (mouse.button === Qt.RightButton) {
             if (!row.isGroup) tree.openMenu(row.entry, row, mouse.x, mouse.y, "actions")
@@ -905,7 +920,7 @@ FocusScope {
                    && mouse.x <= Style.space(38) + row.indent) tree.activateEntry(row.entry)
         }
         onDoubleClicked: {
-          tree.currentIndex = row.index
+          tree.selectIndex(row.index)
           if (!row.isGroup) tree.activateEntry(row.entry)
         }
       }
