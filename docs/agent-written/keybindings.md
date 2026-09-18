@@ -114,10 +114,10 @@ The Files status line and `fileblade status` report the error.
 To request a reread explicitly, use:
 
 ```sh
-omarchy-shell data-goblin.fileblade.control reloadKeybindings
+fileblade native ipc -- data-goblin.fileblade.control reloadKeybindings
 ```
 
-This does not reload the plugin or restart the shell.
+This rereads the keymap without restarting FileBlade.
 
 ## Text zoom
 

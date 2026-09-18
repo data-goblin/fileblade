@@ -169,7 +169,7 @@ TestCase {
     load(document)
     compare(statusOf("0.2.0"), "↑3 ↓1")
     compare(tree().leafGlyph(rowNamed("0.2.0").item), "")
-    compare(tree().rowMark(rowNamed("0.2.0").item), "󰄬")
+    compare(tree().leafLabel(rowNamed("0.2.0").item), "0.2.0 󰄬")
     compare(tree().leafGlyph(rowNamed("main").item), "")
     verify(tree().leafGlyphColor(rowNamed("main").item) !== tree().leafGlyphColor(rowNamed("feature").item))
     compare(tree().leafGlyph(rowNamed("feature").item), "󰅡")

@@ -7,6 +7,11 @@ it. Nothing here runs unless FileBlade is installed and enabled.
 
 This file was written by an agent.
 
+Host detection checks the installed native FileBlade launcher and its view before
+falling back to legacy Omarchy plugin detection. A healthy native installation
+does not require the old host plugin to appear in the Omarchy catalogue.
+The Enable action is reserved for an explicitly disabled legacy host plugin.
+
 ## Ownership
 
 ```yaml

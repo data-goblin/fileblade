@@ -378,7 +378,8 @@ FocusScope {
       item.groupsFor = function(entry) { return entry.groups }
       item.leafGlyph = function(entry) { return module.glyphFor(entry) }
       item.leafGlyphColor = function(entry) { return entry && entry.kind !== "remote" ? Color.accent : Color.muted }
-      item.rowMark = function(entry) { return entry.current ? "󰄬" : "" }
+      item.leafLabel = function(entry) { return entry.name + (entry.current ? " 󰄬" : "") }
+      item.rowMark = function(entry) { return "" }
       item.searchText = function(entry) { return module.searchText(entry) }
       item.filterKeys = ["kind", "remote"]
       item.searchFields = function(entry) { return ({ kind: entry.kind, remote: entry.remote }) }

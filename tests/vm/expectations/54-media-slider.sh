@@ -10,6 +10,7 @@ from media_lib import *
 
 
 control('setRoot', '/tmp/brindle-media/library')
+control('closeBlade', 'right')
 control('openBlade', 'left')
 control('focusBlade', 'left')
 control('setBladeWidth', 'left', 380)
@@ -23,10 +24,11 @@ probe('size', 0)
 probe('choose', 200, 'replace')
 selected = state()['selected']
 slider = state()['slider']
-x = round(slider['x'] + 24 + 14)
+x = round(slider['x'] + 16 - 3 + 14)
 y = round(slider['y'] + slider['height'] / 2)
 end = round(slider['x'] + slider['width'] - 48 - 14)
 script = (repo / 'tests/vm/image-gallery-drag.toml').read_text().replace('gallery-pointer', 'brindle-media-slider').replace('START_X', str(x)).replace('START_Y', str(y)).replace('END_X', str(end)).replace('END_Y', str(y))
+script = script.replace('hold_ms = 200', 'hold_ms = 1000')
 encoded = base64.b64encode(script.encode()).decode()
 ovm('ssh', 'python3 -c ' + shlex.quote("import base64;open('/tmp/brindle-media-slider.toml','wb').write(base64.b64decode('" + encoded + "'))"))
 ovm('ssh', 'setsid democtl record /tmp/brindle-media-slider.toml --out /tmp --force >/tmp/brindle-media-slider-record.log 2>&1 </dev/null &')

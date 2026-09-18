@@ -639,7 +639,7 @@ fn second_authority_and_native_direct_mutations_fail_before_writing() {
             "--name",
             "forbidden",
         ],
-        vec!["preferences", "--agent-management", "true"],
+        vec!["_backend", "preferences-set", "--agent-management", "true"],
         vec!["list", "--from", target.to_str().unwrap()],
         vec!["_backend", "dim-windows", "--state", "off"],
         vec!["_companion-mutate"],
@@ -1293,4 +1293,49 @@ fn drain_wire_quiesces_by_owner_expires_and_exits_after_views_leave() {
     assert!(!resident.root.join("authority.sock").exists());
     let reacquired = Authority::acquire(&resident.root).unwrap();
     drop(reacquired);
+}
+
+#[test]
+fn public_preferences_use_the_resident_authority_and_fail_closed_without_it() {
+    let _serial = TEST_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+    let mut resident = Resident::start();
+    for arguments in [
+        vec![
+            "preferences",
+            "--trash-retention-days",
+            "0",
+            "--agent-management",
+            "false",
+            "-o",
+            "json",
+        ],
+        vec!["preferences", "-o", "json"],
+    ] {
+        let output = isolated_command(resident.temporary.path(), &resident.root)
+            .args(arguments)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let response: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(response["ok"], true);
+        assert_eq!(response["settings"]["trashRetentionDays"], 0);
+        assert_eq!(response["settings"]["agentManagement"], false);
+    }
+    let path = resident
+        .temporary
+        .path()
+        .join("config/omarchy/fileblade/settings.json");
+    let saved = fs::read(&path).unwrap();
+    resident.child.kill().unwrap();
+    resident.child.wait().unwrap();
+    let output = isolated_command(resident.temporary.path(), &resident.root)
+        .args(["preferences", "--agent-management", "true", "-o", "json"])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert_eq!(fs::read(&path).unwrap(), saved);
 }

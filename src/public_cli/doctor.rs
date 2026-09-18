@@ -21,7 +21,7 @@ pub(super) fn doctor() -> AppResult<PublicResult> {
     let shell = match ipc("status", &[]) {
         Ok(text) => {
             let status = response_value(&text);
-            json!({"ok": true, "root": status["root"], "open": status["open"]})
+            json!({"ok": true, "root": status["rootPath"], "open": status["open"]})
         }
         Err(error) => json!({"ok": false, "error": error.to_string()}),
     };
@@ -36,12 +36,25 @@ pub(super) fn doctor() -> AppResult<PublicResult> {
     let serve = doctor_handshake(&binary);
     let ok = !version_skew && shell["ok"] == true && serve["ok"] == true;
     let mut advice = Vec::new();
+    let native = crate::lease::selected_root()?.is_some();
     if version_skew {
-        advice.push("update or reinstall FileBlade, then run omarchy restart shell".to_string());
+        advice.push(
+            if native {
+                "update or reinstall FileBlade, then start FileBlade again"
+            } else {
+                "update or reinstall FileBlade, then run omarchy restart shell"
+            }
+            .to_string(),
+        );
     }
     if shell["ok"] != true {
         advice.push(
-            "omarchy-shell is not answering; restart the shell or enable the plugin".to_string(),
+            if native {
+                "FileBlade is not answering; start FileBlade or inspect its native view log"
+            } else {
+                "omarchy-shell is not answering; restart the shell or enable the plugin"
+            }
+            .to_string(),
         );
     }
     if inflight > 0 {

@@ -133,6 +133,11 @@ ShellRoot {
   }
 
   function run() {
+    var initial = layout.defaultLayout()
+    var properties = initial.left.slots[1]
+    require(properties.modules.map(function(tab) { return tab.module }).join(",") === "properties,branches" && properties.active === 0, "first open places Branches behind Properties")
+    var saved = restored([probe.slot("custom", [tab("properties", "kept")], 0)])
+    require(saved.left.slots[0].modules.length === 1, "saved layouts do not regain a dismissed Branches tab")
     var names = ["skills", "memory", "hooks", "mcp"]
     for (var i = 0; i < names.length; i++) {
       var name = names[i]

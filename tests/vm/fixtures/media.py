@@ -76,6 +76,7 @@ def prepare(state, plugin):
     function sort(value: string): void { filesView.setSorts(JSON.parse(Qt.atob(value))) }
     function scroll(value: int): void { mediaView.contentY = value }
     function timelineFocus(): void { mediaView.timeline.forceActiveFocus() }
+    function emptyPeriods(shown: bool): void { root.mediaShowEmptyPeriods = shown }
     function dates(value: string): void {
       var dates = JSON.parse(Qt.atob(value))
       mediaView.items = mediaProvider.rows.slice(0, dates.length).map(function(row, index) {

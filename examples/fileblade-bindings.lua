@@ -1,9 +1,10 @@
 local function fileblade(method, fallback)
-  local call = "OMARCHY_SHELL_IPC_TIMEOUT=0.4s omarchy-shell data-goblin.fileblade.control " .. method .. " >/dev/null 2>&1"
+  local call = "timeout 0.4s fileblade native ipc -- data-goblin.fileblade.control " .. method .. " >/dev/null 2>&1"
   if fallback then return call .. " || hyprctl dispatch " .. string.format("%q", fallback) end
   return call
 end
 
+hl.unbind("SUPER + B")
 o.bind("SUPER + B", "Open or close the left blade", fileblade("toggleBladeFocus left"))
 hl.unbind("SUPER + SHIFT + B")
 o.bind("SUPER + SHIFT + B", "Open or close the right blade", fileblade("toggleBladeFocus right"))

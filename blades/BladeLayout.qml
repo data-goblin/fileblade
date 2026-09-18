@@ -370,7 +370,7 @@ Item {
     var fraction = clampNumber(source.propertiesVerticalFraction, 0.34, 0.18, 0.72)
     var open = typeof source.open === "boolean" ? source.open : false
     var files = { id: "files", module: "files", fraction: -1, state: {} }
-    var properties = { id: "properties", module: "properties", fraction: fraction, state: {} }
+    var properties = { id: "properties", modules: [{ module: "properties" }, { module: "branches" }], active: 0, fraction: fraction }
     var leftBlade = { open: open, width: Math.round(clampNumber(source.sidebarWidth, 380, minimumWidth, 1600)), slots: [] }
     var rightBlade = { open: false, width: Math.round(clampNumber(source.propertiesBladeWidth, 360, minimumWidth, 1600)), slots: [] }
     if (placement === "right") {

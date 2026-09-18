@@ -109,11 +109,13 @@ TestCase {
     var target = cell(view, "2026-09-15")
     mouseMove(view, target.x + 2, target.y + 2)
     verify(tip.visible)
-    compare(tip.title, dateText(2026, 9, 15) + ": 3 skill uses (2 agent, 1 you, 1 failed)")
+    compare(tip.title, dateText(2026, 9, 15))
+    compare(view.describe(view.tipDay), dateText(2026, 9, 15) + ": 3 skill uses (2 agent, 1 you, 1 failed)")
     tryCompare(tip, "revealed", true)
     target = cell(view, "2026-09-14")
     mouseMove(view, target.x + 2, target.y + 2)
-    compare(tip.title, dateText(2026, 9, 14) + ": 6 skill uses (4 agent, 2 you, 1 scheduled)")
+    compare(tip.title, dateText(2026, 9, 14))
+    compare(view.describe(view.tipDay), dateText(2026, 9, 14) + ": 6 skill uses (4 agent, 2 you, 1 scheduled)")
     mouseMove(view, 0, 0)
     verify(!tip.visible)
   }
@@ -125,5 +127,25 @@ TestCase {
     view.payload = null
     verify(!view.visible)
     compare(view.Accessible.description, "")
+  }
+
+  function test_selected_day_remains_outlined_inside_its_cell_without_focus() {
+    var view = create(385)
+    view.selectedDay = "2026-09-15"
+    var selected = cell(view, view.selectedDay)
+    var other = cell(view, "2026-09-14")
+    compare(selected.opacity, 1)
+    compare(selected.border.width, 1)
+    sameColor(selected.border.color, Color.bar.text)
+    compare(selected.width, view.cell)
+    compare(selected.height, view.cell)
+    compare(other.opacity, 0.25)
+    compare(other.border.width, 0)
+    test.forceActiveFocus()
+    verify(!view.activeFocus)
+    compare(selected.border.width, 1)
+    view.selectedDay = ""
+    compare(selected.border.width, 0)
+    compare(other.opacity, 1)
   }
 }

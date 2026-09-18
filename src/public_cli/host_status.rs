@@ -45,24 +45,46 @@ fn command_json(program: &str, arguments: &[&str]) -> Option<Value> {
     serde_json::from_slice(&output.stdout).ok()
 }
 
-fn snapshot(companions: &[String]) -> Value {
+fn native_state() -> AppResult<Option<&'static str>> {
+    if crate::lease::selected_root()?.is_none() {
+        return Ok(None);
+    }
+    let ready = super::ipc::ipc_on("fileblade.native", "status", &[])
+        .ok()
+        .and_then(|response| serde_json::from_str::<Value>(&response).ok())
+        .is_some_and(|status| status["loaded"] == true);
+    Ok(Some(if ready { "ready" } else { "starting" }))
+}
+
+fn snapshot(companions: &[String]) -> AppResult<Value> {
+    let native = native_state()?;
     let Some(Value::Array(rows)) = command_json("omarchy", &["plugin", "list", "--json"]) else {
-        return unknown();
+        return Ok(match native {
+            Some(state) => json!({
+                "schemaVersion": 1,
+                "state": state,
+                "plugins": companions
+                    .iter()
+                    .map(|id| json!({"id": id, "name": id, "enabled": true}))
+                    .collect::<Vec<_>>(),
+            }),
+            None => unknown(),
+        });
     };
     if rows.len() > ROW_LIMIT {
-        return unknown();
+        return Ok(unknown());
     }
     let mut seen: HashSet<&str> = HashSet::new();
     let mut plugins = Vec::new();
     let mut host = None;
     for row in &rows {
         let Some(row) = row.as_object() else {
-            return unknown();
+            return Ok(unknown());
         };
         let id = row.get("id").and_then(Value::as_str).unwrap_or_default();
         let enabled = row.get("enabled").and_then(Value::as_bool);
         if !valid_id(id) || !seen.insert(id) || enabled.is_none() {
-            return unknown();
+            return Ok(unknown());
         }
         let enabled = enabled.unwrap_or(false);
         if id == HOST_ID {
@@ -77,12 +99,16 @@ fn snapshot(companions: &[String]) -> Value {
         }
     }
     let mut result = json!({"schemaVersion": 1, "state": "missing", "plugins": plugins});
+    if let Some(state) = native {
+        result["state"] = json!(state);
+        return Ok(result);
+    }
     let Some(enabled) = host else {
-        return result;
+        return Ok(result);
     };
     if !enabled {
         result["state"] = json!("disabled");
-        return result;
+        return Ok(result);
     }
     result["state"] = json!("starting");
     if let Some(status) = command_json("omarchy-shell", &[HOST_ID, "status"])
@@ -91,7 +117,7 @@ fn snapshot(companions: &[String]) -> Value {
     {
         result["state"] = json!("ready");
     }
-    result
+    Ok(result)
 }
 
 fn bounded_name(name: &str) -> String {
@@ -104,7 +130,7 @@ pub(super) fn host_status(options: HostStatusArgs) -> AppResult<PublicResult> {
             return Err(AppError::invalid(format!("{companion} is not a plugin id")));
         }
     }
-    let document = snapshot(&options.companions);
+    let document = snapshot(&options.companions)?;
     let mut lines = vec![value_text(&document, "state")];
     for plugin in document["plugins"].as_array().into_iter().flatten() {
         lines.push(format!(

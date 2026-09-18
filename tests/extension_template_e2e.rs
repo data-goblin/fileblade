@@ -532,3 +532,75 @@ fn a_bounded_read_refuses_an_oversized_manifest_and_a_non_regular_one() {
         String::from_utf8_lossy(&piped.stderr)
     );
 }
+
+#[test]
+fn host_status_recognizes_native_fileblade_without_a_legacy_plugin() {
+    let temporary = tempfile::tempdir().unwrap();
+    let state = temporary.path().join("state");
+    let native_root = state.join("omarchy/fileblade");
+    fs::create_dir_all(&native_root).unwrap();
+    let app_root = temporary.path().join("app-root");
+    fs::create_dir_all(app_root.join("app")).unwrap();
+    fs::write(app_root.join("app/shell.qml"), "").unwrap();
+    let bin = temporary.path().join("bin");
+    fs::create_dir(&bin).unwrap();
+    let fixture = r#"#!/bin/sh
+case "${0##*/}" in
+  omarchy) printf '%s' '[{"id":"acme.fileblade-weather","name":"Weather","enabled":true}]' ;;
+  qs) [ "$NATIVE_READY" = 1 ] && printf '{"loaded":true}' || printf '{"loaded":false}' ;;
+esac
+"#;
+    for name in ["qs", "omarchy"] {
+        let path = bin.join(name);
+        fs::write(&path, fixture).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    for (ready, expected) in [("1", "ready"), ("0", "starting")] {
+        let output = fileblade()
+            .args([
+                "--output",
+                "json",
+                "host-status",
+                "--companion",
+                "acme.fileblade-weather",
+            ])
+            .env_clear()
+            .env("PATH", &bin)
+            .env("HOME", temporary.path())
+            .env("XDG_STATE_HOME", &state)
+            .env("FILEBLADE_NATIVE_STATE_ROOT", &native_root)
+            .env("FILEBLADE_APP_ROOT", &app_root)
+            .env("NATIVE_READY", ready)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let status: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(status["state"], expected, "{status}");
+        assert_eq!(status["plugins"][0]["id"], "acme.fileblade-weather");
+    }
+    fs::remove_file(bin.join("omarchy")).unwrap();
+    let output = fileblade()
+        .args([
+            "--output",
+            "json",
+            "host-status",
+            "--companion",
+            "acme.fileblade-weather",
+        ])
+        .env_clear()
+        .env("PATH", &bin)
+        .env("HOME", temporary.path())
+        .env("XDG_STATE_HOME", &state)
+        .env("FILEBLADE_NATIVE_STATE_ROOT", &native_root)
+        .env("FILEBLADE_APP_ROOT", &app_root)
+        .env("NATIVE_READY", "1")
+        .output()
+        .unwrap();
+    let status: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(status["state"], "ready", "{status}");
+    assert_eq!(status["plugins"][0]["id"], "acme.fileblade-weather");
+}

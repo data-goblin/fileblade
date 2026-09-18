@@ -1497,8 +1497,10 @@ This file was written by an agent.
 No VM script covers this section yet. The rows, status text, search, switch
 and worktree navigation are checked by `tests/qml/tst_branches_module.qml`
 on a fixture document; the slot position by
-`tests/qml/tst_layout_inventory.qml`; the backend document and the CLI by the
-Rust suites named in the branches contract.
+`tests/qml/tst_layout_inventory.qml`; first-use and saved layouts by
+`tests/core_modules/run-slots`; the backend document and CLI by
+`tests/git_places.rs`. The QML module suite also runs under Wayland in the
+isolated guest for rendering and keyboard/pointer checks.
 
 1. **E-49-01** When I click the branch name in the tree footer, the Switch
    branch popup opens with a first row `Expand into Branches` above a
@@ -1832,3 +1834,18 @@ never assumed.
   returns on its own within half a minute. The busy answer of an overlapping
   probe, including after the first request's deadline, is proven in
   `tests/capacity_e2e.rs` against one resident backend.
+
+This file was written by an agent.
+
+- **E-40-19** Native FileBlade's desktop bindings reach the standalone app through its stable
+  launcher. Super+B opens or focuses the left blade, Super+Shift+B the right,
+  and Super+Z quick navigation even when the legacy host plugin is absent.
+  Repeated binding installation does not leave duplicate Super+B actions.
+- **E-40-20** A generated extension recognizes a running native FileBlade without the old
+  host plugin in Omarchy's catalogue. If installed but stopped, it asks me to
+  start FileBlade; it does not claim FileBlade is missing or restart Omarchy.
+- `fileblade doctor` reports the current folder. Native failures advise starting
+  FileBlade, while legacy-plugin failures retain the corresponding shell advice.
+- **E-40-21** The native `fileblade preferences` command reads and saves through
+  the running persistence service. Changes survive the next read and a stopped
+  service cannot cause a separate writer to modify the settings.
