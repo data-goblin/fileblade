@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export PYTHONDONTWRITEBYTECODE=1
-python3 tests/test_contract.py
-python3 -m py_compile scripts/fileblade-extension-image.py tests/test_contract.py
+fileblade extension check .
 runner=""
 for candidate in /usr/lib/qt6/bin/qmltestrunner /usr/lib64/qt6/bin/qmltestrunner qmltestrunner-qt6; do
   if command -v "$candidate" >/dev/null 2>&1; then runner=$(command -v "$candidate"); break; fi

@@ -110,7 +110,6 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
         "Provider.qml",
         "HostGuard.qml",
         "HostGuard.js",
-        "bin/fileblade-host-status",
         "blades/Module.qml",
         "README.md",
         "ARCHITECTURE.md",
@@ -119,14 +118,12 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
         ".gitignore",
         "docs/agent-written/README.md",
         "tests/run",
-        "tests/test_contract.py",
         "tests/tst_host_guard.qml",
         "tests/tst_module.qml",
         "tests/imports/qs/Commons/qmldir",
         "tests/imports/qs/Commons/Style.qml",
         "tests/imports/qs/Commons/Color.qml",
         "tests/imports/qs/Commons/Util.qml",
-        "scripts/fileblade-extension-image.py",
         "assets/fileblade-logo.png",
     ] {
         rendered(&files, expected);
@@ -158,9 +155,11 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
             .contents
             .starts_with(b"\x89PNG")
     );
-    let script = rendered(&files, "scripts/fileblade-extension-image.py");
-    assert!(script.executable);
-    assert!(text(&script).starts_with("#!/usr/bin/env python3\n"));
+    let gate = text(&rendered(&files, "tests/run"));
+    assert!(gate.contains("fileblade extension check ."));
+    assert!(!gate.contains("python3"));
+    let guard = text(&rendered(&files, "HostGuard.js"));
+    assert!(guard.contains("fileblade --output json host-status --companion"));
     assert!(rendered(&files, "tests/run").executable);
     assert!(!rendered(&files, "manifest.json").executable);
 
@@ -207,7 +206,15 @@ fn the_cli_writes_the_template_and_refuses_a_non_empty_directory() {
             .unwrap()
             .contains("fileblade blade add right acme.fileblade-weather/weather")
     }));
+    assert!(
+        document["next"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|step| { step.as_str().unwrap() == "fileblade extension image --png" })
+    );
     assert!(target.join("manifest.json").is_file());
+    assert!(!target.join("bin").exists());
     assert!(target.join("assets/fileblade-logo.png").is_file());
     assert!(target.join(".gitignore").is_file());
     assert!(target.join("tests/imports/qs/Commons/qmldir").is_file());
@@ -222,8 +229,8 @@ fn the_cli_writes_the_template_and_refuses_a_non_empty_directory() {
         .mode();
     assert_eq!(plain & 0o777, 0o644);
 
-    let contract = Command::new("python3")
-        .args(["-B", "tests/test_contract.py"])
+    let contract = fileblade()
+        .args(["extension", "check", "."])
         .current_dir(&target)
         .output()
         .unwrap();
@@ -295,11 +302,7 @@ fn the_cli_writes_the_template_and_refuses_a_non_empty_directory() {
 }
 
 #[test]
-fn the_bundled_image_script_writes_the_banner() {
-    if Command::new("python3").arg("--version").output().is_err() {
-        eprintln!("python3 is not installed; banner check skipped");
-        return;
-    }
+fn the_image_verb_writes_the_banner_for_a_scaffolded_extension() {
     let temporary = tempfile::tempdir().unwrap();
     let target = temporary.path().join("weather");
     let scaffolded = fileblade()
@@ -309,13 +312,11 @@ fn the_bundled_image_script_writes_the_banner() {
         .output()
         .unwrap();
     assert!(scaffolded.status.success());
-    let output = Command::new("python3")
-        .arg(target.join("scripts/fileblade-extension-image.py"))
-        .arg("--manifest")
+    let output = fileblade()
+        .args(["extension", "image", "--manifest"])
         .arg(target.join("manifest.json"))
         .arg("--out")
         .arg(target.join("assets"))
-        .env("PYTHONDONTWRITEBYTECODE", "1")
         .output()
         .unwrap();
     assert!(
@@ -330,7 +331,7 @@ fn the_bundled_image_script_writes_the_banner() {
     assert!(svg.contains("translate(410.39,243.20) scale(0.4)"));
     assert!(svg.contains("fill=\"#e0af68\""));
     assert!(svg.trim_end().ends_with("</svg>"));
-    assert!(!Path::new(&target).join("scripts/__pycache__").exists());
+    assert!(!Path::new(&target).join("scripts").exists());
 }
 
 #[test]

@@ -13,7 +13,9 @@ const MODULE_PREFIX: &str = "fileblade-";
 const FALLBACK_MODULE: &str = "module";
 const FALLBACK_AUTHOR: &str = "Your Name";
 pub const HOST_ID: &str = "data-goblin.fileblade";
-pub const IMAGE_SCRIPT: &str = "scripts/fileblade-extension-image.py";
+
+pub mod check;
+pub mod image;
 
 #[derive(Clone, Debug, Default)]
 pub struct Request {
@@ -79,7 +81,6 @@ const SOURCES: &[Source] = &[
     template!("Provider.qml"),
     template!("HostGuard.qml"),
     template!("HostGuard.js"),
-    template!("bin/fileblade-host-status", executable),
     template!("blades/Module.qml"),
     template!("README.md"),
     template!("ARCHITECTURE.md"),
@@ -92,18 +93,12 @@ const SOURCES: &[Source] = &[
     },
     template!("docs/agent-written/README.md"),
     template!("tests/run", executable),
-    template!("tests/test_contract.py"),
     template!("tests/tst_host_guard.qml"),
     template!("tests/tst_module.qml"),
     template!("tests/imports/qs/Commons/qmldir"),
     template!("tests/imports/qs/Commons/Style.qml"),
     template!("tests/imports/qs/Commons/Color.qml"),
     template!("tests/imports/qs/Commons/Util.qml"),
-    Source {
-        path: IMAGE_SCRIPT,
-        body: Body::Text(include_str!("../scripts/fileblade-extension-image.py")),
-        executable: true,
-    },
     Source {
         path: "assets/fileblade-logo.png",
         body: Body::Bytes(include_bytes!("../assets/fileblade-logo.png")),
@@ -224,7 +219,7 @@ pub fn write(directory: &Path, files: &[Rendered], force: bool) -> AppResult<Vec
 pub fn next_steps(scaffold: &Scaffold, directory: &str) -> Vec<String> {
     vec![
         format!("cd {directory}"),
-        format!("python3 {IMAGE_SCRIPT} --png"),
+        "fileblade extension image --png".to_string(),
         "edit manifest.json, README.md and blades/Module.qml".to_string(),
         "git init".to_string(),
         "omarchy plugin validate .".to_string(),

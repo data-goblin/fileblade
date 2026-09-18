@@ -46,7 +46,6 @@ Service.qml:                           singleton provider; shared work and the h
 HostGuard.qml, HostGuard.js:           the missing-host guard
 blades/Module.qml:                     the blade module
 assets/:                               fileblade-extension-logo.svg (README banner), fileblade-logo.png (host guard)
-scripts/fileblade-extension-image.py:  regenerates the banner; standard library only
 tests/run:                             local gate
 tests/imports/qs/Commons/:             offline stub of the shell's Style, Color and Util singletons
 docs/agent-guidelines.md:              rules for coding agents working in this extension
@@ -86,7 +85,7 @@ Esc:              close the blade
 4. After any QML change, check `journalctl --user -b` for "plugin load failed"
 5. `tests/run` before committing; `omarchy plugin validate .` before publishing
 6. After a rename, regenerate the banner:
-   `python3 scripts/fileblade-extension-image.py --png`
+   `fileblade extension image --png`
 
 ## Going further
 

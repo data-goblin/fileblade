@@ -159,9 +159,8 @@ fn production_runtime_is_rust_with_one_resident_qml_process() {
     for path in files(root, &["py"]) {
         let relative = path.strip_prefix(root).unwrap_or(&path);
         assert!(
-            relative.starts_with("tests")
-                || relative == std::path::Path::new("scripts/fileblade-extension-image.py"),
-            "Python is a test or the extension image tool, never runtime or backend code: {}",
+            relative.starts_with("tests"),
+            "Python is a test, never runtime, tooling or backend code: {}",
             path.display()
         );
     }

@@ -21,8 +21,8 @@ Item {
   readonly property bool showing: !dismissed && !!plan.show
 
   function refresh() {
-    if (dismissed || worker.running || !pluginId || !sourceDir) return
-    worker.command = [sourceDir + "/bin/fileblade-host-status"]
+    if (dismissed || worker.running || !pluginId) return
+    worker.command = ["sh", "-c", HostGuard.STATUS_SCRIPT, "fileblade-host-status", pluginId]
     worker.running = true
     deadline.restart()
   }
@@ -30,10 +30,14 @@ Item {
   function accept(text, exitCode) {
     deadline.stop()
     var next = { schemaVersion: 1, state: "unknown", plugins: observation ? observation.plugins : [] }
-    try {
-      var parsed = JSON.parse(text)
-      if (exitCode === 0 && parsed && parsed.schemaVersion === 1) next = parsed
-    } catch (error) {}
+    if (exitCode === HostGuard.HOST_ABSENT) {
+      next = { schemaVersion: 1, state: "missing", plugins: [{ id: pluginId, name: pluginId, enabled: true }] }
+    } else {
+      try {
+        var parsed = JSON.parse(text)
+        if (exitCode === 0 && parsed && parsed.schemaVersion === 1) next = parsed
+      } catch (error) {}
+    }
     observation = next
     retryDelay = next.state === "ready" ? 30000 : Math.min(retryDelay * 2, 30000)
     retry.restart()

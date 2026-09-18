@@ -14,8 +14,8 @@ Service.qml:         the singleton provider. Shared scanners, caches, watchers a
 blades/Module.qml:   visual and lightweight. Binds to context.providerService, renders plain text, routes keys, keeps per-tab presentation state in context.state
 HostGuard.qml, .js:  shown while FileBlade is missing or disabled; explains manual installation without downloading anything, or enables an installed host and restarts the shell
 manifest.json:       the module definition (id, entry, hostContract, settings schema); FileBlade reads it from the plugin registry
-scripts/:            fileblade-extension-image.py regenerates assets/fileblade-extension-logo.svg
-tests/:              tests/run is the local gate; tests/imports stubs qs.Commons so the module loads offline
+tests/:              tests/run is the local gate (fileblade extension check, qmltestrunner, qmllint); tests/imports stubs qs.Commons so the module loads offline
+assets/:             fileblade-extension-logo.svg from `fileblade extension image`, and fileblade-logo.png for the host guard
 ```
 
 ## Where state lives

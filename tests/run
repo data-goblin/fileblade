@@ -57,7 +57,5 @@ for suite in tests/qml/tst_*.qml; do
     exit 1
   fi
 done
-export PYTHONDONTWRITEBYTECODE=1
-python3 tests/test_extension_image.py
 tools/bundle verify
 printf '%s\n' 'Rust, QML, scaffold and bundled backend checks: ok'

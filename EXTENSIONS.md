@@ -683,7 +683,7 @@ are worth shipping.
 ```bash
 fileblade extension template acme.fileblade-weather
 cd acme.fileblade-weather
-python3 scripts/fileblade-extension-image.py --png
+fileblade extension image --png
 ```
 
 The command writes into `./<id>` (or the directory you name), refuses a
@@ -709,14 +709,29 @@ Service.qml, Provider.qml:             the shared runtime and the legacy wrapper
 HostGuard.qml, HostGuard.js:           the missing-host guard the satellites carry
 blades/Module.qml:                     a FocusScope that shows the selection, routes Tab, Esc, Enter and e, and exposes shortcuts
 assets/fileblade-logo.png:             the logo the host guard tints
-scripts/fileblade-extension-image.py:  writes assets/fileblade-extension-logo.svg with the extension name outlined under the wordmark; standard library only, --png and --host-logo rasterize with rsvg-convert
 README.md, ARCHITECTURE.md, docs/agent-guidelines.md, docs/agent-written/README.md, LICENSE, .gitignore
-tests/run, tests/tst_module.qml, tests/tst_host_guard.qml, tests/test_contract.py, tests/imports/:  the local gate, with a qs.Commons stub so the module loads offline
+tests/run, tests/tst_module.qml, tests/tst_host_guard.qml, tests/imports/:  the local gate, with a qs.Commons stub so the module loads offline
 ```
 
-The same generator lives at `scripts/fileblade-extension-image.py` in this
-repository; `--name "Agent Skills"` reproduces the satellite banners exactly,
-so a renamed extension keeps the shared look.
+The template carries no interpreter. Three verbs of the host binary do the
+work the scaffold used to ship as scripts:
+
+```yaml
+fileblade host-status --companion <id>:  what HostGuard.qml calls; prints {schemaVersion, state, plugins} with state missing, disabled, starting, ready or unknown, within a two second deadline
+fileblade extension check <dir>:         the manifest-shape and host-guard rules tests/run enforces; defaults to the working directory
+fileblade extension image:               writes assets/fileblade-extension-logo.svg with the extension name outlined under the wordmark; --png and --host-logo rasterize with rsvg-convert
+```
+
+`fileblade extension image --name "Agent Skills"` reproduces the satellite
+banners exactly, so a renamed extension keeps the shared look.
+
+Extensions scaffolded before this change keep working untouched: their
+`bin/fileblade-host-status`, `tests/test_contract.py` and
+`scripts/fileblade-extension-image.py` are ordinary files in their own
+repositories and FileBlade never reads them. Move to the verbs when it suits
+you: point `HostGuard.qml` at `fileblade --output json host-status --companion
+<id>`, replace the contract run in `tests/run` with `fileblade extension check
+.`, and delete the three files.
 
 ## Writing one, step by step
 

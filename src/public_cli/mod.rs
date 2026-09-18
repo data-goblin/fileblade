@@ -25,6 +25,7 @@ mod branches;
 mod doctor;
 mod extension;
 mod files;
+mod host_status;
 mod integration;
 mod ipc;
 mod launch;
@@ -38,6 +39,7 @@ pub use branches::*;
 use doctor::*;
 pub use extension::*;
 use files::*;
+pub use host_status::*;
 use ipc::*;
 use launch::*;
 pub use plugins::*;
@@ -203,6 +205,8 @@ pub enum RootCommand {
         #[command(subcommand)]
         action: Option<BranchesCommand>,
     },
+    /// Report whether FileBlade is installed, enabled and answering, for a companion extension.
+    HostStatus(HostStatusArgs),
     /// Scaffold a FileBlade extension.
     Extension {
         #[command(subcommand)]
@@ -260,6 +264,7 @@ fn run_command(command: RootCommand) -> AppResult<PublicResult> {
         }
         RootCommand::Status => json_ipc("status", &[]),
         RootCommand::Doctor => doctor(),
+        RootCommand::HostStatus(options) => host_status(options),
         RootCommand::Selection => json_ipc("selection", &[]),
         RootCommand::Favorites => json_ipc("favorites", &[]),
         RootCommand::Show => simple_ipc("open", &[]),

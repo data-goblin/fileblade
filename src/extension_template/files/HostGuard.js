@@ -5,6 +5,11 @@ var HOST_REPOSITORY = "https://github.com/data-goblin/fileblade"
 var MISSING_MESSAGE = "This is a FileBlade extension. FileBlade is not installed on your computer, and an extension never installs it for you. Install FileBlade yourself, then this panel goes away."
 var DISABLED_MESSAGE = "This is a FileBlade extension. FileBlade is installed but disabled, so this extension has nothing to attach to."
 var STARTING_MESSAGE = "FileBlade is enabled but is not responding yet. Wait for it to start, or restart the shell if it stays unavailable."
+var HOST_ABSENT = 127
+var STATUS_SCRIPT = [
+  "command -v fileblade >/dev/null 2>&1 || exit 127",
+  "exec fileblade --output json host-status --companion \"$1\""
+].join("\n")
 var UNKNOWN_MESSAGE = "FileBlade availability could not be checked. The check will retry automatically."
 
 function enableCommand() {
