@@ -11,6 +11,7 @@ from media_lib import *
 
 ovm('ssh', 'python3 ~/.config/omarchy/plugins/data-goblin.fileblade/tests/vm/fixtures/media.py generate /tmp/brindle-media')
 control('setRoot', '/tmp/brindle-media/library')
+control('closeBlade', 'right')
 control('openBlade', 'left')
 control('focusBlade', 'left')
 if state()['mode']:

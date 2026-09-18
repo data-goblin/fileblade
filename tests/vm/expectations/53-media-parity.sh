@@ -42,8 +42,13 @@ for key in ['name', 'size', 'modified']:
         check(f'{key} descending={descending} preserves exact selection and scroll anchor', current['selected'] == selected and anchor in current['paths'][current['firstVisible']:current['firstVisible'] + current['columns']], {'selected': current['selected'], 'firstVisible': current['paths'][current['firstVisible']], 'anchor': current['anchor'], 'wanted': anchor, 'busy': current['busy']})
 shot('53-sorted')
 sort()
+time.sleep(.2)
 probe('choose', 0, 'replace')
+wait(lambda s: s['focused'] and s['current'] == 0)
+if state()['visual']:
+    ovm('key', 'v')
 ovm('key', 'v')
+wait(lambda s: s['visual'])
 ovm('key', 'right')
 current = state()
 check('V then Right extends horizontal selection', current['visual'] and len(current['selected']) == 2, current['selected'])

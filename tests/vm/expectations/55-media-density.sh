@@ -57,7 +57,7 @@ check('narrow ordinary footer keeps counts and density controls', current['ordin
 time.sleep(.4)
 shot('55-density-narrow')
 time.sleep(2)
-subprocess.run(['tests/vm/stop-shell'], check=True, timeout=40)
+subprocess.run([repo / 'tests/vm/stop-shell'], check=True, timeout=40)
 ovm('restart-shell')
 restart_status = json.loads(ipc('data-goblin.fileblade', 'status'))
 assert restart_status['bladeModules'] and all('Unknown' not in item for item in restart_status['bladeModules']), restart_status
