@@ -775,3 +775,15 @@ fn which_git() -> PathBuf {
         .find(|candidate| candidate.is_file())
         .expect("git on PATH")
 }
+
+#[test]
+fn doctor_reports_the_live_root_path() {
+    let harness = CliHarness::new();
+    let output = harness.run(
+        &["doctor", "-o", "json"],
+        r#"{"open":true,"rootPath":"/work/project"}"#,
+    );
+    let report: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["shell"]["ok"], true);
+    assert_eq!(report["shell"]["root"], "/work/project");
+}

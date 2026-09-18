@@ -4,19 +4,21 @@ This file was written by an agent.
 
 ---
 
-FileBlade is an Omarchy Quattro plugin with a QML service for the blades and a
-Rust backend for core filesystem operations. Both use the user's permissions;
-the backend's lifetime follows the shell. Companion providers supply their
-domain-specific helpers through the extension contract.
+FileBlade runs as a native Quickshell application with a resident Rust authority.
+The legacy Omarchy Quattro plugin entry remains available for compatibility.
+Both shapes share the blade services and extension contract described here;
+[native installation](docs/agent-written/native-install.md) documents standalone
+process ownership, persistence and desktop integration.
 
 ![Process and data flow](assets/docs/architecture.svg)
 
 ## The two halves
 
-### QML side (inside omarchy-shell)
+### QML side
 
-Quickshell loads `Service.qml` once and keeps it loaded (`keepLoaded: true` in
-`manifest.json`). Everything visual lives in that one process:
+The native app owns its Quickshell view; the legacy plugin loads `Service.qml`
+inside omarchy-shell (`keepLoaded: true` in `manifest.json`). The visual services
+share this structure:
 
 ```yaml
 Service.qml:                 plugin entry; owns the host, the IPC handlers, and shared services
@@ -277,7 +279,7 @@ even when the target is unavailable and would prevent the fallback:
 
 ```lua
 local function blade(method, fallback)
-  local call = "OMARCHY_SHELL_IPC_TIMEOUT=0.4s omarchy-shell data-goblin.fileblade.control " .. method .. " >/dev/null 2>&1"
+  local call = "timeout 0.4s fileblade native ipc -- data-goblin.fileblade.control " .. method .. " >/dev/null 2>&1"
   if fallback then return call .. " || hyprctl dispatch " .. string.format("%q", fallback) end
   return call
 end
@@ -370,7 +372,7 @@ Memory uses this runtime, leaving its visual module responsible for presentation
 ### IPC verbs without a CLI subcommand
 
 Every function exported by `FileTreeIpc.qml` is public API: reachable with
-`omarchy-shell -q data-goblin.fileblade.control <verb>` whether or not the
+`fileblade native ipc -- data-goblin.fileblade.control <verb>` whether or not the
 `fileblade` binary wraps it. The contract test
 `exported_ipc_verbs_have_a_cli_caller_or_a_documented_reason` fails when a new
 export appears that neither `src/public_cli/` calls nor this list names, so
@@ -471,7 +473,7 @@ limits of change detection and cancellation.
 ## Configuration
 
 Every key lives under the plugin's settings object in `shell.json`
-(`omarchy plugin settings data-goblin.fileblade`, or edit the file). Saved
+(`fileblade settings`, or edit the file). Saved
 state in `state.json` wins over these once it exists; the keys are the first-run
 defaults and the values for anything the state file does not carry.
 

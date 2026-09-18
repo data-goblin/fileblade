@@ -32,18 +32,35 @@ fn execute(command: RootCommand, output: Arc<Output>) -> AppResult<()> {
     if let RootCommand::ExecHex(args) = &command {
         return fileblade::drop_target::exec_hex(&args.values);
     }
-    if fileblade::lease::selected_root()?.is_some()
-        && match &command {
-            RootCommand::Preferences(changes) => {
-                changes.trash_retention_days.is_some() || changes.agent_management.is_some()
+    if fileblade::lease::selected_root()?.is_some() {
+        if let RootCommand::Preferences(changes) = &command {
+            let changing =
+                changes.trash_retention_days.is_some() || changes.agent_management.is_some();
+            let mut arguments = vec![
+                if changing {
+                    "preferences-set"
+                } else {
+                    "preferences-read"
+                }
+                .into(),
+            ];
+            if let Some(days) = changes.trash_retention_days {
+                arguments.extend(["--trash-retention-days".into(), days.to_string().into()]);
             }
-            RootCommand::List(_) => true,
-            _ => false,
+            if let Some(enabled) = changes.agent_management {
+                arguments.extend(["--agent-management".into(), enabled.to_string().into()]);
+            }
+            return if fileblade::native::run_backend(arguments, output)? {
+                Ok(())
+            } else {
+                Err(AppError::command("native preferences request failed"))
+            };
         }
-    {
-        return Err(AppError::command(
-            "native owner-unavailable: state writes must be admitted by the native authority",
-        ));
+        if matches!(command, RootCommand::List(_)) {
+            return Err(AppError::command(
+                "native owner-unavailable: state writes must be admitted by the native authority",
+            ));
+        }
     }
     match command {
         RootCommand::CompanionMutate => {

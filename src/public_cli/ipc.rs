@@ -194,7 +194,7 @@ fn call_config(
             ))
         } else {
             AppError::command(format!(
-                "omarchy-shell IPC failed for {method}: {message} (is the shell running?)"
+                "FileBlade IPC failed for {method}: {message} (is FileBlade running?)"
             ))
         }
     })?;
@@ -227,7 +227,7 @@ fn call_config(
         return Err(AppError::command(response));
     }
     if response.starts_with("Not ready to accept queries yet") {
-        return Err(AppError::command("omarchy-shell is not ready"));
+        return Err(AppError::command("FileBlade is not ready"));
     }
     Ok(Some(response))
 }

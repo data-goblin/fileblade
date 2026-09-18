@@ -214,12 +214,12 @@ reset_state() {
   fileblade blade dock left >/dev/null 2>&1 || true
   fileblade blade dock right >/dev/null 2>&1 || true
   fileblade blade set left files,properties >/dev/null 2>&1 || true
-  omarchy-shell data-goblin.fileblade.control setRoot "$FAKE_HOME/Projects/sunrise-site" >/dev/null 2>&1 || true
-  omarchy-shell data-goblin.fileblade.control clearSearch >/dev/null 2>&1 || true
-  omarchy-shell data-goblin.fileblade.control setSearchDeep false >/dev/null 2>&1 || true
+  fileblade root "$FAKE_HOME/Projects/sunrise-site" >/dev/null 2>&1 || true
+  fileblade clear-search >/dev/null 2>&1 || true
+  fileblade search-deep false >/dev/null 2>&1 || true
   local sub
   for sub in assets docs src src/components; do
-    omarchy-shell data-goblin.fileblade.control collapsePath "$FAKE_HOME/Projects/sunrise-site/$sub" >/dev/null 2>&1 || true
+    fileblade collapse "$FAKE_HOME/Projects/sunrise-site/$sub" >/dev/null 2>&1 || true
   done
   fileblade blade close left >/dev/null 2>&1 || true
   fileblade blade close right >/dev/null 2>&1 || true

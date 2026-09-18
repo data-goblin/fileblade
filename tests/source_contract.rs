@@ -604,7 +604,9 @@ fn tree_refreshes_keep_surviving_rows_and_the_scroll_anchor() {
     assert!(!pane.contains("function onTreeStructureRevisionChanged() { root.restoreTreeCursor() }\n    function onRootPathChanged"));
 
     let tree = text(&root.join("ui/ArtifactTree.qml"));
-    assert!(tree.contains("if (!syncingRows) Qt.callLater(showCurrent)"));
+    assert!(tree.contains(
+        "if (!syncingRows) {\n      publishSelection()\n      Qt.callLater(showCurrent)\n    }"
+    ));
     assert!(tree.contains("if (!kept) Qt.callLater(showCurrent)"));
     assert!(tree.contains("ListAnchor {"));
     assert!(tree.contains("onMovementStarted: anchor.clear()"));

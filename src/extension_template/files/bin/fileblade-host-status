@@ -6,6 +6,7 @@ import os
 import re
 import selectors
 import signal
+import shutil
 import subprocess
 import time
 
@@ -89,6 +90,20 @@ def snapshot() -> dict:
                 plugins.append({"id": identifier, "name": name[:120] if isinstance(name, str) else identifier,
                                 "enabled": row["enabled"]})
         result = {"schemaVersion": 1, "state": "missing", "plugins": plugins}
+        launcher = shutil.which("fileblade")
+        if launcher:
+            try:
+                status = command_json([launcher, "native", "roles", "status", "--json"])
+                if (isinstance(status, dict) and status.get("schema") == 1
+                        and status.get("action") == "roles_status" and status.get("error") == ""):
+                    result["state"] = "starting"
+                    status = command_json([launcher, "native", "ipc", "--", "fileblade.native", "status"])
+                    if isinstance(status, dict) and status.get("loaded") is True:
+                        result["state"] = "ready"
+                    return result
+            except (OSError, ValueError, RecursionError, subprocess.TimeoutExpired):
+                if result["state"] == "starting":
+                    return result
         if host is None:
             return result
         if not host["enabled"]:

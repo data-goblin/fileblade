@@ -357,3 +357,59 @@ fn generated_extensions_ship_no_automatic_agent_instruction_path() {
     }
     rendered(&files, "docs/agent-guidelines.md");
 }
+
+#[test]
+fn generated_host_check_recognizes_native_fileblade_without_a_legacy_plugin() {
+    let temporary = tempfile::tempdir().unwrap();
+    let target = temporary.path().join("extension");
+    let output = fileblade()
+        .args(["extension", "template", "acme.fileblade-weather"])
+        .arg(&target)
+        .args(["--author", "Jane Doe"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let bin = temporary.path().join("bin");
+    fs::create_dir(&bin).unwrap();
+    let fixture = r#"#!/usr/bin/python3
+import json
+import os
+import sys
+from pathlib import Path
+name = Path(sys.argv[0]).name
+if name == "omarchy":
+    assert sys.argv[1:] == ["plugin", "list", "--json"]
+    print(json.dumps([{"id": "acme.fileblade-weather", "name": "Weather", "enabled": True}]))
+elif sys.argv[1:] == ["native", "roles", "status", "--json"]:
+    print(json.dumps({"schema": 1, "action": "roles_status", "error": ""}))
+else:
+    assert sys.argv[1:] == ["native", "ipc", "--", "fileblade.native", "status"]
+    print(json.dumps({"loaded": os.environ["NATIVE_READY"] == "1"}))
+"#;
+    for name in ["fileblade", "omarchy"] {
+        let path = bin.join(name);
+        fs::write(&path, fixture).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    for (ready, expected) in [("1", "ready"), ("0", "starting"), ("missing", "missing")] {
+        if ready == "missing" {
+            fs::remove_file(bin.join("fileblade")).unwrap();
+        }
+        let output = Command::new("/usr/bin/python3")
+            .arg(target.join("bin/fileblade-host-status"))
+            .env_clear()
+            .env("PATH", &bin)
+            .env("HOME", temporary.path())
+            .env("NATIVE_READY", ready)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let status: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(status["state"], expected, "{status}");
+        assert_eq!(status["plugins"][0]["id"], "acme.fileblade-weather");
+    }
+}
