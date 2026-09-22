@@ -21,6 +21,15 @@ for dependency in qs hyprctl setsid; do
   command -v "$dependency" >/dev/null || { printf 'fileblade: required native capability is unavailable: %s\n' "$dependency" >&2; exit 127; }
 done
 if ! "$FILEBLADE_BINARY" serve --native-probe >/dev/null 2>&1; then
+  export OMARCHY_PATH=${OMARCHY_PATH:-/usr/share/omarchy}
+  shell_deadline=$((SECONDS + 30))
+  until timeout 2 qs ipc -n -p "$OMARCHY_PATH/shell" call -- shell listPlugins 2>/dev/null | jq -e 'type == "array"' >/dev/null 2>&1; do
+    if (( SECONDS >= shell_deadline )); then
+      printf '%s\n' 'fileblade: waiting for Omarchy plugin discovery timed out; start FileBlade again after the shell is ready' >&2
+      exit 1
+    fi
+    sleep 0.1
+  done
   mkdir -p -- "$FILEBLADE_NATIVE_STATE_ROOT"
   setsid -f "$FILEBLADE_BINARY" serve --native-authority --max-concurrency 16 </dev/null >>"$FILEBLADE_NATIVE_STATE_ROOT/authority.log" 2>&1
   for attempt in {1..100}; do

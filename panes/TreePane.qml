@@ -1027,7 +1027,6 @@ FocusScope {
     readonly property var summary: entry && entry.isGitRepo && controller.gitEnabled && controller.gitSummaryFields.length
       ? GitSummary.describe(entry.gitSummary, controller.gitSummaryFields) : ({})
     visible: root.contextAbove
-    enabled: false
     height: visible ? Style.space(30) : 0
     glyph: FileIcons.entryIcon(entry ? entry.name : "", true, entry ? entry.isSymlink : false, false,
       entry ? entry.isGitRepo : false, entry ? entry.path === controller.home : false)
@@ -1039,6 +1038,11 @@ FocusScope {
     emphasized: true
     Accessible.role: Accessible.StaticText
     Accessible.name: [label, detail, badge].filter(Boolean).join(" ")
+    HoverHandler { id: contextSummaryHover }
+    PanelToolTip {
+      visible: contextSummaryHover.hovered && text !== ""
+      text: contextSummary.summary.tooltip || ""
+    }
   }
 
   Item {

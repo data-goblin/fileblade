@@ -463,10 +463,11 @@ Rectangle {
       elide: Text.ElideRight
     }
 
+    HoverHandler { id: summaryHover }
+
     PanelToolTip {
       id: summaryTip
-      visible: row.showsRepoSummary && (branchPointer.containsMouse || (pointer.containsMouse
-        && pointer.mouseX >= repoSummary.x && pointer.mouseX <= repoSummary.x + repoSummary.width))
+      visible: row.showsRepoSummary && summaryHover.hovered
       text: row.repositorySummary.tooltip
       contentItem: Text {
         textFormat: Text.StyledText

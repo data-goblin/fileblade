@@ -103,3 +103,51 @@ fn without_a_running_view_the_app_starts_with_the_target_in_its_environment() {
         format!("open={}\nselect=\n", root.join("docs").display())
     );
 }
+
+#[test]
+fn native_launch_waits_for_plugin_discovery_before_starting_its_writer() {
+    let temporary = tempfile::tempdir().unwrap();
+    let root = temporary.path();
+    app_root(root, "exit 9", "exit 9");
+    fs::write(root.join("app/launch"), include_str!("../app/launch")).unwrap();
+    for (name, body) in [
+        (
+            "qs",
+            r#"if [ "$1" = ipc ]; then
+  count=$(cat "$HOME/probes" 2>/dev/null || echo 0)
+  count=$((count + 1))
+  echo "$count" > "$HOME/probes"
+  case "$count" in
+    1) exit 1 ;;
+    2) echo 'Not ready to accept queries yet' ;;
+    *) echo '[]' ;;
+  esac
+else
+  echo native-view
+fi"#,
+        ),
+        (
+            "fileblade",
+            r#"case "$*" in
+  'serve --native-probe') test -f "$HOME/authority" ;;
+  'serve --native-authority --max-concurrency 16') cp "$HOME/probes" "$HOME/authority" ;;
+  *) exit 0 ;;
+esac"#,
+        ),
+        ("hyprctl", "exit 0"),
+    ] {
+        let path = root.join("bin").join(name);
+        fs::write(&path, format!("#!/bin/sh\n{body}\n")).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let output = Command::new(root.join("app/launch"))
+        .env("HOME", root)
+        .env("XDG_STATE_HOME", root.join("state"))
+        .env("OMARCHY_PATH", root.join("omarchy"))
+        .env("PATH", format!("{}:/usr/bin", root.join("bin").display()))
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(fs::read_to_string(root.join("authority")).unwrap(), "3\n");
+    assert_eq!(String::from_utf8_lossy(&output.stdout), "native-view\n");
+}

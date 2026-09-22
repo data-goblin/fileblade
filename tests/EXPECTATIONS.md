@@ -1862,3 +1862,12 @@ This file was written by an agent.
 - **E-40-21** The native `fileblade preferences` command reads and saves through
   the running persistence service. Changes survive the next read and a stopped
   service cannot cause a separate writer to modify the settings.
+
+This file was written by an agent.
+
+- **E-40-22** Starting native FileBlade while Omarchy is still loading waits for
+  plugin discovery before checking for old writers. Once the shell is ready,
+  keybindings load without a legacy-writer warning. A recovered backend clears
+  a previous keybinding error automatically.
+- **E-07-09** Hovering the repository summary above the file tree shows branch,
+  upstream comparison and file-change details without selecting the root folder.

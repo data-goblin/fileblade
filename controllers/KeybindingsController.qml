@@ -65,6 +65,12 @@ Item {
     onFileChanged: root.reload()
   }
   Timer { id: debounce; interval: 150; onTriggered: root.read() }
+  Connections {
+    target: root.service
+    function onBackendReadyChanged() {
+      if (root.service.backendReady && root.error) root.reload()
+    }
+  }
   Component.onCompleted: reload()
   Component.onDestruction: {
     if (requestId) service.cancelBackendRequest(requestId, generation, true)
