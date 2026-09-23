@@ -111,7 +111,7 @@ fn marketplace_release_metadata_and_bundled_install_are_documented() {
         "git ls-remote",
         "sends no telemetry",
         "deliberately preserves your layout",
-        "Eligible image previews load automatically on selection",
+        "Eligible media previews load automatically on selection",
         "automatically renders a size-constrained inline preview out of process",
         "`fileblade _backend thumbnail-render`",
         "The shell only ever hands Qt that PNG",

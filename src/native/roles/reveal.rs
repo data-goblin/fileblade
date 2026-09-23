@@ -8,7 +8,7 @@ pub fn plan(launcher: &Path, data: &Path) -> Vec<Planned> {
         data.join("dbus-1/services/org.freedesktop.FileManager1.service"),
         format!(
             "[D-BUS Service]\nName={NAME}\nExec={} native filemanager1\n",
-            launcher.display()
+            super::entry::exec_path(launcher)
         ),
     )]
 }

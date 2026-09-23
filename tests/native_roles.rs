@@ -17,7 +17,11 @@ struct Home {
 
 impl Home {
     fn new() -> Self {
-        let dir = tempfile::tempdir().unwrap();
+        Self::with_prefix("roles-")
+    }
+
+    fn with_prefix(prefix: &str) -> Self {
+        let dir = tempfile::Builder::new().prefix(prefix).tempdir().unwrap();
         let root = dir.path();
         let installation = root.join("data/fileblade/installation");
         fs::create_dir_all(installation.join("active")).unwrap();
@@ -132,10 +136,10 @@ fn installer_filter() -> String {
 }
 
 fn expected_files(home: &Home, role: &str) -> Vec<(String, String)> {
-    let launcher = home.launcher();
+    let launcher = format!("\"{}\"", home.launcher());
     match role {
         "folder" => vec![
-            ("data/applications/fileblade.desktop".into(), format!("[Desktop Entry]\nType=Application\nName=FileBlade\nIcon=fileblade\nExec={launcher} native open %U\nMimeType=inode/directory;\nNoDisplay=true\nCategories=System;FileTools;\n")),
+            ("data/applications/fileblade.desktop".into(), format!("[Desktop Entry]\nType=Application\nName=FileBlade\nIcon=fileblade\nExec=/usr/bin/env -- {launcher} native open %U\nMimeType=inode/directory;\nNoDisplay=true\nCategories=System;FileTools;\n")),
             ("config/mimeapps.list".into(), MIMEAPPS.replace("nautilus.desktop", "fileblade.desktop")),
         ],
         "reveal" => vec![(
@@ -153,9 +157,83 @@ fn expected_files(home: &Home, role: &str) -> Vec<(String, String)> {
         ],
         "autostart" => vec![(
             "config/autostart/fileblade.desktop".into(),
-            format!("[Desktop Entry]\nType=Application\nName=FileBlade\nExec={launcher}\nX-GNOME-Autostart-enabled=true\n"),
+            format!("[Desktop Entry]\nType=Application\nName=FileBlade\nExec=/usr/bin/env -- {launcher}\nX-GNOME-Autostart-enabled=true\n"),
         )],
         _ => unreachable!(),
+    }
+}
+
+#[test]
+fn desktop_roles_launch_from_a_home_with_reserved_characters() {
+    let home = Home::with_prefix("roles space '\"\\$`%-");
+    let recorder = home.path("data/fileblade/installation/launcher");
+    fs::write(
+        &recorder,
+        "#!/bin/sh\nprintf '%s\\0' \"$0\" \"$@\" > \"$HOME/launched\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(recorder, fs::Permissions::from_mode(0o700)).unwrap();
+    for (role, entry, arguments) in [
+        ("autostart", "config/autostart/fileblade.desktop", vec![]),
+        (
+            "folder",
+            "data/applications/fileblade.desktop",
+            vec!["native", "open"],
+        ),
+        (
+            "chooser",
+            "org.freedesktop.impl.portal.desktop.fileblade",
+            vec!["native", "portal"],
+        ),
+        (
+            "reveal",
+            "org.freedesktop.FileManager1",
+            vec!["native", "filemanager1"],
+        ),
+    ] {
+        let (result, code) = home.roles(&["enable", "--role", role, "--json"]);
+        assert_eq!(code, 0, "{result}");
+        let mut command = Command::new("dbus-run-session");
+        command
+            .arg("--")
+            .env("HOME", home.dir.path())
+            .env("XDG_DATA_HOME", home.path("data"));
+        if entry.ends_with(".desktop") {
+            command.arg("gio").arg("launch").arg(home.path(entry));
+        } else {
+            command.args([
+                "gdbus",
+                "call",
+                "--session",
+                "--dest",
+                entry,
+                "--object-path",
+                "/",
+                "--method",
+                "org.freedesktop.DBus.Peer.Ping",
+                "--timeout",
+                "1",
+            ]);
+        }
+        let output = command.output().unwrap();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !home.path("launched").exists() && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let launched = fs::read(home.path("launched")).unwrap_or_else(|error| {
+            panic!(
+                "{role}: {error}: {}",
+                String::from_utf8_lossy(&output.stderr)
+            )
+        });
+        let mut expected = vec![home.launcher()];
+        expected.extend(arguments.into_iter().map(str::to_string));
+        assert_eq!(
+            launched,
+            format!("{}\0", expected.join("\0")).as_bytes(),
+            "{role}"
+        );
+        fs::remove_file(home.path("launched")).unwrap();
     }
 }
 

@@ -66,6 +66,7 @@ chmod 700 "$work"
 printf 'Reading %s\n' "$MANIFEST"
 fetch "$MANIFEST" "$work/latest.json" || fail 'cannot read the release manifest'
 
+jq -e '.schema == 1' "$work/latest.json" >/dev/null 2>&1 || fail 'unsupported release manifest schema'
 version=$(jq -er '.version' "$work/latest.json" 2>/dev/null) || fail 'the manifest declares no version'
 url=$(field "$target" url "$work/latest.json") || fail "the manifest carries no $target artifact"
 want=$(field "$target" sha256 "$work/latest.json") || fail "the manifest carries no $target checksum"
@@ -81,9 +82,9 @@ case $url in
   *) fail 'the manifest artifact URL is not https' ;;
 esac
 case $want in
-  [0-9a-f]*) [ ${#want} -eq 64 ] || fail 'the manifest checksum is not a SHA-256 digest' ;;
-  *) fail 'the manifest checksum is not a SHA-256 digest' ;;
+  '' | *[!0-9a-f]*) fail 'the manifest checksum is not a SHA-256 digest' ;;
 esac
+[ ${#want} -eq 64 ] || fail 'the manifest checksum is not a SHA-256 digest'
 
 printf 'Downloading FileBlade %s for %s\n' "$version" "$target"
 fetch "$url" "$work/payload.tar.gz" || fail 'cannot download the runtime archive'
@@ -96,6 +97,8 @@ tar -xzf "$work/payload.tar.gz" -C "$work/payload" || fail 'cannot extract the r
 root=$work/payload
 [ -f "$root/payload.json" ] || root=$work/payload/payload
 [ -f "$root/payload.json" ] || fail 'the archive does not carry a FileBlade runtime payload'
+jq -e --arg version "$version" --arg target "$target" '.version == $version and .target == $target' "$root/payload.json" >/dev/null 2>&1 \
+  || fail 'the archive version or target differs from the release manifest'
 [ -x "$root/tools/native" ] || fail 'the archive does not carry its installer'
 
 printf 'Verifying the payload inventory\n'

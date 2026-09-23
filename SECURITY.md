@@ -1,13 +1,13 @@
 # Security
 
-This document is agent-written.
+This file was written by an agent.
 
 ---
 
-Omarchy FileBlade is a schema-v1 Omarchy Quattro plugin. Its QML and Rust
-binary run unsandboxed with the authority of the desktop user. FileBlade is a
-file manager, so that authority intentionally includes reading user-selected
-filesystem metadata and content and mutating paths after explicit actions.
+FileBlade runs as a native Quickshell app or a schema-v1 Omarchy Quattro plugin.
+Its QML and Rust binary run unsandboxed with the authority of the desktop user.
+That authority intentionally includes reading user-selected filesystem metadata
+and content and mutating paths after explicit actions.
 
 This document describes implemented boundaries; it is not a claim that the
 project or every dependency has received an independent security audit.
@@ -23,13 +23,18 @@ Treat these inputs as untrusted data:
 - user blade definitions and installed plugin manifests.
 
 User or satellite QML modules are executable code, not data. Once loaded, they
-share the same Quickshell process and user authority as FileBlade. Another
-enabled schema-v1 plugin can interfere with FileBlade or inspect its in-process
-state. Extension review remains the user's responsibility.
+share the same Quickshell process and user authority as FileBlade. In plugin
+mode, another enabled schema-v1 plugin can interfere with FileBlade or inspect
+its in-process state. Native mode uses a separate view process, but does not
+sandbox extensions or protect against other programs running as the same user.
+Extension review remains the user's responsibility.
 
 This file was written by an agent.
 
-Ordinary browsing and file operations initiate no network request. The optional
+Local browsing and file operations initiate no network request. Explicit SFTP
+connections use GIO and existing SSH authorization; interactive credential and
+host-key prompts are refused. Optional tailnet discovery queries the installed
+Tailscale client. The optional
 update check reads remote ref IDs with `git ls-remote`; it downloads no Git objects
 and changes no refs or checkout files. Each remote check has a 20-second deadline,
 64 KiB stdout and 16 KiB stderr caps, and at most 512 returned refs. The same
@@ -45,8 +50,16 @@ promisor lazy fetching disabled. Automatic checks run at most once per six hours
 the attempt is saved before requesting the network.
 Set `"checkUpdates": false` in plugin settings to disable automatic checks.
 
-Installation clones the source and bundled static backend from GitHub. There
-is no install hook, runtime build, or first-run executable download. Maintainer
+Plugin installation clones the source and bundled static backend from GitHub.
+Native bootstrap installation downloads a release manifest and an architecture-
+specific archive, checks its SHA-256, requires matching version and target, then
+verifies its payload inventory before installation. The checksum is supplied by
+the same publisher as the archive; it is not a digital signature. Native payloads
+live under `$XDG_DATA_HOME/fileblade/installation`, with a launcher in
+`~/.local/bin/fileblade`. The installer checks required Arch/Omarchy packages,
+drains an existing native runtime and atomically selects a verified payload;
+it never installs missing packages. There is no runtime build or first-run
+executable download. Maintainer
 builds use the pinned Rust toolchain and locked dependencies; `tests/run`
 checks the bundled checksum, source fingerprint, and byte-identical rebuild.
 These checks establish correspondence, not trust in the source or publisher.
@@ -81,9 +94,10 @@ is not that evidence, and attestations are not a security audit of the code.
 
 The update checker reads branch/tag IDs and local repository state; it never merges, resets,
 validates, builds, or rescans plugins, and it never changes checked-out source.
-Updates happen outside FileBlade with the shell stopped before replacing
+Plugin updates happen outside FileBlade with the shell stopped before replacing
 watched plugin files, followed by a fresh shell start. Disabling only a pane
-does not stop Omarchy's plugin watcher.
+does not stop Omarchy's plugin watcher. Native updates use the payload installer
+and its drain/activation protocol, not replacement of watched plugin files.
 
 This file was written by an agent.
 
@@ -91,7 +105,9 @@ Skills, Memory, Hooks and MCP ship with FileBlade. The backend has no companion
 repository installation command.
 
 FileBlade sends no telemetry, uses no privilege elevation, and does not install
-system packages or modify Hyprland, systemd, sudoers, or udev configuration.
+system packages or modify systemd, sudoers, or udev configuration. Explicitly
+enabled desktop roles can change user Hyprland bindings, autostart, MIME defaults
+and portal preferences as described below.
 
 ## Dependencies and previews
 
@@ -116,28 +132,42 @@ Nautilus is reserved for an explicit reveal request. `uwsm-app` is used when
 available to launch that reveal through the desktop's application-session
 manager. When `zoxide` is present, FileBlade records opened directories with
 `zoxide add`, updating zoxide's normal per-user database.
-Eligible image previews load automatically on selection and accept only regular,
-non-symlink JPEG, PNG, or WebP files up to 16 MiB. The selected file is never
-decoded by the shell: a short-lived `fileblade` child process renders a bounded
-PNG thumbnail into `~/.cache/fileblade/thumbnails/`, and the shell displays
-that. Other images can still be opened in their normal external app.
+Eligible media previews load automatically on selection or in the media grid
+and accept regular, non-symlink files up to 16 MiB. A short-lived `fileblade`
+child renders a bounded PNG into `~/.cache/fileblade/thumbnails/`; the shell
+displays that PNG. PNG, JPEG and WebP use the image crate. Optional FFmpeg tools
+decode additional image formats and static video posters under the limits below.
 
-Removal deletes the plugin checkout but deliberately preserves your layout,
+Plugin removal deletes the checkout but deliberately preserves your layout,
 settings, history, audit log, and disabled-module bins under
 `~/.config/omarchy/fileblade/`, `~/.local/state/omarchy/fileblade/`, and
 `~/.local/share/fileblade/`. Delete those directories manually only if you also
 want to erase that data. Companions also retain private recovery under
 `$XDG_STATE_HOME/fileblade/mcp-recovery` and `hooks-recovery` (normally beneath
 `~/.local/state/`). Uninstall preserves these copies too. Files in the normal Freedesktop Trash are not
-owned by the plugin and are never removed during uninstall.
+owned by FileBlade and are never removed during uninstall. Native removal uses
+the installed payload's `tools/native remove`, reverses owned desktop roles,
+drains the app and removes the owned launcher/runtime. It preserves user data
+and newer user changes. Package removal uses the package manager; desktop roles
+must be disabled and the native runtime drained first. See
+[native installation](docs/agent-written/native-install.md) for the commands.
 
 ## Resident backend boundary
 
-The QML service creates one child process, `fileblade serve`, with anonymous
+In plugin mode, the QML service creates one child process, `fileblade serve`, with anonymous
 stdin and stdout pipes. The version-1 protocol is newline-delimited JSON. It
 does not bind a Unix/TCP socket, create a FIFO, write a protocol log, or publish
 a shared endpoint. Payloads sent by QML, including artifact documents, travel
 through the pipe rather than the child argv or environment.
+
+Native mode uses one resident authority and an `authority.sock` Unix socket
+under `$XDG_STATE_HOME/omarchy/fileblade`, protected by an owner-checked state
+directory and mode 0600 socket. Up to 32 client connections share the bounded
+protocol. The authority lease and storage identities prevent simultaneous
+writers; migration refuses writes while legacy writers remain active or their
+status is unknown. Native views connect to that authority rather than owning
+independent persistence. A native view may close while an operation continues;
+updates and removal use the drain protocol to flush state and finish safely.
 
 The server requires a hello handshake and keys work by a bounded `(id,
 generation)` pair. It bounds protocol lines, response bytes, argument count,
@@ -150,7 +180,7 @@ for the old backend to exit and restores its recorded window-border changes.
 It does not restore borders claimed by a replacement backend or modified by
 another application. It exits after cleanup; no background daemon remains.
 
-Anonymous pipes prevent an unrelated process from discovering and connecting
+Plugin-mode anonymous pipes prevent an unrelated process from discovering and connecting
 to an ambient FileBlade backend service. They do not provide encryption or
 protection from a process already able to debug/read the same-user shell or
 child, a compromised plugin, or a compromised desktop session. The public
@@ -169,11 +199,15 @@ complete blade module state. The control target accepts file operations directly
 permanent Trash deletion still requires an explicit `--yes` argument through the
 public CLI.
 
-These are privileged desktop-integration APIs, not a file-selection portal.
+These IPC targets are privileged desktop-integration APIs, not a file-selection portal.
 Read responses can disclose private paths, selection, search, and history, and
 control calls alter live FileBlade state. Do not expose or proxy them to
 untrusted applications or plugins. Use a real desktop portal for sandboxed
-file selection.
+file selection. The separate opt-in native chooser implements a portal backend:
+only the current `org.freedesktop.portal.Desktop` bus owner may offer requests,
+and cancellation is tied to that sender. It does not expose the control IPC to
+portal callers. Caller-supplied choices are currently unsupported; foreign
+window parenting and modality are not implemented.
 
 ## Filesystem mutations
 
@@ -279,7 +313,10 @@ are the application, autostart, D-Bus service and portal descriptor entries
 under `$XDG_DATA_HOME` and `$XDG_CONFIG_HOME` listed in
 `docs/agent-written/native-install.md`, plus one key in `mimeapps.list` and
 `portals.conf` and one marked line in Hyprland's `bindings.lua`. Every
-`Exec` names the stable launcher, never a versioned payload.
+`Exec` names the stable launcher, never a versioned payload. Launcher paths are
+quoted for service-file parsing; desktop entries also escape field codes and
+use `/usr/bin/env --` so a literal percent in the launcher path does not confuse
+GIO's executable lookup.
 
 The receipt `$XDG_CONFIG_HOME/omarchy/fileblade/desktop-roles.json` is
 written with the private atomic writer at mode 0600 and bounded at 64 KiB.
@@ -290,7 +327,7 @@ version path: no symlink following, regular files only, same uid, parent
 rechecked, and an entry whose content changed since FileBlade wrote it is
 left in place rather than overwritten. Enabling reveal never kills the
 current owner of `org.freedesktop.FileManager1`. `RolesSet` is a mutating
-backend command; the same shell-to-backend pipe boundary applies.
+backend command; it uses the selected plugin pipe or native authority transport.
 
 ## FileBlade Trash
 
@@ -474,12 +511,12 @@ must be bounded regular JSON files with safe relative entry paths. Manifest
 contributions are namespaced to their provider and loaded only while that
 provider is enabled.
 
-Selecting a regular, non-symlink JPEG, PNG, or WebP file no larger than 16 MiB
+Selecting a regular, non-symlink supported media file no larger than 16 MiB
 automatically renders a size-constrained inline preview out of process. Other
 images open through an external application. The resident backend spawns a
 one-shot `fileblade _backend thumbnail-render` child for each new file; the
 child caps its own address space at 512 MiB, reads the file without following
-links, refuses anything whose bytes are not PNG, JPEG, or WebP, rejects sources
+links, decodes PNG, JPEG and WebP directly, and rejects sources
 wider or taller than 16384 pixels or above 64 megapixels, decodes under the
 image crate's allocation limits, and writes a PNG of at most 1024 pixels per
 edge to `~/.cache/fileblade/thumbnails/` keyed by path, stat fingerprint, and
@@ -487,9 +524,17 @@ size. The shell only ever hands Qt that PNG. A crash, timeout, or decoder error
 in the child ends that one render and shows "Preview unavailable"; the shell
 and the resident backend are not affected. Before the child is even started,
 the type, link, byte, and target-size gates limit exposure.
-Application icons read from desktop files are limited to bounded theme icon
-names. Path and URL icon values are ignored and use the fallback glyph instead,
-so opening an application menu does not decode a desktop-file-selected image.
+Other recognized images and static video posters use `ffprobe` and `ffmpeg`
+with fixed demuxer/codec allowlists and only the `pipe` protocol. Both receive
+bounded source bytes on stdin, have four-second command deadlines, one decoder
+thread, a 512 MiB address-space cap and no regular-file writes. Output is capped
+at 8 MiB and checked as a PNG within the requested dimensions. Unsupported
+formats, absent tools and decoder failures retain a visible fallback. The
+[media contract](modules/files/MEDIA.md) records the qualified formats and gaps.
+Application icons can use bounded theme names and trusted local desktop-catalogue
+sources. Qt decodes those local icon images with requested dimensions capped at
+128 device pixels; this icon path is distinct from the media thumbnail worker.
+Arbitrary remote row URLs are not accepted as application icon sources.
 
 Thumbnail directories are `0700` and files are atomically published as `0600`.
 Cache reads reject symlinks, non-regular files, unsafe permissions, files over

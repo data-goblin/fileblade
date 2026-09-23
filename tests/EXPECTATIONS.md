@@ -1660,6 +1660,16 @@ already saved on disk; they do not prove that unsaved edits survive shutdown.
   `packaging/runtime.json` lists the digest of my current contract under
   `upgrades` and its own dependency check succeeds. I can roll back to the
   previous version afterwards.
+- **E-91-11** If a downloaded archive contains a different version or processor
+  target from the advertised release, installation stops before its installer
+  runs and leaves my installed app unchanged.
+- **E-91-12** Preparing release archives in a directory for an older version
+  refuses to mix the two versions and preserves the existing release files.
+- **E-91-13** With a home path containing spaces, quotes, backslashes, dollar
+  signs, backticks or percent signs, enabled desktop entries and D-Bus services
+  still launch the intended FileBlade command with its arguments intact.
+
+Local regressions: `cargo test --locked --test install_bootstrap --test native_roles`.
 
 ## 92. Installing and removing the Arch package
 
