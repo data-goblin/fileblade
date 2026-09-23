@@ -1910,3 +1910,9 @@ The public CLI exits unsuccessfully for invalid module, slot and tab control rep
 This file was written by an agent.
 
 Ordinary H.264 MP4 files with metadata after the media packets produce static posters in Media and Properties. Decoder input remains bounded and sealed; file and network protocols remain unavailable.
+
+This file was written by an agent.
+
+### File collision choices
+
+A copy or move onto an existing file opens a visible choice dialog in the Files pane. Keep both preserves the original destination and writes a uniquely named copy; Cancel leaves both originals intact. Queued work proceeds after the choice. The focused conflict clip under `features/operations/conflicts` is a local end-to-end replay.

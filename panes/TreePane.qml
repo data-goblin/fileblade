@@ -1574,6 +1574,14 @@ FocusScope {
   }
 
   PluginUi.ActionDialog {
+    anchors.fill: parent
+    z: 96
+    actionKeys: root.actionKeys
+    collisionController: root.controller.history
+    paneVisible: root.visible && !!root.context && root.context.bladeOpen
+  }
+
+  PluginUi.ActionDialog {
     id: trashDialog
     actionKeys: root.actionKeys
     anchors.fill: parent
