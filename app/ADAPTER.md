@@ -127,8 +127,8 @@ A real QML copy interrupted by root replacement leaves the replacement
 sentinel unchanged and retains an explicit authority-lost result after view
 exit.
 Monitor and hotplug qualification passes in harness A. The matched
-single-output plugin/native focus and exclusive-zone checks pass. Lock/unlock interaction, remaining retained expectations, chooser and
-ARM execution remain separate qualification work.
+single-output plugin/native focus and exclusive-zone checks pass. Lock/unlock interaction, remaining retained expectations and chooser
+remain separate qualification work.
 
 `ovm-spike` adapts the retained expectation scripts to harness A and the native
 IPC target without changing their source. Other shell targets still address

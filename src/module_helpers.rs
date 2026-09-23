@@ -45,8 +45,9 @@ impl CoreRoute {
             (_, false) => {
                 method == "list"
                     || matches!(self, Self::Hooks | Self::Mcp) && method == "recovery-list"
-                    || matches!(self, Self::Skills | Self::Mcp) && method == "usage"
-                    || self == Self::Skills && matches!(method, "usage-counts" | "usage-day")
+                    || matches!(self, Self::Skills | Self::Mcp)
+                        && matches!(method, "usage" | "usage-counts")
+                    || self == Self::Skills && method == "usage-day"
             }
             (Self::Skills | Self::Memory, true) => method == "apply",
             (Self::Hooks | Self::Mcp, true) => {

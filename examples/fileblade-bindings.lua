@@ -1,5 +1,5 @@
 local function fileblade(method, fallback)
-  local call = "timeout 0.4s fileblade native ipc -- data-goblin.fileblade.control " .. method .. " >/dev/null 2>&1"
+  local call = "timeout 0.4s fileblade control " .. method .. " >/dev/null 2>&1"
   if fallback then return call .. " || hyprctl dispatch " .. string.format("%q", fallback) end
   return call
 end

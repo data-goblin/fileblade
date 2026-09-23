@@ -1,7 +1,6 @@
 target_machine() {
   case $1 in
     x86_64-unknown-linux-gnu|x86_64-unknown-linux-musl) printf '%s\n' 'Advanced Micro Devices X86-64' ;;
-    aarch64-unknown-linux-gnu|aarch64-unknown-linux-musl) printf '%s\n' AArch64 ;;
     *) fail "unsupported Linux target: $1" ;;
   esac
 }
@@ -15,10 +14,7 @@ check_elf() {
   if [[ $target == *-musl ]]; then
     [[ $program != *INTERP* && $dynamic != *NEEDED* ]] || fail 'musl delivery requires a static backend'
   else
-    case $target in
-      x86_64-*) interpreter=/lib64/ld-linux-x86-64.so.2 ;;
-      aarch64-*) interpreter=/lib/ld-linux-aarch64.so.1 ;;
-    esac
+    interpreter=/lib64/ld-linux-x86-64.so.2
     [[ $program == *"Requesting program interpreter: $interpreter]"* ]] || fail 'backend GNU ABI interpreter differs'
   fi
 }
@@ -64,7 +60,7 @@ verify_payload() {
     .schema == 1 and .kind == "fileblade-native" and
     (.version | type == "string" and test("^[0-9]+\\.[0-9]+\\.[0-9]+([+-][A-Za-z0-9.-]+)?$")) and
     (.source | type == "string" and test("^([a-f0-9]{40}|[a-f0-9]{64})$")) and
-    (.target | IN("x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl")) and
+    (.target | IN("x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl")) and
     (.architecture == (.target | split("-")[0])) and
     (.files | type == "array" and length > 0 and length <= 10000) and
     (all(.files[]; (.path | type == "string" and test("^[A-Za-z0-9_.+/-]+$")) and

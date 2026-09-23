@@ -101,6 +101,14 @@ pub enum RootCommand {
     ExecHex(ExecHexArgs),
     Preferences(crate::preferences::Changes),
     Status,
+    Control {
+        method: String,
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        arguments: Vec<String>,
+    },
+    Popout {
+        module: Option<String>,
+    },
     Doctor,
     Selection,
     Favorites,
@@ -270,6 +278,17 @@ fn run_command(command: RootCommand) -> AppResult<PublicResult> {
         RootCommand::Show => simple_ipc("open", &[]),
         RootCommand::Hide => simple_ipc("close", &[]),
         RootCommand::Toggle => simple_ipc("toggle", &[]),
+        RootCommand::Control { method, arguments } => simple_ipc(&method, &arguments),
+        RootCommand::Popout { module } => {
+            let method = if module.is_some() { "open" } else { "close" };
+            let arguments: Vec<_> = module.into_iter().collect();
+            let response = ipc_on("data-goblin.fileblade.popout", method, &arguments)?;
+            if matches!(response.as_str(), "opened" | "closed") {
+                Ok(PublicResult::one(response))
+            } else {
+                Err(AppError::command(response))
+            }
+        }
         RootCommand::Refresh => simple_ipc("refresh", &[]),
         RootCommand::Up => simple_ipc("up", &[]),
         RootCommand::Home => simple_ipc("home", &[]),

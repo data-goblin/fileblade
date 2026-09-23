@@ -7,6 +7,20 @@ use std::path::{Path, PathBuf};
 pub const FILE_BYTES: usize = 1024 * 1024;
 pub const MARKER: &str = "-- fileblade desktop role";
 
+pub fn exec_path(path: &Path) -> String {
+    let quoted = path
+        .to_string_lossy()
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('`', "\\`")
+        .replace('$', "\\$");
+    format!("\"{quoted}\"")
+        .replace('\\', "\\\\")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
+}
+
 #[derive(Clone, Debug)]
 pub struct Planned {
     pub path: PathBuf,

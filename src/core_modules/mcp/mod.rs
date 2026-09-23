@@ -30,6 +30,7 @@ struct Options {
     project: String,
     scope: String,
     watch: bool,
+    no_usage: bool,
     id: Option<String>,
     agent: Vec<String>,
     state: Option<String>,
@@ -61,6 +62,7 @@ fn parsed(arguments: &[String]) -> AppResult<Options> {
         match flag {
             "--json" => {}
             "--watch" => options.watch = true,
+            "--no-usage" => options.no_usage = true,
             "--payload-stdin" => options.payload_stdin = true,
             "--project" => options.project = value()?,
             "--scope" => options.scope = value()?,
@@ -135,9 +137,11 @@ fn listing(_: &Request<'_>, arguments: &[String], context: &CoreContext<'_>) -> 
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
-    let extra = usage::attach_mcp(&environment, &mut definitions);
-    for (key, value) in extra {
-        document.insert(key, value);
+    if !options.no_usage {
+        let extra = usage::attach_mcp(&environment, &mut definitions);
+        for (key, value) in extra {
+            document.insert(key, value);
+        }
     }
     document.insert(
         "usageWatchPaths".to_string(),
@@ -152,6 +156,61 @@ fn listing(_: &Request<'_>, arguments: &[String], context: &CoreContext<'_>) -> 
     document.insert("usageAmbiguous".to_string(), json!(ambiguous));
     let encoded = inventory::bounded_json(&document);
     Ok(serde_json::from_str(&encoded).unwrap_or_else(|_| list_failure()))
+}
+
+fn usage_counts(
+    _: &Request<'_>,
+    arguments: &[String],
+    context: &CoreContext<'_>,
+) -> AppResult<Value> {
+    context.check()?;
+    let options = parsed(arguments)?;
+    let mut store = Inventory::new(settings(&options.project, "all", inventory::environ()));
+    let mut document = store.scan();
+    let mut definitions = document
+        .remove("definitions")
+        .and_then(|value| value.as_array().cloned())
+        .unwrap_or_default();
+    let environment = usage::environment();
+    let extra = usage::attach_mcp(&environment, &mut definitions);
+    let counts: serde_json::Map<String, Value> = definitions
+        .into_iter()
+        .filter_map(|row| {
+            let id = row.get("id")?.as_str()?.to_string();
+            let values = [
+                "uses",
+                "usesAgent",
+                "usesUser",
+                "usesScheduled",
+                "failed",
+                "observed",
+                "usageAmbiguous",
+            ]
+            .into_iter()
+            .map(|key| {
+                (
+                    key.to_string(),
+                    row.get(key).cloned().unwrap_or_else(|| {
+                        if key == "usageAmbiguous" {
+                            Value::Bool(false)
+                        } else {
+                            Value::Null
+                        }
+                    }),
+                )
+            })
+            .collect::<serde_json::Map<String, Value>>();
+            Some((id, Value::Object(values)))
+        })
+        .collect();
+    let mut response = json!({
+        "ok": !extra.contains_key("usageError"),
+        "schemaVersion": 1,
+        "counts": counts,
+        "usageWatchPaths": usage::watch_paths(&environment),
+    });
+    response.as_object_mut().unwrap().extend(extra);
+    Ok(response)
 }
 
 fn applier(options: &Options) -> Applier {
@@ -273,6 +332,7 @@ fn restoring(
 pub fn handler(method: &str) -> Option<crate::core_modules::CoreHandler> {
     match method {
         "list" => Some(listing),
+        "usage-counts" => Some(usage_counts),
         "recovery-list" => Some(recovery_listing),
         "apply" => Some(applying),
         "prepare-remove" | "remove-prepared" => Some(removing),

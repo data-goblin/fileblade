@@ -46,7 +46,7 @@ elif name == 'herdr':
     key, rows = ('workspaces', [{'workspace_id':'w1','label':'fixture space','focused':True}]) if 'workspace' in args else ('panes', [{'workspace_id':'w1','pane_id':'w1:p1','focused':True}])
     print(json.dumps({'result':{key:rows}}))
 elif name == 'tmux':
-    print(f"{client['pid']}\t/dev/pts/10\t$1\t{client['pid']}")
+    print(f"{client['pid']}\t/dev/pts/10\t$1\t{client['pid']}\t/fixture/tmux.sock")
 else:
     print('{}')
 "#;

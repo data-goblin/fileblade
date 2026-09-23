@@ -79,10 +79,16 @@ fn before_argument(arguments: &[String]) -> AppResult<Option<String>> {
 
 fn mcp_history(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
     context.check()?;
-    if arguments.iter().any(|argument| argument != "--json") {
+    if arguments
+        .iter()
+        .any(|argument| !matches!(argument.as_str(), "--json" | "--no-ingest"))
+    {
         return Err(AppError::invalid("unrecognised mcp usage arguments"));
     }
-    Ok(query::mcp_usage(&environment()))
+    Ok(query::mcp_history(
+        &environment(),
+        !arguments.iter().any(|argument| argument == "--no-ingest"),
+    ))
 }
 
 fn mcp_forget(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {

@@ -78,8 +78,8 @@ Item {
     return id
   }
 
-  function subscribe(paths, generation, eventCallback, readyCallback, closedCallback) {
-    return subscribeTopic("filesystem", paths, generation, eventCallback, readyCallback, closedCallback)
+  function subscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites) {
+    return subscribeTopic("filesystem", paths, generation, eventCallback, readyCallback, closedCallback, includeWrites)
   }
 
   function operation(operationId, action, generation, callback) {
@@ -98,7 +98,7 @@ Item {
     return id
   }
 
-  function subscribeTopic(topic, paths, generation, eventCallback, readyCallback, closedCallback) {
+  function subscribeTopic(topic, paths, generation, eventCallback, readyCallback, closedCallback, includeWrites) {
     serial++
     var id = "qml-watch-" + Date.now() + "-" + serial
     var currentGeneration = generation === undefined || generation === null ? 0 : generation
@@ -110,6 +110,7 @@ Item {
       topic: String(topic || "filesystem"),
       paths: Array.isArray(paths) ? paths.map(function(value) { return String(value) }) : []
     }
+    if (includeWrites === true) frame.includeWrites = true
     pending[key(id, currentGeneration)] = {
       kind: "subscribe",
       sent: false,

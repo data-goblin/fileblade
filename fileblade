@@ -3,14 +3,13 @@ set -euo pipefail
 
 launcher=$(readlink -f -- "${BASH_SOURCE[0]}")
 launcher_dir=$(cd -- "$(dirname -- "$launcher")" && pwd -P)
+[[ $(uname -m) == x86_64 ]] || { printf '%s\n' 'fileblade: unsupported architecture' >&2; exit 126; }
 
 candidates=()
 if [[ -n ${FILEBLADE_BINARY:-} ]]; then
   candidates+=("$FILEBLADE_BINARY")
 fi
-if [[ $(uname -m) == x86_64 ]]; then
-  candidates+=("$launcher_dir/fileblade-bin")
-fi
+candidates+=("$launcher_dir/fileblade-bin")
 candidates+=(
   "$launcher_dir/bin/fileblade"
   "$launcher_dir/target/release/fileblade"

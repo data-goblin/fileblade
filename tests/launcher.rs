@@ -47,7 +47,7 @@ fn launcher_prefers_the_bundle_and_honors_an_explicit_development_override() {
 }
 
 #[test]
-fn another_architecture_skips_the_x86_bundle() {
+fn unsupported_architecture_refuses_every_backend() {
     let temporary = tempdir().unwrap();
     let root = temporary.path();
     executable(&root.join("fileblade"), include_str!("../fileblade"));
@@ -58,7 +58,7 @@ fn another_architecture_skips_the_x86_bundle() {
     );
     executable(
         &root.join("commands/uname"),
-        "#!/bin/sh\nprintf 'aarch64\\n'\n",
+        "#!/bin/sh\nprintf 'unsupported\\n'\n",
     );
     let output = Command::new(root.join("fileblade"))
         .env_remove("FILEBLADE_BINARY")
@@ -68,6 +68,7 @@ fn another_architecture_skips_the_x86_bundle() {
         )
         .output()
         .unwrap();
-    assert!(output.status.success());
-    assert_eq!(output.stdout, b"native\n");
+    assert_eq!(output.status.code(), Some(126));
+    assert!(output.stdout.is_empty());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("unsupported architecture"));
 }

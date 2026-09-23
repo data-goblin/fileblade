@@ -13,7 +13,6 @@ bundle_mode=${1:-verify}
 
 case $bundle_target in
   x86_64-unknown-linux-musl) bundle_machine='Advanced Micro Devices X86-64' ;;
-  aarch64-unknown-linux-musl) bundle_machine=AArch64 ;;
   *) printf 'bundle: unsupported static target: %s\n' "$bundle_target" >&2; exit 2 ;;
 esac
 if [[ $# == 3 ]]; then
@@ -43,7 +42,7 @@ fi
 command -v rustup >/dev/null || fail 'maintainer builds require rustup and the pinned rust-toolchain.toml toolchain'
 bundle_sysroot=$(rustup run "$bundle_version" rustc --print sysroot)
 bundle_host=$(rustup run "$bundle_version" rustc -vV | sed -n 's/^host: //p')
-[[ $bundle_host == x86_64-unknown-linux-gnu || $bundle_host == aarch64-unknown-linux-gnu ]] || fail 'build with the pinned Linux GNU host toolchain'
+[[ $bundle_host == x86_64-unknown-linux-gnu ]] || fail 'build with the pinned Linux GNU host toolchain'
 [[ -d $bundle_sysroot/lib/rustlib/$bundle_target/lib ]] || fail "the pinned toolchain lacks target $bundle_target; provision it before building"
 bundle_linker="$bundle_sysroot/lib/rustlib/$bundle_host/bin/rust-lld"
 [[ -x $bundle_linker ]] || fail 'the pinned toolchain has no rust-lld linker'

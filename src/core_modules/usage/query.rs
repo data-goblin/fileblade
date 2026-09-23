@@ -524,32 +524,39 @@ fn tallied_history(
 }
 
 pub fn skill_usage(environment: &Environment, items: &[Value], scoped: bool) -> Value {
+    skill_history(environment, items, scoped, !scoped)
+}
+
+pub fn skill_history(
+    environment: &Environment,
+    items: &[Value],
+    scoped: bool,
+    ingest: bool,
+) -> Value {
     let mut names: Vec<String> = items.iter().flat_map(skill_names).collect();
     names.sort();
     names.dedup();
     let encoded = serde_json::to_string(&names).unwrap_or_else(|_| "[]".to_string());
-    if scoped {
-        return history(
-            environment,
-            "skill",
-            &SKILL_AGENTS,
-            "kind IN ('skill', 'command') AND name IN (SELECT value FROM json_each(?))",
-            &[Bound::Text(encoded)],
-            false,
-        );
-    }
     history(
         environment,
         "skill",
         &SKILL_AGENTS,
-        "(kind = 'skill' OR (kind = 'command' AND name IN (SELECT value FROM json_each(?))))",
+        if scoped {
+            "kind IN ('skill', 'command') AND name IN (SELECT value FROM json_each(?))"
+        } else {
+            "(kind = 'skill' OR (kind = 'command' AND name IN (SELECT value FROM json_each(?))))"
+        },
         &[Bound::Text(encoded)],
-        true,
+        ingest,
     )
 }
 
 pub fn mcp_usage(environment: &Environment) -> Value {
-    history(environment, "mcp", &MCP_AGENTS, MCP_EVENTS, &[], true)
+    mcp_history(environment, true)
+}
+
+pub fn mcp_history(environment: &Environment, ingest: bool) -> Value {
+    history(environment, "mcp", &MCP_AGENTS, MCP_EVENTS, &[], ingest)
 }
 
 pub fn forget(environment: &Environment, before: Option<&str>) -> Value {
@@ -563,6 +570,8 @@ pub fn forget(environment: &Environment, before: Option<&str>) -> Value {
 
 fn forgotten(environment: &Environment, before: Option<&str>) -> sql::Result<Value> {
     let session = store::session(environment, false)?;
+    let _lock = store::Lock::acquire(&environment.state().join("agent-usage.sqlite3.lock"))?
+        .ok_or_else(|| sql::Error::new("usage store is busy"))?;
     let database = &session.database;
     let (cutoff, prelude, removal) = match before {
         Some(before) => {

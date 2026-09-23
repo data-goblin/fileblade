@@ -70,7 +70,7 @@ FocusScope {
   readonly property int ordinaryDensityStep: root.nearestDensityStep(ordinaryDensity)
   property var mediaLocationDescriptor: null
   property real ordinaryContentY: 0
-  readonly property bool mediaActive: mediaMode && toolbarButtons.indexOf("media") >= 0 && !controller.trashMode && !controller.drivesMode && !controller.recentMode && !PathText.isRemote(controller.rootPath)
+  readonly property bool mediaActive: mediaMode && !controller.pickerActive && toolbarButtons.indexOf("media") >= 0 && !controller.trashMode && !controller.drivesMode && !controller.recentMode && !PathText.isRemote(controller.rootPath)
   property var folderCountData: ({ loaded: 0, total: 0, known: false })
   readonly property var folderCount: folderCountData
   readonly property bool folderCountReady: ViewChrome.folderReady(controller.treeModel, controller.rootPath)
@@ -576,7 +576,7 @@ FocusScope {
     }
     var flat = controller.recentMode || controller.searching
     var view = controller.recentMode ? recentList : (controller.searching ? searchList : treeList)
-    if (view.count > 0 && view.currentIndex < 0) selectIndex(view, !flat, 0)
+    if (view.count > 0 && view.currentIndex < 0 && (!controller.selectedPath || controller.selectedPath === controller.rootPath)) selectIndex(view, !flat, 0)
     view.forceActiveFocus()
   }
 
@@ -1571,6 +1571,14 @@ FocusScope {
     wrapMode: Text.WordWrap
     font.family: Style.font.family
     font.pixelSize: Typography.body
+  }
+
+  PluginUi.ActionDialog {
+    anchors.fill: parent
+    z: 96
+    actionKeys: root.actionKeys
+    collisionController: root.controller.history
+    paneVisible: root.visible && !!root.context && root.context.bladeOpen
   }
 
   PluginUi.ActionDialog {

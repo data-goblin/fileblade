@@ -16,6 +16,28 @@ struct Server {
 }
 
 #[test]
+fn usage_watches_report_appends_before_the_writer_closes_the_file() {
+    let root = TempDir::new().unwrap();
+    let path = root.path().join("session.jsonl");
+    let mut transcript = std::fs::File::create(&path).unwrap();
+    let mut server = Server::start_with(&[("XDG_STATE_HOME", root.path())]);
+    server.send(json!({"v": 1, "type": "hello"}));
+    assert_eq!(server.receive()["ok"], true);
+    server.send(json!({
+        "v": 1, "type": "subscribe", "id": "usage", "generation": 1,
+        "topic": "filesystem", "paths": [root.path()], "includeWrites": true,
+    }));
+    assert_eq!(server.receive()["type"], "subscribed");
+    transcript.write_all(b"{\"type\":\"assistant\"}\n").unwrap();
+    transcript.flush().unwrap();
+    let event = server.receive_where(|frame| frame["type"] == "event");
+    assert_eq!(event["path"], path.to_str().unwrap());
+    assert_eq!(event["events"], json!(["modify"]));
+    server.finish();
+    drop(transcript);
+}
+
+#[test]
 fn handshake_resolves_the_screenshot_directory_from_xdg_user_dirs() {
     let root = TempDir::new().unwrap();
     let config = root.path().join("config");

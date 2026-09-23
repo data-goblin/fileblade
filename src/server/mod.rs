@@ -45,7 +45,7 @@ const MAX_DEADLINE_MS: u64 = 900_000;
 const MONITOR_IDLE_TICK: Duration = Duration::from_millis(500);
 const WATCH_POLL_TIMEOUT: Timespec = Timespec {
     tv_sec: 0,
-    tv_nsec: 50_000_000,
+    tv_nsec: 500_000_000,
 };
 
 #[derive(Clone, Debug, Args)]

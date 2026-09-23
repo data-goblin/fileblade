@@ -710,6 +710,10 @@ Automation for the remaining tab-management scenarios is pending.
      module such as Memory, Skills, Hooks, or MCP, it opens in the same default
      application it would open in from the file tree, not in the terminal editor.
 
+**E-23-13** If I open a file picker after using the media grid, the picker shows
+ordinary files so I can select a text file. Ending the picker preserves my media
+view preference for normal browsing.
+
 ## 24. Search syntax, columns and colors
 
 `tests/vm/expectations/24-search-columns-colors.sh`
@@ -849,6 +853,10 @@ shared there.
 **E-26-13** Open in new terminal opens the selected files in nvim. A folder-only
 selection opens a shell in that folder. Herdr splits target the currently
 focused pane and tab, even when other tabs contain nvim or an older shell.
+
+**E-26-14** Opening a file in a tmux pane uses the server belonging to the target
+terminal, including named (`-L`) and explicit (`-S`) sockets and a custom
+`TMUX_TMPDIR`. It never falls back to another server when discovery fails.
 
 ## 27. Updates and recovery
 
@@ -1456,9 +1464,9 @@ field both shown and auto-hidden. See
     collapse separately. Enter or a double-click expands such a row, and `o`
     still opens its configuration file.
 13. **E-48-13** The first time a large transcript history is read, the counts
-    and the grid can be partial, newest transcripts first; a visible grid
-    automatically fills in the rest. Skills and MCP tabs open at the same time never
-    count a use twice.
+    and the grid can be partial, newest transcripts first; the open tab
+    automatically fills in the rest even with Activity hidden. Skills and MCP
+    tabs open at the same time never count a use twice.
 14. **E-48-14** `fileblade usage skills` prints one `YYYY-MM-DD<TAB>uses` line
     per local day with any skill use. Typed commands count for the skills
     visible from the directory I run it in. `fileblade usage mcp` prints the
@@ -1494,8 +1502,10 @@ This file was written by an agent.
   it and as the agent's when it did. A Copilot or OpenCode MCP call counts for
   its server row.
 - **E-48-21** While an agent is running in another window, the Uses column and
-  the heatmap of an open Skills or MCP tab climb on their own within a few
-  seconds of the agent writing its transcript, without me pressing refresh.
+  the heatmap of an open Skills or MCP tab update promptly after the agent
+  writes a complete transcript record, even while it keeps the file open,
+  without me pressing refresh. A continuous stream of records does not
+  postpone updates until the agent stops.
   When the tab is closed nothing is read.
 - **E-48-22** A skill I disabled stays in the list, struck through, from the
   moment the dialog closes, after a rescan, and after the shell restarts. It
@@ -1511,6 +1521,15 @@ This file was written by an agent.
   target untouched. Delete forever on a deactivated symlink reads Delete
   symlink forever and never touches the target. Memory, Hooks and MCP rows use
   their own noun in the same dialog.
+
+This file was written by an agent.
+
+- **E-48-25** Opening Skills or MCP shows the inventory while usage history
+  loads separately. Reopening immediately shows the previous rows and checks
+  for changes. Updating counts keeps my selection and expanded rows intact.
+- **E-48-26** Creating a skill or changing an MCP declaration updates the open
+  list promptly. Starting the first agent session or a new Codex date folder
+  starts updating usage without waiting for a manual refresh.
 
 ## 49. Branches
 
@@ -1660,6 +1679,16 @@ already saved on disk; they do not prove that unsaved edits survive shutdown.
   `packaging/runtime.json` lists the digest of my current contract under
   `upgrades` and its own dependency check succeeds. I can roll back to the
   previous version afterwards.
+- **E-91-11** If a downloaded archive contains a different version or processor
+  target from the advertised release, installation stops before its installer
+  runs and leaves my installed app unchanged.
+- **E-91-12** Preparing release archives in a directory for an older version
+  refuses to mix the two versions and preserves the existing release files.
+- **E-91-13** With a home path containing spaces, quotes, backslashes, dollar
+  signs, backticks or percent signs, enabled desktop entries and D-Bus services
+  still launch the intended FileBlade command with its arguments intact.
+
+Local regressions: `cargo test --locked --test install_bootstrap --test native_roles`.
 
 ## 92. Installing and removing the Arch package
 
@@ -1875,6 +1904,11 @@ This file was written by an agent.
   start FileBlade; it does not claim FileBlade is missing or restart Omarchy.
 - `fileblade doctor` reports the current folder. Native failures advise starting
   FileBlade, while legacy-plugin failures retain the corresponding shell advice.
+- If startup recovery is blocked, `fileblade doctor` reports an unhealthy
+  runtime, exits unsuccessfully and includes the recovery failure in its advice,
+  even when the backend and view answer requests.
+- Native CLI backend helpers, including drive capacity and archive extraction,
+  use the running authority. They refuse cleanly when that owner is stopped.
 - **E-40-21** The native `fileblade preferences` command reads and saves through
   the running persistence service. Changes survive the next read and a stopped
   service cannot cause a separate writer to modify the settings.
@@ -1887,3 +1921,27 @@ This file was written by an agent.
   a previous keybinding error automatically.
 - **E-07-09** Hovering the repository summary above the file tree shows branch,
   upstream comparison and file-change details without selecting the root folder.
+
+This file was written by an agent.
+
+The public CLI exits unsuccessfully for invalid module, slot and tab control replies or an unavailable target screen. A rejected blade action preserves the existing layout.
+
+This file was written by an agent.
+
+Ordinary H.264 MP4 files with metadata after the media packets produce static posters in Media and Properties. Decoder input remains bounded and sealed; file and network protocols remain unavailable.
+
+This file was written by an agent.
+
+### File collision choices
+
+A copy or move onto an existing file opens a visible choice dialog in the Files pane. Keep both preserves the original destination and writes a uniquely named copy; Cancel leaves both originals intact. Queued work proceeds after the choice. The focused conflict clip under `features/operations/conflicts` is a local end-to-end replay.
+
+This file was written by an agent.
+
+- **E-40-23** A native Reveal request selects the requested file after opening its parent folder. Initial keyboard focus must not replace that explicit file selection while the folder rows are loading.
+
+This file was written by an agent.
+
+## Tailnet SSH aliases
+
+After connecting to a discovered tailnet peer through its configured SSH alias, refreshing Drives or opening the connected SFTP directory preserves the connection and lists the remote entries. The connection remains limited to the currently discovered peer and its validated SSH alias. Disconnect invalidates the old session.

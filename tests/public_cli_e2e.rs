@@ -377,6 +377,15 @@ fn every_wrapped_control_verb_dials_its_ipc_method() {
             "{arguments:?}: {recorded:?}"
         );
         assert_eq!(&call[1..], expected, "{arguments:?}: {recorded:?}");
+        if arguments.first() == Some(&"blade") {
+            for response in ["invalid-module", "invalid-slot", "invalid-tab", "no-screen"] {
+                let rejected = harness.run(arguments, response);
+                assert!(!rejected.status.success(), "{arguments:?}: {response}");
+                assert!(stderr(&rejected).contains(response));
+                assert!(rejected.stdout.is_empty());
+                assert_eq!(harness.recorded_arguments(), recorded);
+            }
+        }
     }
 }
 

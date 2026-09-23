@@ -4,6 +4,31 @@ This file was written by an agent.
 
 ## 0.2.0 (unreleased)
 
+- File pickers keep text files visible after media browsing, and desktop Reveal preserves the requested selection while the tree loads.
+- Copy collisions show the existing decision dialog, including Keep both.
+- Terminal pane actions retain tmux named and explicit socket selection instead of contacting the default server.
+
+- Static video posters now support ordinary MP4 files with trailing metadata through bounded, sealed seekable input.
+
+- CLI control refusals such as invalid modules, slots and tabs now exit unsuccessfully instead of reporting success.
+
+This file was written by an agent.
+
+- Native installation now supports verified runtime payloads, explicit desktop
+  roles, migration receipts, safe shutdown, updates and rollback. Release archives
+  refuse mixed versions; the bootstrap verifies the advertised version and target
+  before running the payload installer. Desktop integration handles launcher paths
+  containing spaces and reserved characters.
+- Native CLI backend helpers reuse the running authority for reads, persistence
+  and mutation admission. `fileblade doctor` reports blocked startup recovery as
+  unhealthy and explains the failure even when the backend and view still answer.
+- Skills, Memory, Hooks and MCP are built into core and run through the Rust
+  backend without Python runtime helpers.
+- Theme changes reload native colors in both directions. Holding Space before a
+  drag leaves the blade still opens the drop wheel; Herdr targets its focused pane.
+  Hunk is disabled when the selected path has no Git changes, and opening a file in
+  a new terminal starts Neovim. Hourly media timelines retain each day with 24 bars.
+
 - The Branches module opens as a tab beside Properties. Branches come first and a linked worktree nests under the branch it has checked out, with its path as summary; Enter on it opens that folder. The main checkout is no longer listed as a worktree. The Status column uses the same `↑3 ↓1 M4 A1 ?2` layout and colours as the repository summary on the tree's root row.
 - The Skills heatmap tooltip shows the date, the day's total in blue, the unit, and a stacked bar of agent, you and scheduled shares. Left click or Enter on a day shows only the skills used that day; Esc clears. The header sits under the heatmap. A transcript write refreshes the counts and the heatmap without rescanning skill directories, so "Scanning" only shows for real rescans. `docs/agent-written/skills/usage-counting.md` records the counting audit.
 - The native app's Settings gain a Desktop integration section with five independent switches: open folders with FileBlade, reveal in FileBlade, file chooser, Hyprland bindings and start at login. All are off after install, update and first launch; turning one off restores the previous handler when it has not changed since and keeps a newer choice otherwise, and the row says which. `fileblade native roles status|enable|disable` drives the same switches, and removal reverses every owned entry.

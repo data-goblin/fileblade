@@ -18,9 +18,9 @@ TestCase {
       requests.push({ id: id, name: name, args: args.slice(), generation: generation, callback: callback, options: options })
       return id
     }
-    function backendSubscribe(paths, generation, event, ready, closed) {
+    function backendSubscribe(paths, generation, event, ready, closed, includeWrites) {
       var id = "watch-" + subscriptions.length
-      subscriptions.push({ id: id, paths: paths, generation: generation, event: event, ready: ready, closed: closed })
+      subscriptions.push({ id: id, paths: paths, generation: generation, event: event, ready: ready, closed: closed, includeWrites: includeWrites === true })
       return id
     }
     function cancelBackendRequest(id, generation, discardCallbacks) { cancelled.push({ id: id, generation: generation, discardCallbacks: !!discardCallbacks }) }
@@ -351,6 +351,8 @@ TestCase {
     finish(0, listing); finish(1, listing)
     compare(usageSubscriptions().length, 1)
     var usage = usageSubscriptions()[0]
+    verify(usage.includeWrites)
+    verify(!subscriptions[0].includeWrites)
     compare(usage.paths, ["/home/me/.claude/projects", "/home/me/.codex/sessions"])
     compare(inventory.usageWatchPaths, usage.paths)
     var before = requests.length
@@ -358,8 +360,7 @@ TestCase {
     usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
     compare(requests.length, before)
     tryVerify(function() { return requests.length >= before + 2 }, inventory.usageChangeDelayMs + 2000)
-    compare(scopeOf(before), "project")
-    compare(scopeOf(before + 1), "user")
+    compare([scopeOf(before), scopeOf(before + 1)].sort(), ["project", "user"])
     var again = rows("row", ["/plugins/inventory/skills"])
     again.usageWatchPaths = usage.paths
     finish(before, again); finish(before + 1, again)
@@ -382,5 +383,56 @@ TestCase {
     inventory.detach(view)
     compare(inventory.usageWatch, null)
     verify(cancelled.some(function(entry) { return entry.id === usage.id }))
+  }
+
+  function test_counts_update_in_place_survive_rescan_and_refresh_without_a_heatmap() {
+    inventory.usageCountsMethod = "usage-counts"
+    var view = observer()
+    inventory.attach(view); start()
+    var listing = rows("alpha", [])
+    listing.items[0].id = "alpha"
+    listing.usageWatchPaths = ["/home/me/.claude/projects"]
+    finish(0, listing); finish(1, rows("project", []))
+    compare(names(), ["alpha", "project"])
+    tryCompare(requests, "length", 3)
+    compare(requests[2].args[7], "usage-counts")
+    finish(2, { ok: true, counts: { alpha: { uses: 3 } }, usageWatchPaths: listing.usageWatchPaths })
+    compare(inventory.items[0].metrics.uses, 3)
+    var before = inventory.items
+    inventory.refresh(); start()
+    finish(3, listing); finish(4, rows("project", []))
+    verify(inventory.items === before)
+    tryCompare(requests, "length", 6)
+    var watch = usageSubscriptions()[0]
+    watch.event({ events: ["close_write"] })
+    wait(inventory.usageChangeDelayMs + 50)
+    compare(requests.length, 6)
+    finish(5, { ok: true, counts: { alpha: { uses: 4 } }, usageIngestPending: true })
+    tryCompare(requests, "length", 7)
+    finish(6, { ok: true, counts: { alpha: { uses: 5 } } })
+    compare(inventory.items[0].metrics.uses, 5)
+    compare(usageRequests().length, 0)
+    inventory.detach(view)
+    wait(inventory.usageChangeDelayMs + 50)
+    compare(requests.length, 7)
+    inventory.attach(view)
+    compare(inventory.items[0].metrics.uses, 5)
+  }
+
+  function test_inflight_counts_are_cancelled_on_project_change_and_destruction() {
+    inventory.usageCountsMethod = "usage-counts"
+    inventory.attach(observer()); start()
+    finish(0, rows("first")); finish(1, rows("user"))
+    inventory.requestCounts()
+    compare(requests.length, 3)
+    files.contextPath = "/project/two"
+    verify(cancelled.some(function(entry) { return entry.id === "request-2" }))
+    finish(2, { ok: true, counts: { alpha: { uses: 99 } } })
+    compare(Object.keys(inventory.usageCounts).length, 0)
+    start(); finish(3, rows("second"))
+    inventory.requestCounts()
+    compare(requests.length, 5)
+    inventory.destroy(); wait(0); inventory = null
+    verify(cancelled.some(function(entry) { return entry.id === "request-4" && entry.discardCallbacks }))
   }
 }

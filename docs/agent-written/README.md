@@ -7,6 +7,12 @@ is maintained separately.
 
 ## Documents
 
+- [Feature documentation](../../features/index.md): observable workflows,
+  logically grouped by workspace, pane, operation, integration and delivery,
+  with screenshot and short video coverage tracked for each feature
+- [v0.2.0 readiness](../../features/release/readiness.md): reviewed fixes, local validation and remaining release gates.
+- [Release classification decisions](../../features/release/decisions.md): Jev context and probability distributions.
+- [Feature evidence standard](../../features/evidence.md): capture geometry, SVG branding, visual review, and provenance
 - [Plugin-system design](design.md): why FileBlade extensions work the way
   they do, what Omarchy owns, what FileBlade owns, and what is still planned
 - [Architecture](../../ARCHITECTURE.md): how the whole application is split up

@@ -569,3 +569,14 @@ fn strings(value: &Value) -> Vec<&str> {
         .map(|item| item.as_str().unwrap())
         .collect()
 }
+
+#[test]
+fn real_tmux_clients_keep_their_named_and_explicit_sockets() {
+    let output = Command::new("python3")
+        .arg("-c")
+        .arg(include_str!("drop_target_tmux.py"))
+        .arg(env!("CARGO_BIN_EXE_fileblade"))
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{output:?}");
+}

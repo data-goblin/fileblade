@@ -9,7 +9,7 @@ notices_output=${3:-THIRD_PARTY_NOTICES.html}
   exit 2
 }
 case $notices_target in
-  x86_64-unknown-linux-musl|aarch64-unknown-linux-musl|x86_64-unknown-linux-gnu|aarch64-unknown-linux-gnu) ;;
+  x86_64-unknown-linux-musl|x86_64-unknown-linux-gnu) ;;
   *) printf 'notices: unsupported target: %s\n' "$notices_target" >&2; exit 2 ;;
 esac
 if [[ $# == 3 && $notices_target != x86_64-unknown-linux-musl && $(realpath -m -- "$notices_output") == "$PWD/THIRD_PARTY_NOTICES.html" ]]; then

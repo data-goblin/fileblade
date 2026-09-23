@@ -47,7 +47,8 @@ Item {
       if (item.slotIndex !== undefined && item.moduleItem !== undefined && item.loadFailed !== undefined && item.bladeOpen && item.hostActive) {
         slots.push({ edge: item.edge, index: item.slotIndex, module: item.moduleId,
           loaded: !!item.moduleItem, failed: item.loadFailed, title: item.title,
-          providerError: item.providerError, geometry: geometry(item), collapsed: service.bladeHost.slotCollapsed(item.edge, item.slotIndex) })
+          providerError: item.providerError, geometry: geometry(item), collapsed: service.bladeHost.slotCollapsed(item.edge, item.slotIndex),
+          inventory: inventorySnapshot(item.moduleItem) })
       }
       if (item.refreshActive && item.screenWidth !== undefined && item.active && item.contentItem) {
         for (var child of item.contentItem.children)
@@ -77,6 +78,61 @@ Item {
   }
 
   function serviceFor(id) { return id === "data-goblin.fileblade" ? service : service.services[id] || null }
+
+  function inventorySnapshot(module) {
+    var inventory = module ? module.inventory : null
+    if (!inventory) return null
+    return { ready: inventory.ready, busy: inventory.busy, count: inventory.items.length,
+      pending: inventory.usagePending, activity: inventory.activity, error: inventory.loadError || inventory.watchError,
+      rows: inventory.items.slice(0, 16).map(function(row) { return { id: row.id, name: row.name, uses: row.uses } }) }
+  }
+
+  Repeater {
+    id: inventoryTimings
+    model: ["skills", "mcp"]
+    delegate: Item {
+      id: timing
+      required property string modelData
+      readonly property var provider: probe.serviceFor("fileblade.core." + modelData)
+      readonly property var inventory: provider ? provider.inventory : null
+      property double openedAt: 0
+      property double firstRowsAt: 0
+      property double itemsAt: 0
+      property double countsAt: 0
+      property double activityAt: 0
+      function opened() {
+        if (!inventory || !inventory.ready) return
+        openedAt = Date.now()
+        firstRowsAt = inventory.items.length ? openedAt : 0
+      }
+      onInventoryChanged: opened()
+      Connections {
+        target: timing.inventory
+        function onReadyChanged() { timing.opened() }
+        function onItemsChanged() {
+          timing.itemsAt = Date.now()
+          if (timing.inventory.ready && !timing.firstRowsAt && timing.inventory.items.length)
+            timing.firstRowsAt = timing.itemsAt
+        }
+        function onUsageCountsChanged() { timing.countsAt = Date.now() }
+        function onActivityChanged() { timing.activityAt = Date.now() }
+      }
+    }
+  }
+
+  function inventories() {
+    var result = ({})
+    for (var index = 0; index < inventoryTimings.count; index++) {
+      var timing = inventoryTimings.itemAt(index)
+      if (!timing) continue
+      var snapshot = inventorySnapshot(timing)
+      if (!snapshot) continue
+      result[timing.modelData] = Object.assign(snapshot, { openedAt: timing.openedAt,
+        firstRowsAt: timing.firstRowsAt, itemsAt: timing.itemsAt, countsAt: timing.countsAt,
+        activityAt: timing.activityAt, now: Date.now() })
+    }
+    return result
+  }
 
   FileView {
     path: probe.goblinsDirectory ? probe.goblinsDirectory + "/manifest.json" : ""
@@ -133,6 +189,7 @@ Item {
   IpcHandler {
     target: "fileblade.qualification"
     function status(): string { return JSON.stringify(probe.snapshot()) }
+    function inventories(): string { return JSON.stringify(probe.inventories()) }
     function goblins(enabled: string): string {
       if (enabled === "true") {
         probe.service.extensionCatalog.providers = [{ id: probe.goblinsManifest.id, dir: probe.goblinsDirectory, enabled: true, manifest: probe.goblinsManifest }]

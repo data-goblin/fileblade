@@ -70,7 +70,7 @@ The same check accepts `--matrix MATRIX_JSON --external-open` to inspect actual 
 
 Each ThumbnailCache admits at most four active requests and keeps total active plus waiting entries within maximumPending. Existing subscribers share one request; cancelling the last queued subscriber removes it without a backend call, while cancelling the last active subscriber cancels its original owner and admits the next waiting request. Reset and late completions retain generation and identity guards. The request/cancel API, cache keys and response values are unchanged. `tst_media_queue.qml` checks the bound and cancel-and-drain behavior; the existing thumbnail cache suite runs unchanged.
 
-The matrix is a measured subset of the required families, not a claim to every encoding. SVGZ, other RAW/layered encodings, ICC/HDR color fidelity, Linux ARM decoding, remaining encodings, external display pixels, inline playback and full native viewport qualification remain incomplete. Recognition and a fallback glyph do not count as decoding. Ordinary browsing does not instantiate media decoding or inventory its dependencies.
+The matrix is a measured subset of the required families, not a claim to every encoding. SVGZ, other RAW/layered encodings, ICC/HDR color fidelity, remaining encodings, external display pixels, inline playback and full native viewport qualification remain incomplete. Recognition and a fallback glyph do not count as decoding. Ordinary browsing does not instantiate media decoding or inventory its dependencies.
 
 ## Application icon resolver
 

@@ -6,8 +6,8 @@ pub fn plan(launcher: &Path, config: &Path, data: &Path) -> Vec<Planned> {
         Planned::whole(
             data.join("applications/fileblade.desktop"),
             format!(
-                "[Desktop Entry]\nType=Application\nName=FileBlade\nIcon=fileblade\nExec={} native open %U\nMimeType=inode/directory;\nNoDisplay=true\nCategories=System;FileTools;\n",
-                launcher.display()
+                "[Desktop Entry]\nType=Application\nName=FileBlade\nIcon=fileblade\nExec=/usr/bin/env -- {} native open %U\nMimeType=inode/directory;\nNoDisplay=true\nCategories=System;FileTools;\n",
+                super::entry::exec_path(launcher).replace('%', "%%")
             ),
         ),
         Planned::ini(

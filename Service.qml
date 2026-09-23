@@ -117,8 +117,8 @@ Item {
   function cancelBackendRequest(id, generation, discardCallbacks) {
     return backendClient.cancel(id, generation, discardCallbacks)
   }
-  function backendSubscribe(paths, generation, eventCallback, readyCallback, closedCallback) {
-    return backendClient.subscribe(paths, generation, eventCallback, readyCallback, closedCallback)
+  function backendSubscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites) {
+    return backendClient.subscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites)
   }
 
   function backendSubscribeTopic(topic, paths, generation, eventCallback, readyCallback, closedCallback) {

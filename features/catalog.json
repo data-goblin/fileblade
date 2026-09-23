@@ -1,0 +1,2973 @@
+{
+  "schema": 1,
+  "source": "4bb83cac9105be43a65eb41a8d8f0012cdae2cab",
+  "capture": {
+    "min_seconds": 4,
+    "max_seconds": 8,
+    "watermark": "assets/fileblade-logo.svg",
+    "placement": "bottom-right",
+    "resolution": [
+      2560,
+      1440
+    ],
+    "max_blade_fraction": 0.3333333333333333,
+    "visible_padding_px": {
+      "right": 32,
+      "bottom": 32
+    },
+    "wallpaper": "/usr/share/omarchy/themes/tokyo-night/backgrounds/0-winding-road.jpg",
+    "session": "local isolated Hyprland window on workspace 9",
+    "visible_padding_measurement": {
+      "bounds": [
+        2144,
+        1330,
+        2528,
+        1408
+      ],
+      "right_px": 32,
+      "bottom_px": 32,
+      "method": "paired real compositor frames with the watermark overlay on and off"
+    }
+  },
+  "features": [
+    {
+      "id": "workspace/blades",
+      "title": "Open and close sidebars",
+      "summary": "Open either edge independently. The Files pane keeps its folder when its blade closes; reopening restores the pane.",
+      "command": "fileblade blade open left\nfileblade blade open right\nfileblade blade close left",
+      "proof": "The right blade opens, then the left blade closes.",
+      "expectations": [
+        "E-01"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "ee5688243be50ff70a7695f42e2cd4e76fe5ddc65840693fd1d86599f6309cd7",
+        "video_sha256": "3fb0da58c0f8db7dff11b927d290432b7bd1c6d012067e78c2af92e7b8efc2d4",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "workspace/focus",
+      "title": "Move focus between blades and applications",
+      "summary": "Focus a blade before using its keyboard navigation. Use release to return keyboard input to the application.",
+      "command": "fileblade blade focus left\nfileblade blade focus right\nfileblade blade release",
+      "proof": "Focus moves from the left blade to the right blade.",
+      "expectations": [
+        "E-01",
+        "E-43"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "8d384c70e0e7af2307a850d61102d6a42dedee28718ca57ef7e6c3d34fb91e00",
+        "video_sha256": "2a0fb96837b1ff4807dbbc02ef5e8649d8695e7ad54f6a7600c02761224ca25a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": "The clip covers switching blades; returning to an application is a separate command."
+    },
+    {
+      "id": "workspace/docking",
+      "title": "Dock and float a blade",
+      "summary": "Undock a blade into a window when you need a movable sidebar. Dock it again to reserve space at its original edge.",
+      "command": "fileblade blade undock left\nfileblade blade dock left",
+      "proof": "The Files pane changes placement and returns with the same folder.",
+      "expectations": [
+        "E-21"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "a71637f8da4a8bdf8bad142e808f51dc69fc12032eb03bdf99b3c799ba0b078f",
+        "video_sha256": "65c5a8ea6108560093a7ca24ca07345ab48fc611b1fc6891b442abf11e616695",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "workspace/resizing",
+      "title": "Resize a blade",
+      "summary": "Drag the blade edge or set its width in pixels. A docked blade reserves its new width beside tiled applications.",
+      "command": "fileblade blade width left 500\nfileblade blade width left 700",
+      "proof": "The blade widens from 500 to 700 pixels. Both widths remain below one-third of the recorded screen.",
+      "expectations": [
+        "E-21"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "6f9249be1e608f36be7512c40cb87d3a8bcdfe8fb14366aecdeafc919386caa6",
+        "video_sha256": "9b56aacc8fc98fd4b93f6bb6f74f603ab95af69dc0ad733361f1cf26ba62b37a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "workspace/sections",
+      "title": "Arrange sections",
+      "summary": "Add another pane as a section within a blade. Each section has its own pane state and can contain tabs.",
+      "command": "fileblade blade add left notes",
+      "proof": "A Notes section appears alongside the existing Files section.",
+      "expectations": [
+        "E-20"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "1652a32a62b4324fd3198da2cb7966369690c56bd09f65c7cfd8c9e3900801dc",
+        "video_sha256": "b1a849c6c3d85b2ab21d8be409c8f233eba2b804a2f4c26e8bce31b2b3e7f5e2",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": "This clip proves adding a section, not every rearrangement gesture."
+    },
+    {
+      "id": "workspace/tabs",
+      "title": "Switch pane tabs",
+      "summary": "Tabs share a section. Select a tab to show its pane while retaining the other tab's state. Slot and tab numbers in the CLI start at zero.",
+      "command": "fileblade blade tab-set left 0 1",
+      "proof": "The second tab becomes active in the first section.",
+      "expectations": [
+        "E-20",
+        "E-22"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "c231efb110db4c76dbac7b3bdfa57e1e4acb7812c440973abcb1e1667ac44762",
+        "video_sha256": "94b8903786cb99bef7b8ed7a150efc6a772fd8eeac605ee4894ec84133e8e256",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": "Closing tabs is supported by the tab menu but is not demonstrated in this clip."
+    },
+    {
+      "id": "workspace/move-tabs",
+      "title": "Move tabs between sections",
+      "summary": "Move a section's pane into another section as a tab. The destination retains its existing panes.",
+      "command": "fileblade blade tab-into left 1 left 0",
+      "proof": "The second section moves into the first section's tab strip.",
+      "expectations": [
+        "E-20",
+        "E-42"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "d26923047fb5a6e8b46c641cd045b57ba5e8d72a5ab1a0b1309767f43a490a4b",
+        "video_sha256": "3acf956400a3e6ffb9fdf797ef4bd11c7010c58443569c79c5365198b80d4089",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "workspace/monitors",
+      "title": "Choose where blades appear",
+      "summary": "Open blade settings to choose the active monitor, all monitors, or a named monitor. A named lock keeps placement tied to that output.",
+      "command": "fileblade blade settings left",
+      "proof": "The capture locks its blade to its actual named output and reports that output.",
+      "expectations": [
+        "E-34"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "22bf3256bb24a90c17ca261dec0f2fcaee70a26f9a534ba022e7e15052a4f824",
+        "video_sha256": "e21cfeb93a6d68f6f5610c6bd38de6bad1bf1e7055b804af7abf10504764606e",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "Only one output is present in this recording; it does not demonstrate switching physical monitors."
+    },
+    {
+      "id": "workspace/persistence",
+      "title": "Restore saved layouts",
+      "summary": "Layouts and pane state are saved automatically. Closing and reopening the native view restores the saved arrangement.",
+      "command": "fileblade blades",
+      "proof": "A restarted native view restores the recorded pane layout and width.",
+      "expectations": [
+        "E-18"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "ac4bc69404830a82a010de4bdb03fe34dca49c2f41e0f769f074f6b73a47d586",
+        "video_sha256": "998a623160bf17997e6c4fa87917b5120a60bcf521d9a30a953e03d3b3f6754d",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Also inspected 5.8 seconds: the native view returns with its saved layout and 700-pixel blade. Update the screenshot to this restored state."
+      },
+      "limitations": "The recording restarts only a disposable profile."
+    },
+    {
+      "id": "workspace/theme",
+      "title": "Follow Omarchy themes",
+      "summary": "FileBlade follows the active Omarchy theme. Change the desktop theme with Omarchy's theme selector; the blade updates its colors.",
+      "command": "",
+      "proof": "The capture profile changes from Tokyo Night to Catppuccin.",
+      "expectations": [
+        "native_theme_reload"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "48ed4b2696701399d7cdc9eeedf1f600c5bd7932187e0e7afbb87f9e1b0d17f8",
+        "video_sha256": "45c3f65a0a80ac261b538528be50c3ec6c1de73c33bd0346cf10aa22be806168",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+      },
+      "limitations": "The recording uses the private profile's theme files and does not change the working desktop."
+    },
+    {
+      "id": "workspace/bar",
+      "title": "Follow desktop bar placement",
+      "summary": "Docked blades account for the Omarchy bar. Showing or hiding the bar updates the space available to the blade.",
+      "command": "",
+      "proof": "The capture profile hides its bar and then restores it.",
+      "expectations": [
+        "E-44"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "0612a69734b07024f6c4b881c9d98f893fb05b097893317d79c79e3f6d5aad22",
+        "video_sha256": "3c8886526e988eb95b1070af28642c8bc525191e114d86e920fcfed8ddf588e5",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "workspace/settings",
+      "title": "Configure blade behavior",
+      "summary": "Open the settings panel from the blade gear. Search for a preference to find controls for panes, appearance, placement, and desktop integrations.",
+      "command": "fileblade blade settings left",
+      "proof": "The live settings form opens with the blade's current preferences.",
+      "expectations": [
+        "E-17"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "57d02cf958eb51820aad20d324c7e31b6597d1a44b254690eab68c31acef96ea",
+        "video_sha256": "b18b9828a0a59645be76eb852a39228818b4456bdba39235d4e125bd079dcf39",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": "The clip demonstrates opening the form, not saving every setting."
+    },
+    {
+      "id": "panes/files/navigation",
+      "title": "Navigate the file tree",
+      "summary": "Open a folder with Enter or a double-click. Use the parent action to move up; the CLI can navigate to the same paths.",
+      "command": "fileblade navigate /path/to/project/docs\nfileblade up",
+      "proof": "The tree enters docs and returns to its parent.",
+      "expectations": [
+        "E-03",
+        "E-06"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "8490dda9f825adb41bb226732518892babcbc7324dfa734224133211df55853c",
+        "video_sha256": "d5f7d4fbe71f56ba07944964e8fde155a8cb1561c402dc5fb763aeef9b4a7ce2",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/folding",
+      "title": "Expand and collapse folders",
+      "summary": "Expand a folder to inspect children in place. The root stays fixed, so neighboring folders remain available.",
+      "command": "fileblade expand /path/to/project/docs",
+      "proof": "Children appear beneath docs without replacing the root.",
+      "expectations": [
+        "E-04"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "bd84b7776f0414206e97384744826e44d66134e331da100c01d21d90395f9db9",
+        "video_sha256": "dc3b6cbb2a5e294cdb8e32d51c0e5d80d54b89f5109329c9235ebe9dbb732eae",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/selection",
+      "title": "Select multiple files",
+      "summary": "Use Ctrl-click to add individual rows or Shift-click for a range. The CLI can set and read the same selection.",
+      "command": "fileblade select /path/to/notes.txt /path/to/package.json\nfileblade selection",
+      "proof": "Two files become selected and the CLI returns their paths.",
+      "expectations": [
+        "E-05"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.9,
+        "screenshot_sha256": "341954c6adf8635a2323ed0b8eb305a3fe447082acb51d008303735084ec0f33",
+        "video_sha256": "2d6b42a16f70ae560f368afe2db1cfa8c5a6b968c61fe8f2de796aabaaab3dbc",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": "The recording uses CLI selection; it does not show the mouse gestures."
+    },
+    {
+      "id": "panes/files/watching",
+      "title": "Follow filesystem changes",
+      "summary": "FileBlade watches the current location for filesystem changes. Files created by an editor or terminal appear in the tree automatically.",
+      "command": "",
+      "proof": "Creating a sample file outside FileBlade adds its row to the open folder.",
+      "expectations": [
+        "E-02"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "b4ae7bb63598a03b27e0a7956fcd13dd3d9d71c053826c8ace52be0891583e15",
+        "video_sha256": "d94e24aa8621c83a9f39d688df037a2d8dffedea303646af92a8156129550ac6",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/location",
+      "title": "Enter and revisit paths",
+      "summary": "Enter a path in the location field or navigate from the CLI. Back and Forward revisit the folder history.",
+      "command": "fileblade navigate /path/to/project/docs\nfileblade back\nfileblade forward",
+      "proof": "Back returns to the previous folder and Forward returns to docs.",
+      "expectations": [
+        "E-06",
+        "E-23"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.9,
+        "screenshot_sha256": "c2cf23219410d2a805a1bbf1f466cbff73e99132ccc8e04a2972e3ee264a8cfc",
+        "video_sha256": "67c928ee3023884179bf02004e191558015aa7ae66fa8f1cd6fc58f6a5ca1bf5",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/hidden-files",
+      "title": "Show hidden entries",
+      "summary": "Toggle hidden entries to inspect dotfiles and hidden folders. Their visibility is a view preference.",
+      "command": "fileblade hidden show\nfileblade hidden hide",
+      "proof": "Hidden entries become visible in the sample project.",
+      "expectations": [
+        "E-07"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "58ef42ee60361145b563f064360e37ee762d38c27a053984dc882fd61ce55bc8",
+        "video_sha256": "2741a05f228241b77682c224be87ed0ab21da64f1d51c6046625945dc82af2b5",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/sorting",
+      "title": "Sort file rows",
+      "summary": "Click a metadata heading to sort by that field. Clicking it again reverses the direction.",
+      "command": "",
+      "proof": "The Size heading changes the file-row ordering.",
+      "expectations": [
+        "E-24"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "ad3222af37a77533c8c11753379f53de4c03afe97df7bb29cc01a3c21e0f021f",
+        "video_sha256": "158ba3f544da3c07bfc48526e1a0d9a85a7e26a5bcd31c02a55c6240db6f6402",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/columns",
+      "title": "Choose file columns",
+      "summary": "Choose which metadata columns appear beside file names. The CLI accepts a comma-separated list.",
+      "command": "fileblade columns size,modified",
+      "proof": "Size and Modified columns appear with actual file metadata.",
+      "expectations": [
+        "E-24"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "0204f3894d47d5668e62f96a4ba71bf8d7ac39121632232911916e2695889967",
+        "video_sha256": "da7a7bc1d62cd8b8921a5fee76ca5d756d9de1ce28fa123321bba03f45718875",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/density",
+      "title": "Adjust row density",
+      "summary": "Use the row-size controls in the Files footer to change how compactly entries are displayed.",
+      "command": "",
+      "proof": "The row-size control increases the spacing between file rows.",
+      "expectations": [
+        "E-17"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "d28e91f05e60666024784728c4deb19904a98286b28e04a6d11a53e6dec36e64",
+        "video_sha256": "22c3bc77f925468a0297d10ec6abe4dcf25393db0c836fe10a54f238b5ebcc3f",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/toolbar",
+      "title": "Customize the tree toolbar",
+      "summary": "Open settings, search for toolbar, and toggle the controls you want to keep visible. Removing a button does not remove its underlying action.",
+      "command": "fileblade blade settings left",
+      "proof": "The Screenshots toolbar button is hidden through the real settings form.",
+      "expectations": [
+        "E-17"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 7.266667,
+        "screenshot_sha256": "0f8e742fe9bfdb132136734a0e31e655220cfae0955be2d542e1fcbbc1bb2f74",
+        "video_sha256": "d04b836bd5e38fa9d18d8edfd33df41fec75217b34fbcb09041ebeac055526c3",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/search",
+      "title": "Search the current folder",
+      "summary": "Enter a query in the Files search field. Clear it to return to the unfiltered tree.",
+      "command": "fileblade search notes\nfileblade clear-search",
+      "proof": "The query narrows the tree to matching file names.",
+      "expectations": [
+        "E-09"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "58983193c9d90113091c96697fd01f59262be200999d09a82a4103277452a519",
+        "video_sha256": "9481a079ab631fdc73527317aec855b277bd0feabf05e3ec8c60da11d965d17a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/search-syntax",
+      "title": "Combine search filters",
+      "summary": "Combine search terms with filters and exclusions. For example, format:txt selects text-file names while -draft excludes names containing draft.",
+      "command": "fileblade search \"format:txt -draft\"",
+      "proof": "Only sample entries matching the combined query remain.",
+      "expectations": [
+        "E-24"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "719cdee86934de88aeff40c4b379ec5507f35d4256dca41e049a0309ccf19beb",
+        "video_sha256": "a77b679bb0d4939fc332a563c1c271567a0212bb6f4778943d79ea34fabeb17f",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/deep-search",
+      "title": "Search nested folders",
+      "summary": "Enable deep search to find entries below the current folder, including inside collapsed directories.",
+      "command": "fileblade search-deep on\nfileblade search getting",
+      "proof": "A nested getting-started document appears with its location.",
+      "expectations": [
+        "E-09"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "590d38431183a51242a7ca5039e56dee4c0f35ada7c3e825c840632082b414d1",
+        "video_sha256": "267856778f20435041213c0241632c9f9f9bee3297b56691662b500fe31880b0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/quick-navigation",
+      "title": "Jump to recent folders",
+      "summary": "Open quick navigation to find a location from its ranked folder list. Choose a result to navigate there.",
+      "command": "fileblade quicknav",
+      "proof": "The real quick-navigation overlay opens with available locations.",
+      "expectations": [
+        "E-10"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "c71f355ebedb799ca26a0fa006c65994d536f81b2d4e81329569ce39d4f552f3",
+        "video_sha256": "16e23d5297cb441c099ebb653f9af1647a0f2dd43d7f8f36411ba11ac074737e",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The recording covers the overlay, not a completed selection."
+    },
+    {
+      "id": "panes/files/favorites",
+      "title": "Pin favorite locations",
+      "summary": "Pin a folder to keep it available in the Favorites strip. Click the favorite to navigate back to that location.",
+      "command": "fileblade pin /path/to/project/docs\nfileblade favorites",
+      "proof": "The docs folder is pinned and returned in the favorites list.",
+      "expectations": [
+        "E-16"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "11a76aec3063cfb10251a0a776cb1573ac803b996585756d440fb7e336d25e6e",
+        "video_sha256": "42e68f0378c86d21ba7ac114dcce8d3cf760f88e76c25f53c5e63197a1f236ac",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/folder-colors",
+      "title": "Color folders",
+      "summary": "Assign a color to a folder to recognize it quickly. The theme supplies the palette; Files settings control which parts of the row receive the color.",
+      "command": "fileblade set-folder-color /path/to/project/docs red",
+      "proof": "The docs folder receives the chosen red color.",
+      "expectations": [
+        "E-24"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "4ed576f5c520a4a56459399c2b9345b0dc0c64a695e6bae4b38dd297bde294b4",
+        "video_sha256": "59e7ec71378c26e866a68faf3356ff191e5ebce336b9b55e6e5a5441c4b8c41c",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/git-status",
+      "title": "See Git changes",
+      "summary": "File rows show Git changes for the current repository. Refresh the repository state after an external Git operation when needed.",
+      "command": "fileblade git-refresh",
+      "proof": "The blade's indicators are visible beside the sample repository's actual modified and untracked files.",
+      "expectations": [
+        "E-07"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "9b881f323aec29e62a87525aa10f93da486c318dca657f477a4b93795fddd3ab",
+        "video_sha256": "d7a84c5d9e6516e83d01cc277add471a093b2fa72c5bacc332f3e966efaf96d6",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/git-summary",
+      "title": "Choose repository summary fields",
+      "summary": "Choose the repository summary fields you want beside the root. These summarize the current repository state.",
+      "command": "fileblade git-summary branch modified untracked",
+      "proof": "The summary shows the branch, modified count, and untracked count.",
+      "expectations": [
+        "E-07"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "a2fbebbb239eaad770822b80e9ce3fc705fd80aaa3cd41a2f14b072f6a8102d3",
+        "video_sha256": "f86ca5bcdac0544b71850736bf551c3bb84e286e59bb737efdcb7c47ba8bfd19",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/drive-space",
+      "title": "See drive capacity",
+      "summary": "Enable drive usage under the toolbar in Files settings. The capacity display refers to the filesystem containing the current location.",
+      "command": "fileblade space /path/to/project",
+      "proof": "The CLI returns capacity information for the filesystem behind the visible folder.",
+      "expectations": [
+        "E-98"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "a0fa2e49f36a4014cb411080438023f2eb2a9f3f2a4aae728ee384c68892a8b7",
+        "video_sha256": "0f9dace28b2d16d2a856c0e7aabeded3c22a98ddce0a760b09108836b6a6d584",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/drives",
+      "title": "Browse mounted drives",
+      "summary": "Use the Drives toolbar button to inspect available storage locations. Mounted locations can be opened in Files.",
+      "command": "",
+      "proof": "The Drives view opens and lists the available locations.",
+      "expectations": [
+        "E-23"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "17390a392360c56c00193923375eac331dd09ecebf30954d29aa1edfe3350704",
+        "video_sha256": "b938f26d98de2c94c884cf2a0441d98071c84d6a29a984c48e5c6ba5298449b4",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The clip does not mount a user device; see the separate device-actions demonstration."
+    },
+    {
+      "id": "panes/files/media-grid",
+      "title": "Browse images and video posters",
+      "summary": "Use the Media toolbar button in a folder of images and videos. Images receive thumbnails; supported videos receive static posters.",
+      "command": "",
+      "proof": "The sample folder changes from a file tree to a real media grid, including a video poster.",
+      "expectations": [
+        "media_formats"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "6a1c0ad479f963a4bba3f8facab9647e3d9fd4702919548e050ca89ac105f77f",
+        "video_sha256": "ba3808ac8fe3d246e5467578340cd8b5e0848d6549d74588a286f4bf29054b4b",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/media-size",
+      "title": "Resize media thumbnails",
+      "summary": "Use the media-size control in the footer to change thumbnail dimensions. The current media folder stays open.",
+      "command": "",
+      "proof": "The grid grows its thumbnails after the size control is activated.",
+      "expectations": [
+        "media_queue"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "c5989adb1ed334368d809b87e2e76cabad4ca2afe5d8808fc7e3421065431422",
+        "video_sha256": "873b57346886b4a48ba02b99a05113615ef6d73ee51473bb7c182fb349a5685a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/files/media-calendar",
+      "title": "Navigate the media calendar",
+      "summary": "Use the media timeline to navigate between dated groups. Populated periods reflect timestamps from the files in the current media collection.",
+      "command": "",
+      "proof": "The timeline changes to a broader calendar view.",
+      "expectations": [
+        "media-timeline"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "9243f3f8e44b898748eba0b064cb1cb2591d54369d50f72e6d4547faf352b3e7",
+        "video_sha256": "0c04c3ef4b8f653c7b40d707a89a42912bf251d6541d101a658be75a4c5544ea",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The clip uses generated sample images with deliberately assigned timestamps."
+    },
+    {
+      "id": "panes/files/media-hours",
+      "title": "Inspect hourly media activity",
+      "summary": "Drill into a day to inspect its hourly distribution. Empty hours retain their place so time remains comparable.",
+      "command": "",
+      "proof": "The timeline shows the selected day's hourly bars.",
+      "expectations": [
+        "media-timeline"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "8f205390839e2a7ce4e9bcbd0a400b2431d251cda0e223e5283395d43376e687",
+        "video_sha256": "59e82bd401cff7aaf2849a282e131a7770b12b32321485a0e9d63912c62f5db0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The sample files have assigned times; this is not a live activity feed."
+    },
+    {
+      "id": "panes/properties/metadata",
+      "title": "Inspect file properties",
+      "summary": "Add Properties beside Files, then select an entry. Properties follows the selected path and shows its metadata.",
+      "command": "fileblade select /path/to/notes.txt",
+      "proof": "Properties shows the selected sample file's actual path, type, and size.",
+      "expectations": [
+        "E-08"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "e2fdae0879cc5794ff495c91172151b536359c3d227a9cecb3889a53596febdd",
+        "video_sha256": "1c8859415591e43ea9b4cf9923739067203e5f4eb02c15c5de9cb3783601acc0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/properties/text-preview",
+      "title": "Preview text",
+      "summary": "Select a supported text file while Properties is open. The preview displays bounded file content without opening an editor.",
+      "command": "fileblade select /path/to/getting-started.md",
+      "proof": "Properties displays the actual sample document text.",
+      "expectations": [
+        "E-08"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "aac5e49b6ec4feb87e2af98d70290687fc92576bea1b3f29b3d8cc02e0c25a54",
+        "video_sha256": "d023147afc24ee6cac3ff712c0cc2dbdd8ea838ee4296b504354e32841e2c309",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/properties/media-preview",
+      "title": "Preview images and posters",
+      "summary": "Select an image or supported video while Properties is open. Video previews are still posters.",
+      "command": "fileblade select /path/to/image.png",
+      "proof": "Properties displays the selected sample image.",
+      "expectations": [
+        "E-08",
+        "media_preview"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "6ffe8fca31165895993673f11cb305c16e5a809c26ff0dcd99d2d71c7ee255f1",
+        "video_sha256": "26e6e7c7e3cf3fb6ea875ef005a5f178ea1541f11b5e4c3f49cd31d3f9524a19",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "This clip proves image preview; the media-grid clip also shows the corrected MP4 poster."
+    },
+    {
+      "id": "panes/notes/editing",
+      "title": "Write persistent notes",
+      "summary": "Open Notes and type directly into its editor. Notes saves changes automatically in the pane state.",
+      "command": "fileblade blade set left notes",
+      "proof": "The note text changes to A saved release note and the saved state contains that text.",
+      "expectations": [
+        "E-25"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.566667,
+        "screenshot_sha256": "0e87e04e21088cbb36a901c1e1edfc196e958cdf2d92ab206033377bfb8e114b",
+        "video_sha256": "6719c2f1344201bc8e939f5a050b705972baa556c3d58db9a516ef6abfd8f9ba",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "This clip proves editing and autosave; native-view persistence has a separate recording."
+    },
+    {
+      "id": "panes/notes/notebooks",
+      "title": "Manage note tabs",
+      "summary": "Use note tabs to keep separate texts in one Notes pane. Select a tab to restore its note.",
+      "command": "",
+      "proof": "The recording switches between notes while each retains its text.",
+      "expectations": [
+        "E-25"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.8,
+        "screenshot_sha256": "cf9e765d779248e57cd2d64aca153cea4c0e75cf28b1cbe8541506c6a247df10",
+        "video_sha256": "ee130915ab470eaf8eb40b4644f5eea631f7f6ba016c669e1fd2f1a4f3ead3f3",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "It does not demonstrate every create, rename, and close action."
+    },
+    {
+      "id": "panes/notes/counts",
+      "title": "Read note counts",
+      "summary": "The Notes footer reports the current note's word and character counts. Counts update as you edit.",
+      "command": "",
+      "proof": "Editing the sample note changes the displayed counts.",
+      "expectations": [
+        "E-25"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.466667,
+        "screenshot_sha256": "dcdbd5ae90769d81fc1d007319a17c1862ceb855888355f31854b1a8e2a1d07d",
+        "video_sha256": "e5edec07b720b12ef6d83cd883f4249f8f94b6b6ab78cf69e20cddf23ccb0a1c",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/skills/inventory",
+      "title": "Browse agent skills",
+      "summary": "Skills discovers supported agents' skill files and shows their sources. Open an entry to inspect its files without invoking the skill.",
+      "command": "fileblade blade set left skills",
+      "proof": "The pane lists the disposable profile's discovered skills and agent ownership.",
+      "expectations": [
+        "E-41"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "c45d0cc137bd2b2873f711ffb836b60324d7446c53977cded908e0b7afa53032",
+        "video_sha256": "f944b77253ff79663f828911861555891e1bbe514b8951b539eb03f2a8708bc5",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/skills/activity",
+      "title": "Inspect skill activity",
+      "summary": "Skills summarizes usage recorded in supported agents' local transcripts. Inspect a day or entry to see its recorded activity.",
+      "command": "fileblade usage skills",
+      "proof": "The pane and CLI show usage imported from the sample transcripts.",
+      "expectations": [
+        "E-48"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "50dab00c30db4552b090cb55f4f9ac4937987b3404659d497798c3f617b72bd5",
+        "video_sha256": "a2973d39f89164c052384a8cbbb99fa67fe4571e520fb8acb4e89797d21878ed",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The activity data is synthetic fixture data; no live agent execution is claimed."
+    },
+    {
+      "id": "panes/skills/day-filter",
+      "title": "Filter skills by day",
+      "summary": "Select a populated day in the Skills activity grid to narrow the inventory to skills used on that day.",
+      "command": "",
+      "proof": "Selecting a sample activity day changes the visible skill inventory.",
+      "expectations": [
+        "E-48"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "323611f97d48c24ed764940d2ccbb6567e450e4c3c6b62b66c36668d58aeeef4",
+        "video_sha256": "b884e70b40adf792ae96e5108175c5ad7644b047afb67c321ed29934f8fabe79",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The timestamps and usage events come from synthetic local transcripts."
+    },
+    {
+      "id": "panes/skills/management",
+      "title": "Share and unshare skills",
+      "summary": "Enable agent management in preferences to manage which supported agents receive a skill. Unsharing an owned link leaves the original skill source intact.",
+      "command": "fileblade preferences --agent-management true",
+      "proof": "The backend removes and restores the sample skill's Codex link while retaining the Claude source.",
+      "expectations": [
+        "E-36"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "2944c867f32822d0fc040a6ea1785c8b0540042fd3916c504d9726e3d75405e2",
+        "video_sha256": "55b65cf547c18de5727a71e09ba279b7c304674bc63938eaba4694bd4a0a7f21",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "This clip proves provider-level sharing changes; it does not disable the original source skill."
+    },
+    {
+      "id": "panes/memory/inventory",
+      "title": "Browse agent instructions",
+      "summary": "Memory discovers supported agents' instruction files. The pane identifies the source so you can inspect the instructions that apply.",
+      "command": "fileblade blade set left memory",
+      "proof": "The pane displays the sample profile's actual instruction files and their agents.",
+      "expectations": [
+        "E-41"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "9ebd2a07ee5771e19d1b93866de3b8ba65630b4ecaa3ee9cde81307325b5a13a",
+        "video_sha256": "ec9ce529c87cd24a9023744ce54e0692f11f8ea32840345c672a4df846b9fbe1",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/memory/management",
+      "title": "Share instruction files",
+      "summary": "Agent management can share supported instruction files with another agent. Managed links can be removed and restored without deleting their original source.",
+      "command": "fileblade preferences --agent-management true",
+      "proof": "The sample instruction's OpenCode link is removed and restored.",
+      "expectations": [
+        "E-36"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "accca06df419af60e03b3ea515504ad7b7a05997b673ba66f47206c69e3308d9",
+        "video_sha256": "3264a1b6dc37ee5a729ac6e1b0d1a353f8c9c99118044838c4d1196b1a82d775",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The recording uses the real management provider against disposable files."
+    },
+    {
+      "id": "panes/hooks/inventory",
+      "title": "Inspect agent hooks",
+      "summary": "Hooks shows configured hook events and their commands. Reading this inventory does not execute those commands.",
+      "command": "fileblade blade set left hooks",
+      "proof": "The pane displays the sample PostToolUse hook and its configuration.",
+      "expectations": [
+        "E-41"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "1acc58818f7f6fb6399fe803a42dd14b2a4c6ce9baa85598badce9f6f7eb2cff",
+        "video_sha256": "053544ab76cb940ad4568c43d5f1c16e0349e38541422fcadd3eda4174abe85d",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/hooks/management",
+      "title": "Manage shared hooks",
+      "summary": "With agent management enabled, share a compatible hook with another supported agent or remove its managed copy.",
+      "command": "",
+      "proof": "The sample hook's managed Copilot CLI configuration is removed and restored.",
+      "expectations": [
+        "E-36"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "6a14ca67baab872243de339d3ae15e96b8b463fc196e446a01887479a1ddb71f",
+        "video_sha256": "c48a651d97ab8ce9fd0619ecd5171e3f6f9bf8d052f8460819bd20a797be5a4b",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The source hook is retained; the sample command is not executed."
+    },
+    {
+      "id": "panes/mcp/inventory",
+      "title": "Inspect MCP servers",
+      "summary": "MCP lists server definitions discovered in supported agents' configuration. Inspecting a definition does not start the server.",
+      "command": "fileblade blade set left mcp",
+      "proof": "The pane shows the sample server and its configured agent.",
+      "expectations": [
+        "E-41"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "4f08b5fe383db714b8256c580c3cfa00c2599d7393c25c7e46db7ec3f31dd01a",
+        "video_sha256": "5e96d4cb4ef4f828adeffb18912d1de16f36a8883585f87fc0f863e9e93947e6",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/mcp/activity",
+      "title": "Inspect MCP calls",
+      "summary": "Inspect MCP usage collected from supported local transcripts. Tool, resource, and prompt activity depends on what the agent recorded.",
+      "command": "fileblade usage mcp",
+      "proof": "The CLI reports the sample server's imported call counts.",
+      "expectations": [
+        "E-48"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "b2c0f8a0ac596fcbc3fcfc57344f913035600991d1f1ebb79a50fa6938c876c2",
+        "video_sha256": "87879925201109d18d3afed2d00892093ba5bfc9e658ae4f4b56c749e8339441",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "These are synthetic transcript events, not a connection to a live MCP server."
+    },
+    {
+      "id": "panes/mcp/management",
+      "title": "Manage shared MCP definitions",
+      "summary": "Agent management can add or remove a compatible server definition for another supported agent.",
+      "command": "",
+      "proof": "The sample server's Claude Code configuration is removed and restored.",
+      "expectations": [
+        "E-36"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "3217a0a7dc386747ede983b2072329e1ab4af6b9525e22fa8db616d665e0e5ae",
+        "video_sha256": "91a14bcf241341f83564565e370669b3339a92d5c1c798586601e5004bcdc0c3",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The source definition is preserved and the sample server is not launched."
+    },
+    {
+      "id": "panes/branches/branches",
+      "title": "Inspect Git branches",
+      "summary": "Open Branches for the current repository to inspect branch names and linked worktrees.",
+      "command": "fileblade branches\nfileblade branches list",
+      "proof": "The pane and CLI list the sample repository's actual local branches.",
+      "expectations": [
+        "E-49"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "f3deae8fbe2d4f267af60d92f32e211eb1436b948fef0945b83506eb0705c2c8",
+        "video_sha256": "94b46d284ccbe9bf3bdfc2ce484291393c9b59fdb32db5e9ccd1f92da61cc347",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/branches/worktrees",
+      "title": "Discover linked worktrees",
+      "summary": "Branches identifies worktrees linked to the repository. Their paths distinguish checkouts that may have different branches or changes.",
+      "command": "fileblade branches list",
+      "proof": "The linked docs-preview worktree appears with its actual path.",
+      "expectations": [
+        "E-49"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "620c8b9e4db24b29a354e31a4c8346a1cd93589317d6a519ec0a16c43a6ab8b2",
+        "video_sha256": "646f202e8d0a15ceacb446acea5af06ed72f2d5fd0b3cd70d8f0ed4b7821fd02",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "This clip proves worktree discovery, not opening that checkout in an application."
+    },
+    {
+      "id": "panes/branches/status",
+      "title": "Inspect worktree status",
+      "summary": "Branch and worktree summaries expose the checkout's current Git state. Refresh after external changes when necessary.",
+      "command": "fileblade git-refresh\nfileblade branches list",
+      "proof": "The branch listing reports the sample checkout's current change information.",
+      "expectations": [
+        "E-49"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "9e357328dd22557fb347750d3df0b154b7b97f77805c7b5dcf4e4521ddf15e9f",
+        "video_sha256": "7cb94e70f82294a31c635899fb83c0358b314c25c4477aad06a1f18e1231dd9a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/welcome/onboarding",
+      "title": "Start with the Welcome pane",
+      "summary": "Welcome introduces the built-in panes and basic sidebar controls. Reopen it from the pane chooser whenever you need the reference.",
+      "command": "fileblade blade set left welcome",
+      "proof": "The bundled Welcome pane opens with its navigation and pane choices.",
+      "expectations": [
+        "E-29"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "40f153a670b4b8fcf75ceb75958547cb008dfa84f4a307348b0d914ea556cfa8",
+        "video_sha256": "f27e89878fe88f9ad3a34abfd84c73c72c6d61121f1f685a72d9929650ddb317",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "panes/welcome/catalogue",
+      "title": "Choose built-in panes",
+      "summary": "The built-in pane catalogue includes Files, Notes, Properties, Branches, Skills, Memory, Hooks, MCP, and Welcome. These do not require separate companion downloads.",
+      "command": "fileblade modules",
+      "proof": "The CLI lists the available pane registrations beside Welcome.",
+      "expectations": [
+        "E-29"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "aae42c303fd8485cffa01e892f1d959f1c97c7b843791c080fe44ab763ad8536",
+        "video_sha256": "22b3974c9658cfae95a90d639918318ef4a000628652cd2ba276443c7172a2e1",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The clip lists the catalogue; it does not activate every pane."
+    },
+    {
+      "id": "panes/welcome/help",
+      "title": "Read offline help",
+      "summary": "Expand a help topic in Welcome to read the bundled instructions offline.",
+      "command": "",
+      "proof": "Arrange your blades expands into readable local help text.",
+      "expectations": [
+        "E-29"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.733333,
+        "screenshot_sha256": "107fe1cee02e79e648269bdb1875ceb9bcdd624f35947e09ef4988d226e779be",
+        "video_sha256": "751000930d88cc872dd390aa9e728bd50d94b0a7b264ded1fe15e37f040d826a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/new-file",
+      "title": "Create a file",
+      "summary": "Create a file in the current or specified folder. The new entry appears in the watched tree.",
+      "command": "fileblade new-file new-note.txt /path/to/project --wait",
+      "proof": "A new regular file appears on disk and in Files.",
+      "expectations": [
+        "E-12"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "9a3ffd0d90d405ccf2168421ad367c65eb04a1c981f365eaaad1d19caea46c24",
+        "video_sha256": "3e6e837bc593e0a35da72d6fbd454680ae2f95156bd0b0db3b845d745c293b62",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/new-folder",
+      "title": "Create a folder",
+      "summary": "Create a directory in the current or specified folder.",
+      "command": "fileblade new-folder new-folder /path/to/project --wait",
+      "proof": "The new directory appears on disk and in Files.",
+      "expectations": [
+        "E-12"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "246e3f2dd00cc5fa12023357bbf809681d0fb65d07dd20b9f150edd99ed80c37",
+        "video_sha256": "ace26d18ef4492b1c6567acc567d5a234efff3b1696d292ee8f1a2f5ea08a369",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/rename",
+      "title": "Rename a file",
+      "summary": "Rename a file from its action menu or the CLI. Supply the new name and the existing path.",
+      "command": "fileblade rename renamed.txt /path/to/old-name.txt --wait",
+      "proof": "The sample file changes name while retaining its contents.",
+      "expectations": [
+        "E-12"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "e27399389bff2a3f4452ff3a14458ad68bd67360283a183a4a9e7112aab520b5",
+        "video_sha256": "13b9821802af7e361a623092881908655e7abc748db2b5a94d6070d92c637615",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/copy-paste",
+      "title": "Copy and paste files",
+      "summary": "Copy selected paths, navigate to a destination, and paste. The source remains available.",
+      "command": "fileblade copy /path/to/notes.txt\nfileblade paste /path/to/destination --wait",
+      "proof": "The destination receives a byte-identical copy while the source remains.",
+      "expectations": [
+        "E-13"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "f0fbcc923bc110f5b2c0446b4c4f8dca2e1d1210981dbc847ebe0a3bb8a2edd7",
+        "video_sha256": "4a50ea677a397abb61c70c7752d0bd9653467e8a81a3eda2a064b3d2c0fbf232",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/move",
+      "title": "Move files",
+      "summary": "Move selected files to a destination directory. A successful move removes their previous paths.",
+      "command": "fileblade move-to /path/to/destination /path/to/move-me.txt --wait",
+      "proof": "The destination contains the sample file's original bytes and the old path is absent.",
+      "expectations": [
+        "E-13"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "13589fa5ef01ef797740883a79d76a26ce27391230a696b18cf41e8c28b138b9",
+        "video_sha256": "7ed112bf1b56082b7b4bacfffdad3b3f1ef7f705cfbed54a909b926a3ffa489e",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/drag-drop",
+      "title": "Drag files between locations",
+      "summary": "Drag a file onto a destination folder in the tree. FileBlade performs the selected drag action and refreshes the affected locations.",
+      "command": "",
+      "proof": "A real pointer drag moves alpha.txt into the destination folder.",
+      "expectations": [
+        "E-13",
+        "E-26"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.6,
+        "screenshot_sha256": "73329c92b41293e4c854ca3a154e10b0826bba588b1f5dcbbae6afcdd77aba89",
+        "video_sha256": "8b3dd11936d333bc5ba5af8761a46ce743c3964718c15c4e8d59715e1d4bf592",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: action and result agree with the bounded proof. Wallpaper, full wordmark and blade geometry pass."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/conflicts",
+      "title": "Resolve destination conflicts",
+      "summary": "When a destination name already exists, choose how to resolve the collision in the dialog. Keep both preserves the existing file and gives the incoming file another name.",
+      "command": "fileblade copy-to /path/to/destination /path/to/notes.txt",
+      "proof": "Keep both creates notes copy.txt while the original notes.txt remains unchanged.",
+      "expectations": [
+        "E-28"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.633333,
+        "screenshot_sha256": "78a8067cfc6034a39908083f600ee2a45b06ebc51f04c5e4fb91259eaf964a43",
+        "video_sha256": "b44c275bddedfe1adb3ff08914d28554a01ad3041c52db128cd91adcbf1eeeda",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/trash",
+      "title": "Trash files",
+      "summary": "Move a disposable file to desktop Trash when you want a recoverable removal. The UI can ask for confirmation; the CLI requires an explicit confirmation flag for this example.",
+      "command": "fileblade trash /path/to/trash-demo.txt --yes --wait",
+      "proof": "The file leaves its original folder and is discoverable in Trash.",
+      "expectations": [
+        "E-14"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "603a94518c016a81763019905e56f0490a036f2cc3c7443f860c2c99d194ae8d",
+        "video_sha256": "3997601d38271230e6ab5670a5e18c95c5c286940b106ad4c48e41279fc73e8a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/restore",
+      "title": "Restore from Trash",
+      "summary": "Restore a selected Trash item to its original location. Use its item identifier rather than assuming names are unique.",
+      "command": "fileblade trash-list\nfileblade trash-restore --id ITEM_ID",
+      "proof": "The sample file returns from Trash with its original contents.",
+      "expectations": [
+        "E-14"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "5ca533a573b5b178d2f7338973515013a1ad7140916bcf3814886e762cc5a82a",
+        "video_sha256": "d358e3a158913d378be1be498040bdba8707122664656fd90845ff65c57886a9",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/permanent-delete",
+      "title": "Permanently delete Trash items",
+      "summary": "Permanently delete only the Trash entries you intend to remove. This action cannot be undone through Trash.",
+      "command": "fileblade trash-delete --id ITEM_ID --yes",
+      "proof": "The selected disposable Trash item is removed permanently.",
+      "expectations": [
+        "E-14"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "fbfd164fb114539d8a9b84bf60dd91d33dea8036d593f85d04faa06cc6729954",
+        "video_sha256": "554f940814fe5c2a91949ec4e1f8bf8481abec182eae7d42014912a903e3c231",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/undo-redo",
+      "title": "Undo and redo file operations",
+      "summary": "Undo reverses an eligible completed operation; redo reapplies it. Inspect operation history when you need the recorded result.",
+      "command": "fileblade undo --wait\nfileblade redo --wait",
+      "proof": "A sample rename is undone and then reapplied without losing the file contents.",
+      "expectations": [
+        "E-15"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "3b0c76d0983c05efb207cf9ad82d16d0262e4114141411e2e2af141362114b36",
+        "video_sha256": "30d32b624e053a9b4d6240a7df4156351b367707226d9167a5ec64df43ea3437",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/archive-list",
+      "title": "Inspect archive contents",
+      "summary": "Inspect an archive's members before extracting it. Listing does not write those members into the destination filesystem.",
+      "command": "fileblade archive-list /path/to/sample.tar",
+      "proof": "The real sample archive's member names are listed.",
+      "expectations": [
+        "E-28"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "2a08ea72502bb004447ded70c9b1b985ffc392ecdb3a2b19bb3fb3dd7a3f7bde",
+        "video_sha256": "c5522a0f6728574f5bc8b7ff3ed8d8f850e8ab3268f9b95737a04f1f479f9e5f",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/archive-extract",
+      "title": "Extract an archive",
+      "summary": "Extract a supported archive into a chosen destination. FileBlade reports the result and updates the folder tree.",
+      "command": "fileblade extract /path/to/sample.tar --to /path/to/extracted",
+      "proof": "The expected sample members appear in the destination with their contents intact.",
+      "expectations": [
+        "E-28"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "84f103565d5376549cda5f7e62b3ddb8582ced5643edf320fd9d5b8038e3989e",
+        "video_sha256": "9efd40e99da471145743e367b3516963039d50f46b7cbc2619bc0ec8a2038683",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "operations/archive-create",
+      "title": "Create an archive",
+      "summary": "Use Create archive from the file action menu to package selected files. The backend also exposes the operation for scripted integrations.",
+      "command": "fileblade native backend -- archive-create --source /path/to/notes.txt --destination /path/to/notes.zip --format zip",
+      "proof": "A ZIP archive is created and its contents match the selected sample file.",
+      "expectations": [
+        "E-28"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "ffff8aef44b388e9a08e16bad03c1108a35f2407936e761d6439254a0a1e8cba",
+        "video_sha256": "c3d25d3646771f08cf640293c64f5b7a1cb9478ee2521595aa2e57d354a2fec3",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The clip invokes the backend operation; it does not demonstrate the menu form."
+    },
+    {
+      "id": "operations/permissions",
+      "title": "Change file permissions",
+      "summary": "Use the permissions action for an eligible local file. Integrations can invoke the same backend operation with an octal mode.",
+      "command": "fileblade native backend -- permissions-set --path /path/to/file.txt --mode 644",
+      "proof": "The sample file changes to mode 644, confirmed by filesystem metadata.",
+      "expectations": [
+        "E-28"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "64ba9cc8be6d13ef348db9f37dfb9c21d667c4ca16582aeca74f6d8b36fd5321",
+        "video_sha256": "e872ba2e3c31a5950de9077fc0a27fb96540e34c7c67bb4189cc320850570f82",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The clip proves the backend mutation, not interaction with the permissions form."
+    },
+    {
+      "id": "operations/progress-cancel",
+      "title": "Track and cancel work",
+      "summary": "Long-running work returns an operation identifier. Inspect the operation or request cancellation; the result distinguishes cancelled and partial work.",
+      "command": "fileblade cancel-operation --yes\nfileblade operation OPERATION_ID",
+      "proof": "A real multi-file copy is cancelled and reports its cancelled result.",
+      "expectations": [
+        "E-28"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "84c3f7242c440570011cbe2157f6fa95bf85a87ca6318879a3ddbe6f17854c83",
+        "video_sha256": "15ce88626f7f119bc52d85be393ea4d289bdd5a965badbb5d3c7e2eaf659fcc6",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+      },
+      "limitations": "The operation-result response is consumed when fetched; a later repeated query may report an unknown identifier."
+    },
+    {
+      "id": "operations/audit",
+      "title": "Inspect operation history",
+      "summary": "Inspect the history of file operations performed through FileBlade. Entries describe completed actions and their outcomes.",
+      "command": "fileblade history",
+      "proof": "The CLI shows real history entries from the disposable profile.",
+      "expectations": [
+        "E-15",
+        "E-27"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "cd5c1155405963bf096bf664024978aaea6a0bc3d44a8daa293dfeba55f2f9f6",
+        "video_sha256": "419098572dc7720f33c444a41f5f8714ac2d702360a938ad2e4df7ddce8a33e0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "integrations/open-files",
+      "title": "Open files in applications",
+      "summary": "Open a selected file in its associated application. The target application receives the file path.",
+      "command": "fileblade open /path/to/notes.txt",
+      "proof": "The sample text file opens in the capture profile's real associated editor.",
+      "expectations": [
+        "E-23"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "369b63df3c664765180208f1e256945682d3e98e63ce64e535aac6b6396b2b51",
+        "video_sha256": "ffe7198076ec1358aab8bcbee3cbaf26fd7d466b8a98253840aae62dbe93d8d6",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "integrations/editor",
+      "title": "Edit in the configured editor",
+      "summary": "Use Edit to open a file in the configured editor. This keeps the editor workflow accessible from either the tree or CLI.",
+      "command": "fileblade edit /path/to/notes.txt",
+      "proof": "A real Neovim window opens the selected text file.",
+      "expectations": [
+        "E-23"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "4c985a609c3a94eb38b3d5788e8afdaca00cc67962744d9561e50351755ad35e",
+        "video_sha256": "7c578e511c2bf8e3ba1bd127f864dc411bf98644ad339d131b750b9a55fa4add",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "integrations/terminal",
+      "title": "Open a file in a new terminal",
+      "summary": "Open a selected text file in Neovim inside a new terminal. A folder-only selection opens a shell for that location.",
+      "command": "fileblade drop-run terminal /path/to/notes.txt --at 1200,220",
+      "proof": "A new real terminal runs Neovim with the sample file.",
+      "expectations": [
+        "hyprland_desktop"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "6edf0f47273dbb1f4d5146d969d82a126036e8829d4c9122f51ae43a5c48bebe",
+        "video_sha256": "dfb831c6af843b658872132d679d8335cf2bf024c601294c0465f0b8a96ed35d",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": "Screen coordinates identify the target; replace them with a point on your own desktop."
+    },
+    {
+      "id": "integrations/copy-path",
+      "title": "Copy and paste paths",
+      "summary": "Copy the selected path to the clipboard, then paste it into another application.",
+      "command": "fileblade copy-path /path/to/notes.txt",
+      "proof": "The real Wayland clipboard contains the selected sample path.",
+      "expectations": [
+        "E-13",
+        "E-26"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "c69618c7c90b7a722cf6bc9076762ec387879eff0ab98f6d084597440a4a7f34",
+        "video_sha256": "328e2b288ec2cded6e7dffb94513af5016eca2384fc37dfd492aa839ab412230",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "integrations/drop-wheel",
+      "title": "Choose a drag action",
+      "summary": "Open the action wheel for selected paths over a target application. Available actions depend on the selection and target.",
+      "command": "fileblade wheel --at 1200,430 /path/to/notes.txt",
+      "proof": "The wheel opens with actions resolved for the real terminal target.",
+      "expectations": [
+        "E-26",
+        "E-38"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "733f6e2d4bcf16ed14063ba1ecbdffd5bc2c4b8cd80e3941df38cf7f5df0deb9",
+        "video_sha256": "0c78a8de63e4d61aa7e0622d36bd0e77e1b7c0d0da48da2897c77f4c9af8feb1",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The clip opens the wheel from the CLI; drag-trigger and action dispatch have separate demonstrations."
+    },
+    {
+      "id": "integrations/wheel-configuration",
+      "title": "Customize the drop wheel",
+      "summary": "Customize wheel order, labels, and visibility through the dropWheel member of FileBlade's existing settings document. Preserve its other preferences. See the linked configuration reference for the schema.",
+      "command": "",
+      "proof": "The real wheel shows the configured Shell here label and hides Open with.",
+      "expectations": [
+        "E-38"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "dedc9b80d46bde668eee08dab6b60c2e799db9992cd2a125aecd1e72dac26e8c",
+        "video_sha256": "07bd73f9664dd5bf6a070b273de073cb0a9100f2b80b9ac9a311dcd504b2483b",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: action and result agree with the bounded proof. Wallpaper, full wordmark and blade geometry pass."
+      },
+      "limitations": "The configuration is applied to the disposable profile; this is not a visual wheel editor."
+    },
+    {
+      "id": "integrations/terminal-panes",
+      "title": "Target terminal panes",
+      "summary": "A supported terminal multiplexer can receive files in a chosen placement. FileBlade resolves the live target pane before dispatching.",
+      "command": "fileblade drop-run mux-open /path/to/notes.txt --placement right --at 1200,220",
+      "proof": "A real tmux target gains a right-hand pane containing the sample file.",
+      "expectations": [
+        "E-26"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "4bb83cac9105be43a65eb41a8d8f0012cdae2cab",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "a234ee5b01b37c1aad6a910b8c4aa7338a5b46ca2498daecaaa094e1ba41557a",
+        "video_sha256": "d53913cdb8f031ee81e0171bb83a4733c93c341f2976a9296ae4a1cc0ca3d728",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real named-socket tmux action at 0.8 and 4.8 seconds: two side-by-side panes, requested text in Neovim, successful action receipt and two-pane postcondition. Wallpaper, full logo and blade width meet the standard."
+      },
+      "limitations": "This recording covers tmux; it does not qualify every supported terminal or multiplexer."
+    },
+    {
+      "id": "integrations/git-review",
+      "title": "Review changed files with Hunk",
+      "summary": "Use Review for a selected Git path with changes. FileBlade launches Hunk with the selected change context.",
+      "command": "fileblade drop-run review /path/to/project/README.md --at 1200,220",
+      "proof": "Hunk opens the sample repository's changed file.",
+      "expectations": [
+        "hyprland_desktop"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "2738c1ce8c8a442b535a2b70c618fc96be07b8ab63664d34ac2d7efdad47da31",
+        "video_sha256": "3bc81a6a2e65acbf2947f7660e0de8f2675e7d18d543ef80a27e288580bcaf4e",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": "Hunk must be installed. The recording uses a disposable repository."
+    },
+    {
+      "id": "integrations/picker",
+      "title": "Pick files from the CLI",
+      "summary": "Request a file selection from a shell command. Confirm the picker to receive the chosen path; cancelling returns without a selection.",
+      "command": "fileblade pick --mode open --root /path/to/project --query notes.txt",
+      "proof": "A picker opened from the media grid displays ordinary files and returns the selected notes.txt path.",
+      "expectations": [
+        "E-46"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 6.9,
+        "screenshot_sha256": "95bb509273eb55c8858e462611a2d150993bcfd422087fcf73bde49096bba182",
+        "video_sha256": "a7eeffd9608fcc3d7e8cc944c0de2160f3a127e97f455d72429ac1cc8df69260",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Media-grid starting state yields an ordinary text-file picker. The selected root notes.txt path returns to the terminal; the real postcondition verifies the saved media preference survives."
+      },
+      "limitations": "The media-grid preference remains saved after the picker closes."
+    },
+    {
+      "id": "integrations/shell-widget",
+      "title": "Use shell selection widgets",
+      "summary": "Load the Bash or Zsh integration in your interactive shell. Ctrl+T replaces the current partial word with a selected, shell-quoted path.",
+      "command": "eval \"$(fileblade shell bash)\"",
+      "proof": "The Bash widget opens the picker and inserts the chosen file into an unfinished command without executing it.",
+      "expectations": [
+        "shell_integration"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 7.933333,
+        "screenshot_sha256": "0e8f8bb62263a9411c6aa12d80c6ce3fa4a04b971f0a5e527018764406b389b6",
+        "video_sha256": "3baa3406a56c96c385e32eaebaa763e6be574c3701660799d0357be609a2fab4",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+      },
+      "limitations": "This recording covers Bash. Use fileblade shell zsh for the Zsh integration."
+    },
+    {
+      "id": "integrations/agent-context",
+      "title": "Expose selection to coding agents",
+      "summary": "Expose the current FileBlade selection to a coding agent or another command-line integration.",
+      "command": "fileblade agent-context",
+      "proof": "The CLI returns the sample selection in the agent-context response.",
+      "expectations": [
+        "public_cli"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.833333,
+        "screenshot_sha256": "1275b90c0974803834f6eb9cb26c79538c623224539dc456892b8faa67379c69",
+        "video_sha256": "72cd6f540d91bcabe41553048ac1df1af280310735e9b6cf44866e0d3969551a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "integrations/autostart",
+      "title": "Register native autostart",
+      "summary": "Opt into the native autostart role to install an owned desktop entry for login. Disable the role to reverse its owned registration.",
+      "command": "fileblade native roles enable --role autostart\nfileblade native roles status --json",
+      "proof": "The disposable profile gains an owned autostart entry pointing at the stable launcher.",
+      "expectations": [
+        "native_roles"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "53228ed589c03b512e9f0b4afe29b85dd55dacd861e8d21ef56d7d6d8b9992b3",
+        "video_sha256": "6b6dc70c2e56c006312b1c10e4233fcec89473d916c3464c2b80d99edacc97d0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+      },
+      "limitations": "The clip proves registration; it does not log out or restart the user's desktop."
+    },
+    {
+      "id": "integrations/bindings",
+      "title": "Install blade keybindings",
+      "summary": "Opt into the native bindings role to install FileBlade's owned Hyprland include. Existing unrelated bindings are retained.",
+      "command": "fileblade native roles enable --role bindings\nfileblade native roles status --json",
+      "proof": "The role reports its owned binding files and enabled state.",
+      "expectations": [
+        "E-49-native-bindings"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "59246f588193f4dcb124eb507d93f5248568ed45feb9a28c2ab2f068680b9f21",
+        "video_sha256": "356af6dc84d1a2e79efb3599fe30c4de0976a2c5d31637a09837c959d5cd7f71",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": "The recording proves registration in a disposable profile, not activation in the working desktop's configuration."
+    },
+    {
+      "id": "integrations/folder-default",
+      "title": "Open folders with FileBlade",
+      "summary": "Enable the folder role when FileBlade should handle directory opens through the desktop.",
+      "command": "fileblade native roles enable --role folder",
+      "proof": "Opening the sample docs folder through GIO hands it to FileBlade, which displays that folder.",
+      "expectations": [
+        "native_open"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "69b7a68af53d03a1a3bb7430078edcf745091ca07a1e4d4ff8aafe3f1a4a999b",
+        "video_sha256": "18198872491c434ad07ba392500b0c2bb238fe991e7a3a266b95d4a1ecfcb3bc",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": "The capture changes only the disposable profile's folder association."
+    },
+    {
+      "id": "integrations/reveal",
+      "title": "Reveal a file through the desktop",
+      "summary": "Enable the reveal role to serve desktop FileManager1 reveal requests. A request opens the containing folder and selects the requested file.",
+      "command": "fileblade native roles enable --role reveal",
+      "proof": "A real org.freedesktop.FileManager1.ShowItems call reveals and selects the requested document in FileBlade.",
+      "expectations": [
+        "native_open"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "5ecf61b6a03ffea34fe7317483668ec3464a1764",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "f6dfe1dd3974f55191afa25d023efe7a7e68ccea79b7cc3284814199871416f2",
+        "video_sha256": "0d23a96e3bafe829a91c31a080bc594628af2e4e10176cdbcdbea296d6294c7b",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": "The D-Bus service is started explicitly on the disposable session bus; automatic activation is covered separately by the native-role regressions."
+    },
+    {
+      "id": "integrations/portal",
+      "title": "Choose files for applications",
+      "summary": "Enable the chooser role to register FileBlade as a FileChooser portal backend. Applications request files through the desktop portal frontend.",
+      "command": "fileblade native roles enable --role chooser",
+      "proof": "A client requests a file through the public desktop portal, selects notes.txt in FileBlade, and receives that exact file URI.",
+      "expectations": [
+        "E-47"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 6.533333,
+        "screenshot_sha256": "83f6e18ae5a6099d9d84ce4ded0f10d4d365e4ea2ba5e509db8c6eacb787e677",
+        "video_sha256": "4dcb16a5808dfc1f8e20c0e589f9523abbd1128caf020bf70c55f4ff86fa7437",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Also inspected 2.4 seconds: the real FileChooser dialog presents notes.txt; the closing frame returns its file URI with response code zero."
+      },
+      "limitations": "The real portal frontend and FileBlade backend run on a disposable session bus. They are started explicitly for this recording; automatic service activation is covered separately by native-role checks."
+    },
+    {
+      "id": "integrations/sftp",
+      "title": "Browse an SFTP location",
+      "summary": "Select a discovered tailnet location and connect with an authorized SSH account. FileBlade uses the existing desktop and SSH authorization for the remote listing.",
+      "command": "fileblade root sftp://kurt@omen/usr/share/doc",
+      "proof": "The Files pane opens Omen\u2019s real /usr/share/doc directory over SFTP after the authorized connection is established. The backend lists 230 entries; the pane contains the root plus those entries.",
+      "expectations": [
+        "locations_sftp"
+      ],
+      "status": "verified",
+      "limitations": "Read-only directory browsing on the explicitly named Omen peer using existing SSH authorization. The clip starts with the connection established; connect, refresh and disconnect were verified separately. Remote writes, transfers and other peers are not claimed.",
+      "evidence": {
+        "source": "298244cd58b89977411a35822bbf333c44c610de",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "2aa9517cdba0fe9300baa6ef3c77a343ff430857b68b7a461e9649ed0ddfa724",
+        "video_sha256": "4b24c8559dad1b6e366a43b378a718de8d0f45ccf104826c3dfb6f6ccd6de9cb",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.25390625,
+        "review": "Reviewed actual frames at 0.05, 0.8 and 4.8 seconds and the final screenshot: local-to-Omen remote directory transition succeeds, real tree entries appear, wallpaper and full SVG artwork remain visible. A 650px blade occupies 25.4% of the 2560px output; paired compositor frames confirm 32px visible right and bottom padding.",
+        "visible_padding_measurement": {
+          "bounds": [
+            2144,
+            1330,
+            2528,
+            1408
+          ],
+          "right_px": 32,
+          "bottom_px": 32
+        }
+      }
+    },
+    {
+      "id": "integrations/tailnet",
+      "title": "Discover tailnet peers",
+      "summary": "The Drives integration discovers available Tailscale peers. Discovery does not itself connect to a peer or browse its files.",
+      "command": "",
+      "proof": "The backend returns the real session's discovered and online peer counts.",
+      "expectations": [
+        "locations_tailnet"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "6c47096ef7d138a476a45a365ea3d5c85d002dd7a0de46ba6ff223e8d3b42482",
+        "video_sha256": "ab50fb38fb9d2b1db2178413f246862f40fab92059ad606cf57e049d2ac56eed",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": "Host names and addresses are omitted from the recording."
+    },
+    {
+      "id": "integrations/extensions",
+      "title": "Add an extension pane",
+      "summary": "Register a trusted native extension under ~/.config/fileblade/extensions/ID/manifest.json, rescan modules, then add its pane. See EXTENSIONS.md for the complete host contract.",
+      "command": "fileblade rescan-modules\nfileblade blade set left demo.fileblade-sample/sample",
+      "proof": "The generated sample extension loads as a real FileBlade pane.",
+      "expectations": [
+        "E-35",
+        "E-41"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "abb326b43bff1848b4b360f71b7394f6aa1b10420510467dc98b40d6b6094fa9",
+        "video_sha256": "1dc3592d26cab4e53874ceac3fb5542d332b36e69ac0387647600d5bb89ef3f0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": "Extensions execute local code and should come from a source you trust."
+    },
+    {
+      "id": "integrations/custom-actions",
+      "title": "Run an extension action",
+      "summary": "Extensions can declare actions that receive FileBlade's selected paths. Invoke an action from the UI or its public action command.",
+      "command": "fileblade action data-goblin.blade-example/dump /path/to/notes.txt --yes --wait 3",
+      "proof": "The sample action receives the selected path and writes its expected result.",
+      "expectations": [
+        "actions_e2e"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "72245d10d7418b1b1535ec14b00ea70e7772d735842d2a9b1664950d03bcdcdf",
+        "video_sha256": "b58693ae69ec2688c3acffb385e1380adeaaaf4f4a716beda466e72585f15ddb",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "integrations/gallery",
+      "title": "Browse an extension image gallery",
+      "summary": "An extension can reuse FileBlade's shared image gallery. The provider supplies actual items; the host presents the gallery and selection.",
+      "command": "fileblade blade set left kurt.goblin-images/goblin-images",
+      "proof": "The Goblins extension displays generated sample images from its real provider.",
+      "expectations": [
+        "E-37"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "a29be9bb67a05475c1c452334dd7a33789f6552eb97d5f258302bf164b197576",
+        "video_sha256": "8cc50e7127b059634b817a480af6d44d068e6b00514681f52093588086c873ae",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": "The library contains synthetic color-card images for demonstration."
+    },
+    {
+      "id": "delivery/native-install",
+      "title": "Install the native app",
+      "summary": "Install a verified native payload through its included installer. The stable launcher points to an owned installation receipt.",
+      "command": "PAYLOAD/tools/native install PAYLOAD",
+      "proof": "Installation succeeds in a disposable home and identifies the active payload.",
+      "expectations": [
+        "E-91"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "59bf934bc0f3f6f2f5080704510fe38ea8508a94ca549430eaf8588771ea16f1",
+        "video_sha256": "2cc38918f40b4eeabd4ab546d7381f3b6a407c7369640f1ee9879be079a4aa5d",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The recording does not replace the working desktop's installation."
+    },
+    {
+      "id": "delivery/plugin-install",
+      "title": "Install the Omarchy plugin",
+      "summary": "The Omarchy plugin route remains available separately from native installation. Add the plugin, then explicitly enable it in the host.",
+      "command": "omarchy plugin add /path/to/fileblade --yes\nomarchy plugin enable data-goblin.fileblade",
+      "proof": "The local plugin candidate is added to the disposable host profile.",
+      "expectations": [
+        "plugin_contract"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "9bc68d0be693f31337169c8eb637cdd7bbec4c7e86db488f8565afff6595fe79",
+        "video_sha256": "ae897ab99938fb739b810e0e8b1075b31b5ed57bdff8eb168fca60198f444b52",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: action and result agree with the bounded proof. Wallpaper, full wordmark and blade geometry pass."
+      },
+      "limitations": "The clip stops at installation and explicitly reports that enabling is still required. It does not prove plugin runtime loading."
+    },
+    {
+      "id": "delivery/package",
+      "title": "Build the Arch package",
+      "summary": "Build an Arch package from an already verified native payload. The build validates the extracted package against its payload inventory.",
+      "command": "packaging/build /path/to/payload /path/to/package-output",
+      "proof": "The built package reports its version, architecture, and dependencies.",
+      "expectations": [
+        "E-92"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "b5cbd8be07be1dba33ab5838c4c6c04607647e6bcf1a7d2463f49ac74faf0a52",
+        "video_sha256": "5283b4132b40a4cec511af7e25766a0dbb266771e71530f93cb18f45bd682c10",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": "The actual package build completed outside the short clip; the clip inspects its resulting metadata."
+    },
+    {
+      "id": "delivery/migration",
+      "title": "Migrate legacy state",
+      "summary": "Native FileBlade reuses supported existing layout and state documents. Recognized legacy companion pane identifiers map to their built-in panes.",
+      "command": "",
+      "proof": "The prepared legacy layout opens with its saved state and canonical built-in pane identifier.",
+      "expectations": [
+        "migration_preservation"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 6.966667,
+        "screenshot_sha256": "ab0a5a98ccdde56d52f7c9a1c32d42ec0ced64b41a04bb075781e86b9320aba4",
+        "video_sha256": "33e6161e43d9fcb0b926e09b7b413474fc6948b2d9c7c2b2be3a9cc9e6fcc840",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected corrected capture at 0.8 and 4.8 seconds. Actual action/result matches the successful postcondition; wallpaper, full SVG wordmark and restrained blade width remain visible."
+      },
+      "limitations": "The demonstration uses a disclosed legacy-format fixture, not a running older installation."
+    },
+    {
+      "id": "delivery/update-rollback",
+      "title": "Update and roll back",
+      "summary": "Installing another verified payload records the previous payload so the owned native installer can roll back.",
+      "command": "PAYLOAD/tools/native rollback\nPAYLOAD/tools/native status",
+      "proof": "The disposable installation switches back to its previously installed payload.",
+      "expectations": [
+        "E-91",
+        "E-95"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "eab9310d4f6ef4f88e537d24575104c2ba760fb5d8892d2e9fd11139f681299f",
+        "video_sha256": "0652b5f6817d0e1fbc39ef9ed58be8f2f7e8b73aa67a5aaee930d6c6cc18fd9f",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "Both payloads are v0.2.0 review candidates with different source identities."
+    },
+    {
+      "id": "delivery/remove",
+      "title": "Remove a native installation",
+      "summary": "Use the native installer's owned removal command to remove its application files and registrations. Saved personal state is retained.",
+      "command": "PAYLOAD/tools/native remove",
+      "proof": "The disposable installation's stable launcher disappears while its sample personal data remains.",
+      "expectations": [
+        "E-93"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "f681314db8862ba71ff0edabf51f115577aa5a4c9f41e9748e129927cfc4905c",
+        "video_sha256": "4cb4a50f4fb3a93da99df5c43014dfc6de7ce93481bf77e94193cafd48bdef3a",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "delivery/safe-shutdown",
+      "title": "Drain before maintenance",
+      "summary": "Drain the native runtime before maintenance. The result reports whether accepted work and state reached a safe stopping point.",
+      "command": "fileblade native drain --timeout-ms 5000 --json",
+      "proof": "The disposable runtime reports that it drained and stopped.",
+      "expectations": [
+        "E-94"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "dcf19141627f1eadadebf7233c691d288bbc19ba6ffe406b8d62e42e85a02282",
+        "video_sha256": "5f7eaa7459998a3cac60b85e34379bbc959f9fb082b3237c192a88536b3c5096",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The capture helper reopens that disposable runtime after recording."
+    },
+    {
+      "id": "delivery/diagnostics",
+      "title": "Check runtime health",
+      "summary": "Use doctor to inspect the native backend, view, and recovery state. A blocked recovery is reported as unhealthy.",
+      "command": "fileblade doctor",
+      "proof": "The live disposable runtime reports its actual health and version.",
+      "expectations": [
+        "public_cli"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "6eaa976e533800beac9071195d90bdb926be721247a91ad44a7e17d7cc88f84f",
+        "video_sha256": "d75c0efad47f3adfe3af5e39b48aff08ee84c0dd8037295552acb87f312578ca",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+      },
+      "limitations": ""
+    },
+    {
+      "id": "delivery/recovery",
+      "title": "Recover interrupted operations",
+      "summary": "FileBlade checks recorded in-flight operations so interrupted staged items can be recovered without silently overwriting another file.",
+      "command": "fileblade native backend -- recover",
+      "proof": "The real recovery command restores a sample staged file and reports its path.",
+      "expectations": [
+        "E-27"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "975634821f0a8993a87d4d2c56b2587370a3071824b17e7c4da495ac29161d10",
+        "video_sha256": "135fcdce92be37c1c5b1cb0276d2f1cd9eadd83e1c8e38ffb4fda3329d04dbac",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The interruption is represented by a documented fixture; the recording does not claim a process crashed."
+    },
+    {
+      "id": "delivery/release-verification",
+      "title": "Verify release payloads",
+      "summary": "Verify a payload before installation or packaging. Its inventory binds file paths, modes, hashes, version, architecture, and source identity.",
+      "command": "PAYLOAD/tools/native verify PAYLOAD",
+      "proof": "The valid candidate payload passes its actual inventory verification.",
+      "expectations": [
+        "E-90"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "ff5acffa8097f7f3ec807d1cc9b1c715a328fe6bd0128f55019cbd71a1083df8",
+        "video_sha256": "7fbe8f1a63dee68d6c44ec3b9a29ae5d688a8030b7b29cab0e172ac0fd03fe45",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed real frames at 0.8 and 4.8 seconds: action and result agree with the bounded proof. Wallpaper, full wordmark and blade geometry pass."
+      },
+      "limitations": "Tamper and mixed-version refusal paths are covered by the regression gate, not shown in this clip. Checksums are not publisher signatures."
+    },
+    {
+      "id": "panes/activity/retention",
+      "title": "Forget stored agent usage",
+      "summary": "Forget stored usage events before a chosen local date, or clear the usage history. This changes FileBlade's usage database, not the original agent transcripts.",
+      "command": "fileblade usage forget --before 2026-09-22",
+      "proof": "Events before the chosen cutoff disappear while later sample events remain.",
+      "expectations": [
+        "usage_cli_e2e"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "35fd3bfe8fa8aa9cdc253bb1f2640c2922e71e3c81c92034868621ec22e79de2",
+        "video_sha256": "4e5e0489d577963c65eed6097be8b9f6f273962c1e9f4413c0518a130bd3b624",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The recording uses disposable synthetic activity; forgetting real usage is a deliberate data-removal action."
+    },
+    {
+      "id": "integrations/popout",
+      "title": "Open an extension bar popout",
+      "summary": "An extension bar button can open a FileBlade popout using the host component. The extension owns the content while FileBlade provides the popout surface.",
+      "command": "",
+      "proof": "The real Goblins bar widget opens its gallery popout.",
+      "expectations": [
+        "E-37"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "duration_seconds": 5.733333,
+        "screenshot_sha256": "2e8a19be2f3962502ca0dce3001330d9d50e84f2fa2be137d690dbfc7806072f",
+        "video_sha256": "8137f6eb73bd32fdc5f00e74e341d91c7cfe3a752ad93a1d43cfd3f17b2ffed0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+      },
+      "limitations": "This is component qualification through FileBlade's explicit harness. It does not establish ordinary native bar integration as release-ready."
+    },
+    {
+      "id": "integrations/scaffolding",
+      "title": "Scaffold an extension",
+      "summary": "Generate an extension from the bundled template, then run the generated project's checks before customizing it.",
+      "command": "fileblade extension template demo.fileblade-sample demo-extension\ncd demo-extension\ntests/run",
+      "proof": "The template generates a sample extension with its manifest and validation files.",
+      "expectations": [
+        "scaffold_e2e"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "8e07a7eb93ddac81af15a9d35eaf21d6171833ae",
+        "duration_seconds": 5.866667,
+        "screenshot_sha256": "4f947f10d89f1f7cb68891c622c64a32202aefd3226f7b446a75d6bb9c61925f",
+        "video_sha256": "220d2f3025879aafbda7a838c19dac5a55332a85f1abcdac08483be0955b83e6",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real captured frames at 0.8 and 4.8 seconds: wallpaper and full wordmark visible; recorded action/result agrees with its bounded CLI or UI proof."
+      },
+      "limitations": "The video shows generation; the full local code gate exercises the generated extension checks."
+    },
+    {
+      "id": "panes/files/device-actions",
+      "title": "Mount, unmount and eject drives",
+      "summary": "Mount, unmount, or eject an eligible device from Drives. Availability depends on the device and desktop storage services.",
+      "command": "",
+      "proof": "A disposable loop-backed filesystem mounts, unmounts, and ejects, with each real action reporting a change.",
+      "expectations": [
+        "mounts_actions"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "5ecf61b6a03ffea34fe7317483668ec3464a1764",
+        "duration_seconds": 5.966667,
+        "screenshot_sha256": "6eeaa4f1a0d08bd802071a141c25482a3102d81956b632a11d89f45b3a66dc97",
+        "video_sha256": "0ffcd4e46dc5b2586d7a27d160b58ea890cd207f0a8d7e5439ddb165cca64220",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Inspected real mount, unmount and eject results at 0.8 and 4.8 seconds. All three report changed=true; the verified task-owned loop device is detached afterward. Wallpaper, full logo and blade geometry meet the standard."
+      },
+      "limitations": "Only a task-owned disk image is used. No user drive is modified."
+    },
+    {
+      "id": "workspace/custom-keys",
+      "title": "Customize tree keybindings",
+      "summary": "Customize action bindings in FileBlade's keybindings document, then reload it. Binding names describe actions such as search.",
+      "command": "fileblade native ipc -- data-goblin.fileblade.control reloadKeybindings",
+      "proof": "A temporary F6 binding focuses search and enters a query.",
+      "expectations": [
+        "E-30"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "3db27943d1b3a31e155febf9cf0928fb7bb6eb63",
+        "duration_seconds": 5.5,
+        "screenshot_sha256": "f9a57471045e4312fbb6f0726cea5805880dab075ce2f34f818cb0ae04857ab7",
+        "video_sha256": "9ddf392fb4299a676460beba4cad160b5fa94089cc7d3a2903b7cfcad2c49fd0",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed captured frames at 0.8 and 4.8 seconds against the scenario and its real postcondition. The visible action/result agrees with the bounded proof; wallpaper, full SVG branding and narrow blade remain visible."
+      },
+      "limitations": "The demonstration changes only the capture profile's keymap."
+    }
+  ],
+  "coverage": {
+    "documented": 112,
+    "verified": 112,
+    "pending": []
+  }
+}

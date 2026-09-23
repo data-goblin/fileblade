@@ -35,7 +35,7 @@ mod.rs:      the environment the store reads, the watch-path list and the MCP co
 ```
 
 The Skills routes (`list`, `usage`, `usage-counts`, `usage-day`) and the MCP
-`usage`, `list` and `usage-forget` routes are answered in this process:
+`usage`, `list`, `usage-counts` and `usage-forget` routes are answered in this process:
 `CoreRoute` dispatch in `src/module_helpers.rs` routes per method into
 `src/core_modules/`. No route spawns a helper program.
 
@@ -241,23 +241,38 @@ a skill use.
 
 ## Reading transcripts
 
-There is no background process. Every helper call that reads usage (`list`
-and `usage`) first runs one budgeted ingest in its own process, then answers
-from what is committed. A blade refresh runs `list` for its project and user
-lanes and one `usage` request when an activity view is visible.
+This file was written by an agent.
 
-An open tab keeps up with running agents through the backend's filesystem
-subscription. Every `list` answer carries `usageWatchPaths`, the directories
-`store::watch_paths` picks: each agent root that exists, the 24 most recently
-modified Claude project directories, today's and yesterday's Codex day
-directories, the 16 most recent Copilot sessions, the 8 most recent Antigravity
-conversation log directories and the 8 most recent Pi session directories, at
-most 96 in all. `ui/ArtifactInventory.qml` subscribes to that list once per
-distinct set, and any event on it refreshes both lanes and the activity request
-after a 2.5 s pause, so a burst of transcript lines costs one helper run. While
-a tab is open the inventory also refreshes every 60 s as a safety net for
-directories outside the watched set. The subscription stops with the last view
-and is renewed by the next `list` answer if the backend closes it.
+The blades request `list --no-usage` for their project and user lanes. Discovery
+returns rows without opening the usage database or reading transcripts. The
+shared provider keeps those rows when its last view closes, so reopening paints
+the previous inventory while a fresh scan checks for changes. The first scan
+starts on the next event-loop turn; subsequent filesystem bursts coalesce for
+50 ms without indefinitely postponing a scan.
+
+Both blades use one `usage-counts` request at a time. Skills passes its current
+item identities; MCP resolves all declarations together to preserve ambiguous
+server attribution. Counts merge into existing rows, survive unrelated rescans,
+and continue ingesting when the activity grid is hidden. Daily history uses
+`usage --no-ingest` after counts refresh, avoiding another transcript ingest.
+Closing the last view cancels reads and watches; an accepted mutation retains
+its existing completion lifecycle.
+
+Each listing and counts response supplies `usageWatchPaths`: agent roots, the
+nearest existing ancestor of a missing root, 24 recent Claude project folders,
+today's and yesterday's Codex day folders and their year/month ancestors,
+16 recent Copilot sessions, 8 recent Antigravity log folders and 8 recent Pi
+session folders, capped at 96 directories. A transcript event schedules counts
+after 100 ms. Only the usage subscription opts into write notifications, so
+records become visible even while the agent keeps its transcript open. Events
+arriving while a request runs queue one follow-up. Continuous
+writes cannot keep restarting the debounce and postpone refresh indefinitely.
+The 60-second fallback covers directories outside this bounded watch set.
+New watch installation reconciles once to cover the subscription setup gap.
+
+Filesystem subscriptions block on inotify. Their cancellation check runs every
+500 ms when idle, reducing idle timeout wakeups from 20 to 2 per second per
+watch. File events wake the poll immediately; cancellation can take up to 500 ms.
 
 ```yaml
 roots:        claude: $CLAUDE_CONFIG_DIR/projects, else ~/.claude/projects, every *.jsonl
@@ -289,10 +304,11 @@ prefilter:    each agent's lines are parsed only when they contain a marker of a
               toolResult or "session"). On a read from byte 0, lines carrying "timestamp" or
               "created_at" are also parsed until the first record with a real timestamp, so
               coverage starts where the file does
-transaction:  BEGIN IMMEDIATE per chunk (8 MiB or 1024 events, plus at most one record):
-              INSERT OR IGNORE events, failure updates, coverage and the source offset commit
-              together. Large files commit progress within a call and after budget expiry.
-              Every chunk checks retention inside the transaction, including when forget races it
+transaction:  transcript chunks append to a SQL batch; batches flush at 1 MiB of SQL or at
+              the end of the ingest budget. Events, failures, coverage and source offsets
+              commit together. Retention is read once per ingest, under the same file lock
+              now held by forget, so erased events cannot be replayed by a concurrent ingest.
+              This removes two retention-query processes and a write process per transcript.
 duplicates:   the (agent, call) key makes re-reading idempotent and drops a command copied into
               a resumed session
 unreadable:   files that cannot be stat'ed or opened are counted and reported, never fatal
@@ -307,6 +323,55 @@ took 3.04 s and 2.02 s under different load, so these are not a controlled
 speed comparison. Both produced identical event totals (233 commands, 104
 skill calls and 788 tool calls). Chunk commits bound recovery work if a
 helper is killed during a large file.
+
+## Inventory performance checks
+
+This file was written by an agent.
+
+On 2026-09-23, the isolated fixture in `tests/inventory_performance.py`
+contained 100 skills, 40 MCP declarations and 1,000 short transcripts. The
+baseline was the bundled backend from `f22c85c`; both ran on the same host.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| First Skills listing | 3,063 ms | 25 ms |
+| First MCP listing, history already ingested | 53 ms | 10 ms |
+| Idle voluntary context switches per second, three watches | 80 | 8 |
+
+The new backend ingested the fixture in one 165 ms request and reflected an
+appended record in a 52 ms count request. These CLI measurements exclude UI
+scheduling. On the real local inventory, discovery returned 41 skills in
+35 ms and six MCP definitions in 22 ms. No history was read for either scan.
+
+The isolated Omarchy 4.0.2 VM used four CPUs, 4 GiB RAM and software rendering.
+A fresh runtime exposed Skills rows in 252 ms and MCP rows in 149 ms. Across
+two runs, live counts updated in 234–503 ms, counts from an open writer in
+94–349 ms, and a new skill or MCP declaration in 57–286 ms. Reopening exposed
+cached rows in the same event-loop turn. These are inventory model timestamps,
+not measured frame presentation times; screenshots confirmed rendered rows
+and counts. The VM scenario also checks that daily activity gains both uses.
+Large first-time histories still fill progressively under the ingest budget.
+
+`tests/run` passed on an isolated copy of the current tracked source and these
+new regression files: 757 Rust tests passed, seven existing tests were ignored,
+and 832 QML checks passed. The bundled backend rebuilt byte for byte. Unrelated
+untracked feature experiments in the shared checkout were excluded. The affected
+VM scenario passed separately; the complete GUI scenario suite was not run.
+
+Run the self-contained backend benchmark with:
+
+```bash
+python3 tests/inventory_performance.py ./fileblade-bin
+python3 tests/inventory_performance.py /path/to/previous/fileblade-bin --legacy
+```
+
+`--resources-only` limits it to idle watches, event delivery and cancellation.
+The VM regression is `tests/vm/expectations/48-inventory-performance.sh`.
+It requires `OVM` pointing at a dedicated running guest and a source runtime
+at `/home/omarchy/fileblade-inventory-perf` (override with
+`FILEBLADE_VM_SOURCE`), launched with `FILEBLADE_QUALIFICATION=1` and the current
+backend in `bin/fileblade`. It restores blade configuration and removes its
+fixture. Stop the runtime before copying source updates into the guest.
 
 ## Name matching
 

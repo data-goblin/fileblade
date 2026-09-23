@@ -94,7 +94,8 @@ surface really is a dot, knob or handle.
 solely to reproduce and attest the bundled backend; it does not run tests there.
 It isolates state in a temporary directory and requires the test dependencies,
 including Qt 6 declarative tools, Quickshell for native theme reloads, Python 3 for the developer hooks, `nvim`,
-`git`, and `bsdtar`. Set
+`git`, `bsdtar`, `jq`, `readelf`, and `dbus-run-session`. Desktop-role regressions
+launch generated entries through GIO and a private D-Bus session. Set
 `FILEBLADE_OFFLINE=1` to use cached Cargo dependencies.
 
 Keep `target/` and bundle staging on a disk-backed filesystem. Bundle builds

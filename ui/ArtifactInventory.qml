@@ -34,8 +34,12 @@ Item {
   property bool stopping: false
   property string activityMethod: ""
   property string usageCountsMethod: ""
+  property bool usageCountsItems: true
   property var usageCountsArguments: function(inventory) { return [] }
   property var countsRequest: null
+  property var usageCounts: ({})
+  property bool countsQueued: false
+  property bool usagePending: false
   property var activityArguments: function(inventory) { return [] }
   property var activity: null
   property string activityError: ""
@@ -48,7 +52,7 @@ Item {
   property int usageWatchGeneration: 0
   property string usageWatchFingerprint: ""
   property var usageWatchPaths: []
-  readonly property int usageChangeDelayMs: 2500
+  readonly property int usageChangeDelayMs: 100
   readonly property int usagePollIntervalMs: 60000
 
   signal mutationFinished(string method, var response, string project)
@@ -91,34 +95,46 @@ Item {
     requestCounts()
   }
 
+  function queueCounts() {
+    if (!ready || usageCountsMethod === "") return
+    countsQueued = true
+    if (!usageChange.running) usageChange.start()
+  }
+
   function requestCounts() {
-    if (!ready || usageCountsMethod === "" || countsRequest || applying || items.length === 0) return
+    if (!ready || usageCountsMethod === "") return
+    countsQueued = true
+    if (countsRequest || applying || busy) return
+    countsQueued = false
     var stubs = items.map(function(row) { return { id: String(row.id || ""), name: String(row.name || ""), source: String(row.source || "") } })
     var request = { id: "", generation: generation, files: files }
     countsRequest = request
     request.id = files.backendRequest("helper-read", argumentsFor(usageCountsMethod,
-      usageCountsArguments(inventory).concat(["--items", JSON.stringify(stubs)])), request.generation, function(response) {
+      usageCountsArguments(inventory).concat(usageCountsItems ? ["--items", JSON.stringify(stubs)] : [])), request.generation, function(response) {
       if (inventory.stopping || inventory.countsRequest !== request) return
       inventory.countsRequest = null
       if (!inventory.ready || request.generation !== inventory.generation) return
       inventory.acceptCounts(response)
+      if (inventory.countsQueued) inventory.queueCounts()
+      inventory.requestActivity()
     }, null, 20000)
   }
 
   function acceptCounts(response) {
     if (!response || response.ok !== true || !response.counts || typeof response.counts !== "object") return
-    var changed = false
-    var next = items.map(function(row) {
-      var values = response.counts[String(row.id || "")]
-      if (!values) return row
-      var merged = Object.assign({}, row, values)
-      merged.metrics = boundedMetrics(Object.assign({}, row.metrics || {}, values))
-      if (JSON.stringify(merged) !== JSON.stringify(row)) changed = true
-      return merged
-    })
-    if (!changed) return
-    itemsFingerprint = JSON.stringify(next)
-    items = next
+    usageCounts = response.counts
+    usagePending = response.usageIngestPending === true
+    publish()
+    if (Array.isArray(response.usageWatchPaths)) startUsageWatch(response.usageWatchPaths)
+    if (response.usageIngestPending === true) queueCounts()
+  }
+
+  function suspendCounts(dispose) {
+    var request = countsRequest
+    countsRequest = null
+    countsQueued = false
+    usageChange.stop()
+    if (request) request.files.cancelBackendRequest(request.id, request.generation, dispose)
   }
 
   function requestActivity() {
@@ -129,13 +145,19 @@ Item {
 
   function startActivity() {
     if (!ready || !activityEnabled || activityRequest || applying || !activityQueued) return
+    if (usageCountsMethod !== "" && (busy || countsRequest)) return
     activityQueued = false
     var request = { id: "", generation: activityGeneration, files: files }
     activityRequest = request
-    request.id = files.backendRequest("helper-read", argumentsFor(activityMethod, activityArguments(inventory)), request.generation, function(response) {
+    request.id = files.backendRequest("helper-read", argumentsFor(activityMethod,
+      activityArguments(inventory).concat(usageCountsMethod !== "" ? ["--no-ingest"] : [])), request.generation, function(response) {
       if (inventory.stopping || inventory.activityRequest !== request) return
       inventory.activityRequest = null
-      if (inventory.ready && request.generation === inventory.activityGeneration) inventory.acceptActivity(response)
+      if (inventory.ready && request.generation === inventory.activityGeneration) {
+        if (inventory.usageCountsMethod !== "" && response && response.ok === true)
+          response = Object.assign({}, response, { ingestPending: inventory.usagePending })
+        inventory.acceptActivity(response)
+      }
       if (inventory.activityQueued) activityDebounce.restart()
     }, null, 35000)
   }
@@ -147,9 +169,9 @@ Item {
     }
     activityError = ""
     var wasPending = activity && activity.ingestPending === true
-    activity = response
-    if (response.ingestPending === true) activityRetry.restart()
-    else if (wasPending) {
+    if (JSON.stringify(activity) !== JSON.stringify(response)) activity = response
+    if (response.ingestPending === true && usageCountsMethod === "") activityRetry.restart()
+    else if (wasPending && usageCountsMethod === "") {
       projectLane.refresh()
       userLane.refresh()
     }
@@ -170,12 +192,14 @@ Item {
       if (event && (event.overflow || (event.events || []).some(function(name) {
         return name === "delete_self" || name === "move_self" || name === "unmount" || name === "ignored"
       }))) inventory.stopUsageWatch()
-      usageChange.restart()
-    }, null, function(response) {
+      if (!usageChange.running) usageChange.start()
+    }, function(response) {
+      if (inventory.usageWatch === request && inventory.ready) inventory.queueCounts()
+    }, function(response) {
       if (inventory.usageWatch !== request) return
       inventory.usageWatch = null
       inventory.usageWatchFingerprint = ""
-    })
+    }, true)
   }
 
   function stopUsageWatch(dispose) {
@@ -203,6 +227,13 @@ Item {
     var rows = projectLane.items.concat(userLane.items)
     overflow = rows.length > maximumItems
     rows = rows.slice(0, maximumItems)
+    rows = rows.map(function(row) {
+      var values = usageCounts[String(row.id || "")]
+      if (!values) return row
+      var merged = Object.assign({}, row, values)
+      merged.metrics = boundedMetrics(Object.assign({}, row.metrics || {}, values))
+      return merged
+    })
     var fingerprint = JSON.stringify(rows)
     if (fingerprint === itemsFingerprint) return
     itemsFingerprint = fingerprint
@@ -240,6 +271,7 @@ Item {
       lane.suspendScan()
     }
     suspendActivity()
+    suspendCounts()
     request.id = files.backendRequest("helper-write", argumentsFor(method, arguments.slice()), request.generation, function(response) {
       if (inventory.stopping || inventory.mutation !== request) return
       inventory.mutation = null
@@ -255,9 +287,11 @@ Item {
   }
 
   onAnchorPathChanged: {
+    generation++
     applyError = ""
     projectLane.invalidate()
     suspendActivity()
+    suspendCounts()
     activity = null
     activityError = ""
     requestActivity()
@@ -271,6 +305,7 @@ Item {
     else {
       for (var lane of lanes) lane.suspend()
       suspendActivity(stopping)
+      suspendCounts(stopping)
       stopUsageWatch(stopping)
     }
   }
@@ -278,11 +313,12 @@ Item {
     stopping = true
     for (var lane of lanes) lane.shutdown()
     suspendActivity(true)
+    suspendCounts(true)
     stopUsageWatch(true)
     if (mutation) mutation.files.cancelBackendRequest(mutation.id, mutation.generation, true)
   }
 
-  Timer { id: activityDebounce; interval: 180; onTriggered: inventory.startActivity() }
+  Timer { id: activityDebounce; interval: 0; onTriggered: inventory.startActivity() }
   Timer { id: usageChange; interval: inventory.usageChangeDelayMs; onTriggered: inventory.refreshUsage() }
   Timer {
     id: usagePoll

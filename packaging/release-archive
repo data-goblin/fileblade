@@ -14,6 +14,13 @@ name=fileblade-$version-$target.tar.gz
 base=${3:-https://github.com/data-goblin/fileblade/releases/download/v$version}
 [[ $base == https://* ]] || fail 'the base URL must be https'
 [[ ! -e $output/$name ]] || fail "refusing to replace $output/$name"
+manifest=$output/latest.json
+existing='{"schema":1,"artifacts":{}}'
+if [[ -e $manifest ]]; then
+  existing=$(cat -- "$manifest")
+  jq -e --arg version "$version" '.schema == 1 and .version == $version and (.artifacts | type == "object")' <<< "$existing" >/dev/null \
+    || fail 'the output manifest belongs to another release or is invalid; use a fresh output directory'
+fi
 stage=$(mktemp -d "$output/.fileblade-archive.XXXXXX")
 trap 'rm -rf -- "$stage"' EXIT
 cp -a -- "$source" "$stage/payload"
@@ -23,9 +30,6 @@ tar --numeric-owner --owner=0 --group=0 --sort=name --mtime=@0 \
   -czf "$stage/$name" -C "$stage" payload
 digest=$(sha256sum -- "$stage/$name")
 digest=${digest%% *}
-manifest=$output/latest.json
-existing='{"schema":1,"version":"","artifacts":{}}'
-[[ ! -f $manifest ]] || existing=$(cat -- "$manifest")
 jq -e --arg version "$version" --arg target "$target" --arg url "$base/$name" --arg sha "$digest" '
   .schema = 1
   | .version = $version

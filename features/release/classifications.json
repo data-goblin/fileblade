@@ -1,0 +1,759 @@
+{
+  "schema": 1,
+  "records": [
+    {
+      "id": "extension-scope",
+      "context": "Native extensions use a registration directory and explicit trust/activation; the existing docs described only plugin links. The test fixture installed duplicate QML below the working checkout. The popout could be exercised only through its qualification host.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "extension_docs": {
+            "type": "choice",
+            "choice": "deployment_paths_gap",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "same_install_flow": 0.0,
+              "none": 0.0,
+              "deployment_paths_gap": 1.0
+            }
+          },
+          "gate_failure": {
+            "type": "choice",
+            "choice": "owned_fixture_contamination",
+            "confidence": 1.0,
+            "probabilities": {
+              "owned_fixture_contamination": 1.0,
+              "need_more_context": 0.0,
+              "production_corner_bug": 0.0,
+              "none": 0.0
+            }
+          },
+          "popout_evidence": {
+            "type": "choice",
+            "choice": "qualified_component_only",
+            "confidence": 1.0,
+            "probabilities": {
+              "qualified_component_only": 1.0,
+              "need_more_context": 0.0,
+              "production_end_to_end": 0.0,
+              "none": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 839,
+          "output_tokens": 164
+        }
+      }
+    },
+    {
+      "id": "collision",
+      "context": "A real copy collision reached the history controller, but the Files pane did not instantiate the existing ActionDialog. Reusing that dialog restored a visible choice without new infrastructure.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "defect": {
+            "type": "choice",
+            "choice": "blocking_missing_ui_wiring",
+            "confidence": 1.0,
+            "probabilities": {
+              "blocking_missing_ui_wiring": 1.0,
+              "none": 0.0,
+              "expected_cli_wait": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "repair": {
+            "type": "choice",
+            "choice": "reuse_existing_dialog",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "new_conflict_infrastructure": 0.0,
+              "need_more_context": 0.0,
+              "reuse_existing_dialog": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 734,
+          "output_tokens": 112
+        }
+      }
+    },
+    {
+      "id": "sftp-proof",
+      "context": "SFTP accepts discovered Tailscale peers. No authorized peer, SSH username or sample directory was supplied. A loopback simulation would not prove this remote workflow.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "sftp_prerequisite": {
+            "type": "choice",
+            "choice": "missing_user_target",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "missing_user_target": 1.0,
+              "none": 0.0,
+              "local_loopback_sufficient": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 562,
+          "output_tokens": 63
+        }
+      }
+    },
+    {
+      "id": "final-evidence-scope",
+      "context": "Desktop role recordings showed registration rather than completed handoff. Plugin recording showed install without activation. Recovery proof would seed a documented interrupted-operation fixture. A clean combined snapshot included concurrent changes; capture scripts contained session-specific host paths.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "role_coverage": {
+            "type": "choice",
+            "choice": "registration_only",
+            "confidence": 1.0,
+            "probabilities": {
+              "registration_only": 1.0,
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "full_handoff": 0.0
+            }
+          },
+          "plugin_coverage": {
+            "type": "choice",
+            "choice": "installation_only",
+            "confidence": 1.0,
+            "probabilities": {
+              "installation_only": 1.0,
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "runtime_proven": 0.0
+            }
+          },
+          "recovery_fixture": {
+            "type": "choice",
+            "choice": "documented_fixture_proof",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "crash_proof": 0.0,
+              "documented_fixture_proof": 1.0,
+              "none": 0.0
+            }
+          },
+          "combined_gate": {
+            "type": "choice",
+            "choice": "coherent_combined_validation",
+            "confidence": 0.96,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "coherent_combined_validation": 0.97,
+              "weakened_gate": 0.03
+            }
+          },
+          "harness_delivery": {
+            "type": "choice",
+            "choice": "owned_scratch",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "reusable_public_tool": 0.0,
+              "none": 0.0,
+              "owned_scratch": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1116,
+          "output_tokens": 281
+        }
+      }
+    },
+    {
+      "id": "capture-correction",
+      "context": "The user required wallpaper, the full SVG wordmark, native-resolution captures, a blade no wider than one-third, and equal visible-edge padding. The initial classification of obsolete captures was weak and contradicted their measured defects; it was superseded by the next classification.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "evidence_status": {
+            "type": "choice",
+            "choice": "recapture_required",
+            "confidence": 0.42,
+            "probabilities": {
+              "postprocess_sufficient": 0.0,
+              "need_more_context": 0.0,
+              "none": 0.43,
+              "recapture_required": 0.57
+            }
+          },
+          "new_geometry": {
+            "type": "choice",
+            "choice": "meets_requested_geometry",
+            "confidence": 0.95,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "geometry_conflict": 0.04,
+              "meets_requested_geometry": 0.96
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 811,
+          "output_tokens": 115
+        }
+      }
+    },
+    {
+      "id": "capture-standard",
+      "context": "Old recordings were 1600\u00d7900 with an icon-only watermark and a 650px blade, exceeding one-third. New recordings are 2560\u00d71440 with the full original SVG artwork and a 650px blade, with wallpaper visible. Final padding measurement remained pending.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "old_evidence": {
+            "type": "choice",
+            "choice": "fails_new_explicit_requirements",
+            "confidence": 1.0,
+            "probabilities": {
+              "fails_new_explicit_requirements": 1.0,
+              "none": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "new_sample": {
+            "type": "choice",
+            "choice": "compliant_except_final_padding_recheck",
+            "confidence": 0.97,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.01,
+              "fundamentally_invalid": 0.01,
+              "compliant_except_final_padding_recheck": 0.98
+            }
+          },
+          "remaining_delivery": {
+            "type": "choice",
+            "choice": "incomplete",
+            "confidence": 0.91,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.06,
+              "incomplete": 0.94
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1041,
+          "output_tokens": 161
+        }
+      }
+    },
+    {
+      "id": "reinstall-timing",
+      "context": "A combined candidate was fully tested and staged. Installation drains the active runtime and restarting the shell reloads the visible desktop. The earlier restart request conflicts with the later instruction not to disrupt the session.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "timing_constraint": {
+            "type": "choice",
+            "choice": "timing_conflict",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "unrelated_action": 0.0,
+              "timing_conflict": 1.0,
+              "none": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 725,
+          "output_tokens": 58
+        }
+      }
+    },
+    {
+      "id": "release-readiness",
+      "context": "The combined snapshot passed 760 Rust and 832 QML checks plus bundle/scaffold gates. Some promised recordings, real SFTP and complete integration handoffs remained pending. The dirty branch had no final main SHA verification; native distribution qualification remained open. Five workflow/pane groupings cover 112 documented workflows.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "release_state": {
+            "type": "choice",
+            "choice": "locally_validated_but_release_blocked",
+            "confidence": 1.0,
+            "probabilities": {
+              "code_gate_failed": 0.0,
+              "locally_validated_but_release_blocked": 1.0,
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "ready_to_publish": 0.0
+            }
+          },
+          "docs_segmentation": {
+            "type": "choice",
+            "choice": "coherent_user_workflow_structure",
+            "confidence": 0.87,
+            "probabilities": {
+              "implementation_fragmentation": 0.0,
+              "none": 0.06,
+              "need_more_context": 0.03,
+              "coherent_user_workflow_structure": 0.91
+            }
+          },
+          "remaining_proof": {
+            "type": "choice",
+            "choice": "bounded_partial_evidence",
+            "confidence": 1.0,
+            "probabilities": {
+              "bounded_partial_evidence": 1.0,
+              "need_more_context": 0.0,
+              "invalid_all_evidence": 0.0,
+              "none": 0.0,
+              "complete_feature_proof": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1204,
+          "output_tokens": 212
+        }
+      }
+    },
+    {
+      "id": "picker-media",
+      "context": "A real unrestricted file picker inherited the media grid and hid its requested text file. The existing pickerActive state can temporarily gate the media view while preserving its saved preference. This was observed after the full combined gate and required a new QML check and live regression.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "behavior": {
+            "type": "choice",
+            "choice": "interaction_defect",
+            "confidence": 1.0,
+            "probabilities": {
+              "interaction_defect": 1.0,
+              "expected_media_only_picker": 0.0,
+              "none": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "correction": {
+            "type": "choice",
+            "choice": "reuse_existing_state_boundary",
+            "confidence": 1.0,
+            "probabilities": {
+              "reuse_existing_state_boundary": 1.0,
+              "needs_new_controller": 0.0,
+              "none": 0.0,
+              "need_more_context": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 731,
+          "output_tokens": 108
+        }
+      }
+    },
+    {
+      "id": "reveal-selection",
+      "context": {
+        "state": {
+          "task": "Review FileBlade v0.2.0; fix real defects and record feature evidence without touching the working desktop.",
+          "facts": [
+            "A real private-bus org.freedesktop.FileManager1.ShowItems request for docs/getting-started.md returns success but final selection is the parent docs directory.",
+            "OpenRequest navigates asynchronously and applies the requested file selection on locationValidationFinished.",
+            "Opening the view schedules focusTree after 120ms. TreePane.focusTree selects index zero whenever its current index is negative, even when an explicit selectedPath exists but the asynchronous model has not exposed it yet.",
+            "The first row is the parent directory; restoreTreeCursor will restore a selected file once the model contains it.",
+            "Candidate minimal correction preserves an explicit non-root selectedPath during focus instead of overwriting it with index zero. Empty selection and root selection retain existing initial-row behavior.",
+            "Unrelated toolbar and migration proof assertions failed because the CLI intentionally strips module state; their videos show correct behavior. Fix those harness checks, not the application."
+          ],
+          "constraints": [
+            "No new isolated mocked unit tests. QML gate and real desktop regression in disposable local compositor before accepting proof."
+          ]
+        },
+        "questions": {
+          "reveal": {
+            "instructions": "Which class best describes the observed reveal failure and traced focus behavior?",
+            "criteria": {
+              "selection_focus_race": "The initial focus path overwrites an explicit selection before its model row arrives.",
+              "no_product_defect": "The feature is working and only the capture assertion is wrong.",
+              "none": "Existing behavior meets reveal semantics and needs no correction.",
+              "need_more_context": "The observed facts do not distinguish these classes."
+            }
+          },
+          "repair_scope": {
+            "instructions": "Which implementation category describes the proposed selectedPath guard?",
+            "criteria": {
+              "shared_state_guard": "A small guard at the shared focus boundary preserves existing explicit selection state.",
+              "new_infrastructure": "The fix needs a new request queue or separate selection subsystem.",
+              "none": "No implementation change is warranted.",
+              "need_more_context": "More tracing is required to classify the fix."
+            }
+          }
+        },
+        "facts": []
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "reveal": {
+            "type": "choice",
+            "choice": "selection_focus_race",
+            "confidence": 1.0,
+            "probabilities": {
+              "selection_focus_race": 1.0,
+              "none": 0.0,
+              "no_product_defect": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "repair_scope": {
+            "type": "choice",
+            "choice": "shared_state_guard",
+            "confidence": 1.0,
+            "probabilities": {
+              "shared_state_guard": 1.0,
+              "none": 0.0,
+              "new_infrastructure": 0.0,
+              "need_more_context": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 778,
+          "output_tokens": 110
+        }
+      }
+    },
+    {
+      "id": "tmux-socket",
+      "context": {
+        "state": {
+          "task": "Fix confirmed FileBlade v0.2.0 terminal-pane failure during real isolated evidence capture.",
+          "facts": [
+            "A real foot terminal runs tmux -L fileblade-capture attach -t evidence. The tmux client is a descendant of foot but the detached server and its panes are not.",
+            "FileBlade correctly classifies tmux from the client process but environment-based TMUX discovery returns empty, because the client was launched outside tmux.",
+            "The real drop-run mux-open fails connecting to /tmp/tmux-1000/default. The named server exists and its client PID matches the terminal descendant.",
+            "The shared tmux_client function currently uses only inherited TMUX and queries list-clients without asking for socket_path.",
+            "Proposed correction queries the client-selected -L/-S socket (including its TMUX_TMPDIR when present) and records the server-reported socket_path for subsequent actions. Existing bounded command execution and PID matching remain.",
+            "Validation will use real tmux attached to a PTY and public drop context, plus the real nested compositor recording. No mocked unit tests."
+          ],
+          "preferences": [
+            "Fix discovered issues immediately. Keep the working desktop undisturbed."
+          ]
+        },
+        "questions": {
+          "defect": {
+            "instructions": "Which class describes this observed failure?",
+            "criteria": {
+              "named_socket_discovery": "A supported real tmux client loses its socket selection during context discovery.",
+              "capture_only": "Only the capture harness is wrong and product behavior is correct.",
+              "none": "The current behavior satisfies the supported workflow.",
+              "need_more_context": "The facts do not distinguish the classes."
+            }
+          },
+          "repair": {
+            "instructions": "Which class describes the proposed correction?",
+            "criteria": {
+              "reuse_native_metadata": "Use existing tmux client selection and native socket_path metadata at the shared discovery boundary.",
+              "new_infrastructure": "A new terminal registry or service is required.",
+              "none": "No product change is warranted.",
+              "need_more_context": "The repair cannot yet be classified."
+            }
+          }
+        },
+        "facts": []
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "defect": {
+            "type": "choice",
+            "choice": "named_socket_discovery",
+            "confidence": 0.99,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "named_socket_discovery": 1.0,
+              "capture_only": 0.0
+            }
+          },
+          "repair": {
+            "type": "choice",
+            "choice": "reuse_native_metadata",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "new_infrastructure": 0.0,
+              "need_more_context": 0.0,
+              "reuse_native_metadata": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 741,
+          "output_tokens": 109
+        }
+      }
+    },
+    {
+      "id": "final-review",
+      "context": {
+        "state": {
+          "task": "Final classification of FileBlade v0.2.0 release review and agent-written feature documentation. No publication is requested.",
+          "facts": [
+            "Complete tests/run passed on disposable snapshot eb5c951515eef0141f680da189984f0dde67d8ac: 761 Rust checks, 832 QML checks, generated extension scaffolds, native theme replacement and return, bundle source/hash/static linkage and byte-identical rebuild.",
+            "Runtime source in the working checkout is byte-identical to the staged corrected snapshot. Working branch is 0.2.0, with concurrent unrelated changes preserved; no final main commit has been selected or verified in the marketplace.",
+            "Review fixed mixed-version archives, bootstrap identity validation, native desktop quoting, native CLI routing and refusal exit status, recovery diagnostics, MP4 posters, collision dialog wiring, picker/media interaction, reveal selection races and named tmux socket discovery.",
+            "Real tmux regression uses actual PTYs, server, client and Neovim; named, joined, explicit and relative sockets pass. The final real compositor clip opens the requested file in a second pane.",
+            "112 feature workflow pages exist in root features/ with pane subgroups. 111 have screenshots and short MP4s plus media hashes and actual visual acceptance. Artifact gate reports 111/112 passing; only SFTP lacks media because no authorized peer, SSH username and sample directory were supplied.",
+            "Accepted PNG and H.264 MP4 dimensions are 2560x1440. Videos are continuous, muted, original speed, 5.466667 to 7.933333 seconds. Wallpaper is visible. Each blade is normally 650px and at most 700px, below 2560/3.",
+            "Logo is the complete original SVG icon and FileBlade wordmark rendered faithfully through librsvg at four times display size; aspect ratio is preserved. Paired actual compositor frames measured artwork bounds [2144,1330,2528,1408], giving right=32 and bottom=32 visible pixels.",
+            "Real capture ran in a disposable local Hyprland window on workspace 9. Its shell, app, portals, clipboard helpers, private bus and compositor are stopped. Owned disk image is detached and removed; raw recordings and prior exports are retained. No OEVM was used.",
+            "Final x86_64 native payload, Arch package and native archive/latest.json were built and verified locally. They are not published assets. Working desktop reinstall and shell restart remain pending because the latest instruction forbids session disruption.",
+            "Some clips intentionally establish bounded behaviors: desktop role registration, legacy plugin installation without activation, a popout in the qualification host, and recovery from a disclosed interrupted-operation fixture. A real portal chooser request and FileManager1 reveal handoff now have completed proofs.",
+            "Root README is explicitly human-maintained and its proposed patch awaits authorization. Existing old release assets/verification do not establish this candidate."
+          ],
+          "documentation_groups": {
+            "workspace": 13,
+            "panes/files": 25,
+            "panes/properties": 3,
+            "panes/notes": 3,
+            "panes/skills": 4,
+            "panes/memory": 2,
+            "panes/hooks": 2,
+            "panes/mcp": 3,
+            "panes/branches": 3,
+            "panes/welcome": 3,
+            "operations": 17,
+            "integrations": 23,
+            "delivery": 10,
+            "panes/activity": 1
+          },
+          "preferences": [
+            "Fix discovered defects immediately. Every feature must have a screenshot and short focused MP4. Full SVG logo, visible wallpaper, equal padding and blade no wider than one-third. Consult Jev with context and probabilities. Do not disrupt the working desktop."
+          ]
+        },
+        "questions": {
+          "release_state": {
+            "instructions": "Which readiness state is established by the completed local review and remaining delivery gates?",
+            "criteria": {
+              "locally_validated_release_blocked": "Local code and packages pass but final exact-main verification, scoped production qualification or required evidence remain open.",
+              "ready_to_publish": "All requested evidence and final release identity/distribution gates are complete.",
+              "local_code_gate_failed": "The final complete local code and bundle gate failed.",
+              "none": "No release assessment is warranted from these facts.",
+              "need_more_context": "The facts do not establish a readiness class."
+            }
+          },
+          "evidence_completeness": {
+            "instructions": "Which completeness class matches the owner\u2019s every-feature requirement?",
+            "criteria": {
+              "111_verified_one_missing_with_bounded_claims": "111 completed media pairs are reviewed; SFTP is missing and integration limits are disclosed.",
+              "complete_all_features": "Every requested workflow has complete end-to-end media proof.",
+              "media_exists_without_review": "Files exist but there is no actual visual or behavior acceptance.",
+              "none": "No additional evidence is required under the stated request.",
+              "need_more_context": "Coverage cannot be determined."
+            }
+          },
+          "structure": {
+            "instructions": "Which organization class best describes the supplied groups against the requested logical features/ hierarchy?",
+            "criteria": {
+              "coherent_workflow_and_pane_groups": "Workspace, pane, operation, integration and delivery workflows are logically grouped, including nested panes.",
+              "implementation_detail_dump": "The pages follow internal functions or source files rather than observable features.",
+              "flat_unstructured": "The documentation ignores logical grouping and pane nesting.",
+              "none": "The classification adds no useful distinction.",
+              "need_more_context": "The supplied grouping is insufficient to classify."
+            }
+          },
+          "branding": {
+            "instructions": "Which class do the measured captures meet under the explicit visual requirements?",
+            "criteria": {
+              "meets_measured_requirements": "Full-resolution captures show wallpaper, complete undistorted SVG artwork, equal visible padding and blades below one-third.",
+              "geometry_or_branding_failure": "The measured capture violates a stated size, padding, artwork or wallpaper requirement.",
+              "none": "The requirements do not apply to these artifacts.",
+              "need_more_context": "Measurements cannot establish the requested properties."
+            }
+          }
+        },
+        "facts": []
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "release_state": {
+            "type": "choice",
+            "choice": "locally_validated_release_blocked",
+            "confidence": 1.0,
+            "probabilities": {
+              "local_code_gate_failed": 0.0,
+              "locally_validated_release_blocked": 1.0,
+              "none": 0.0,
+              "ready_to_publish": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "evidence_completeness": {
+            "type": "choice",
+            "choice": "111_verified_one_missing_with_bounded_claims",
+            "confidence": 0.98,
+            "probabilities": {
+              "111_verified_one_missing_with_bounded_claims": 0.99,
+              "media_exists_without_review": 0.0,
+              "complete_all_features": 0.01,
+              "none": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "structure": {
+            "type": "choice",
+            "choice": "coherent_workflow_and_pane_groups",
+            "confidence": 1.0,
+            "probabilities": {
+              "coherent_workflow_and_pane_groups": 1.0,
+              "flat_unstructured": 0.0,
+              "none": 0.0,
+              "implementation_detail_dump": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "branding": {
+            "type": "choice",
+            "choice": "meets_measured_requirements",
+            "confidence": 0.91,
+            "probabilities": {
+              "meets_measured_requirements": 0.93,
+              "geometry_or_branding_failure": 0.06,
+              "none": 0.0,
+              "need_more_context": 0.01
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1733,
+          "output_tokens": 301
+        }
+      }
+    },
+    {
+      "id": "omen-alias-retention",
+      "context": {
+        "task": "FileBlade v0.2.0 release review; user explicitly requested real Omen tailnet proof and immediate fixes",
+        "facts": [
+          "Real tailnet ping Omen succeeded at 4ms. Resident backend connect/list/disconnect succeeded against /usr/share/doc, listing230entries.",
+          "Native UI real connection using configured OpenSSH alias omen returns connected. The subsequent locations refresh deletes its session, so remote root is unavailable.",
+          "retain_candidates compares discovered canonical host omen.tailb0d46f.ts.net with session canonical URI host omen; connect explicitly accepts either candidate.host or candidate.ssh_host.",
+          "candidate.ssh_host is derived by ssh -G and emitted only if its resolved hostname equals the discovered full hostname or its short alias.",
+          "Small repair is to retain a connected session when its URI host matches either currently discovered hostname or its currently validated SSH alias, keeping stable peer ID checks and existing pending-connection host invalidation.",
+          "No production desktop disruption; all UI work in isolated compositor. Existing live SFTP regression can cover connect-refresh-list using configured alias without mocks."
+        ],
+        "preferences": [
+          "Fix issues immediately",
+          "No VM; background workspace9",
+          "Consult Jev on decisions"
+        ]
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "defect": {
+            "type": "choice",
+            "choice": "alias_retention_bug",
+            "confidence": 1.0,
+            "probabilities": {
+              "alias_retention_bug": 1.0,
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "capture_only_error": 0.0
+            }
+          },
+          "repair": {
+            "type": "choice",
+            "choice": "consistent_validated_host_matching",
+            "confidence": 0.99,
+            "probabilities": {
+              "none": 0.0,
+              "broadens_to_unvalidated_host": 0.01,
+              "need_more_context": 0.0,
+              "consistent_validated_host_matching": 0.99
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 740,
+          "output_tokens": 120
+        }
+      }
+    },
+    {
+      "id": "omen-complete-evidence",
+      "context": {
+        "task": "FileBlade v0.2.0 release evidence update after user requested proof to Omen",
+        "facts": [
+          "Before this request, 112 guides had111accepted screenshot/MP4pairs; SFTPpending. User now explicitly named Omen.",
+          "Actual Tailscale discovery and 4ms ping reached Omen. Existing SSH authorization succeeded; read-only SFTP listed230entries under/usr/share/doc.",
+          "Testing found a realaliasretentionbug: connect via omen succeeded but refresh discarded it because canonicaldiscoveryhost was FQDN. Minimal fix retains sessions whose host matches discovered canonicalhost or currently validated SSHalias, preservingpeerID and canonicalIPv6 comparison.",
+          "New actualnetwork regression connect-refresh-list-disconnect passes on Omen withprivateD-Bus. Corrected nativepane shows sftp://kurt@omen/usr/share/doc and231tree rows(root+230entries).",
+          "Source298244cd58b89977411a35822bbf333c44c610de passed fulltests/run:761Rust832QML,scaffold,themereload,staticchecksum/sourceidentity,byteidenticalrebuild. Separate liveSFTPregression1passed. Updatedlocalpackageandnativearchiveverified.",
+          "Recorded actualpaneopening connectedOmen directory in5.966667seconds, originalspeedmutedH264fullDecodepass,2560x1440. Visuallyreviewedactualscreenshot and0.8/4.8sframes: realremotetree,wallpaper,650pxblade25.4%,fullSVGwordmarkwithsame32pxvisiblepadding.",
+          "All112workflowsnowhave reviewedpairs. SFTPclipprovesopening/read-onlylisting after existingauthorizedconnection; connectrefreshdisconnectverifiedseparately. No remotewrites/filetransfer claimed.",
+          "Remainingreleasegates: nofinalmainSHAcommitverification, productionqualification narrowerforseveral documented integrations, rootREADMEownerpatchpending, desktopinstallation/restartdeferred under nondisruptioninstruction. No releasepublished.",
+          "Docs groupedbyworkspace,panes,operations,integrations,delivery; SFTPbelongsintegrationsadjacenttailnetdiscovery."
+        ],
+        "preferences": [
+          "Immediatefixes",
+          "NoVM andnodisruption",
+          "Everyfeaturedoc has screenshotand<=8sMP4",
+          "Jevclassificationwithprobabilities"
+        ]
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "evidence": {
+            "type": "choice",
+            "choice": "complete_bounded_catalog",
+            "confidence": 1.0,
+            "probabilities": {
+              "missing_sftp_proof": 0.0,
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "complete_bounded_catalog": 1.0
+            }
+          },
+          "release": {
+            "type": "choice",
+            "choice": "locally_validated_release_blocked",
+            "confidence": 1.0,
+            "probabilities": {
+              "locally_validated_release_blocked": 1.0,
+              "none": 0.0,
+              "ready_to_publish": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "grouping": {
+            "type": "choice",
+            "choice": "integrations_with_tailnet",
+            "confidence": 1.0,
+            "probabilities": {
+              "new_top_level_remote_group": 0.0,
+              "integrations_with_tailnet": 1.0,
+              "none": 0.0,
+              "need_more_context": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1299,
+          "output_tokens": 185
+        }
+      }
+    }
+  ]
+}

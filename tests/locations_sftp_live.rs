@@ -140,3 +140,75 @@ fn candidate_connects_lists_and_revoked_access_invalidates_generation() {
     assert!(sftp::snapshot(&reconnected.id).is_none());
     fs::write(root.join("results.json"), serde_json::to_vec_pretty(&json!({"candidate":candidate,"connected":connected,"listing":listed,"denied":denied,"denied_connect":denied_connect.unwrap_err().to_string(),"disconnected":disconnected,"discovery":"synthetic status fixture","transport":"real loopback SSH through GVfs"})).unwrap()).unwrap();
 }
+
+#[test]
+#[ignore = "requires an explicitly authorized live tailnet peer and read-only directory"]
+fn configured_alias_survives_refresh_and_lists_remote_directory() {
+    let alias = std::env::var("FILEBLADE_SFTP_ALIAS").expect("authorized SSH alias required");
+    let path = std::env::var("FILEBLADE_SFTP_DIRECTORY").expect("authorized directory required");
+    let cancelled = AtomicBool::new(false);
+    let candidates = tailnet::discover(&cancelled).unwrap();
+    let candidate = candidates
+        .iter()
+        .find(|peer| peer.ssh_host == alias)
+        .unwrap();
+    assert_ne!(candidate.host, candidate.ssh_host);
+    let connected = backend::dispatch(
+        backend::parse([
+            "fileblade",
+            "location-connect",
+            "--location",
+            &candidate.location.id,
+            "--expected-host",
+            &alias,
+            "--user",
+            &candidate.ssh_user,
+            "--path",
+            &path,
+        ])
+        .unwrap(),
+        &cancelled,
+        &mut |_| Ok(()),
+    )
+    .unwrap();
+    assert_eq!(connected["ok"], true, "{connected}");
+    let generation = connected["location"]["session_generation"]
+        .as_str()
+        .unwrap();
+    let inventory = backend::dispatch(
+        backend::parse(["fileblade", "locations"]).unwrap(),
+        &cancelled,
+        &mut |_| Ok(()),
+    )
+    .unwrap();
+    let listed = backend::dispatch(
+        backend::parse([
+            "fileblade",
+            "list",
+            "--location",
+            &candidate.location.id,
+            "--generation",
+            generation,
+            "--no-git",
+        ])
+        .unwrap(),
+        &cancelled,
+        &mut |_| Ok(()),
+    )
+    .unwrap();
+    let disconnected = sftp::disconnect(&candidate.location.id, generation, &cancelled);
+    let visible = inventory["locations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|peer| peer["id"] == candidate.location.id)
+        .unwrap();
+    assert_eq!(visible["connection"], "connected", "{visible}");
+    assert_eq!(visible["session_generation"], generation);
+    assert_eq!(listed["ok"], true, "{listed}");
+    assert!(
+        !listed["entries"].as_array().unwrap().is_empty(),
+        "{listed}"
+    );
+    assert_eq!(disconnected["ok"], true, "{disconnected}");
+}

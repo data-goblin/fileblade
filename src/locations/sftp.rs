@@ -238,7 +238,11 @@ pub fn retain_candidates(candidates: &[tailnet::Candidate]) {
                         && url::Url::parse(&candidate.location.canonical_uri)
                             .ok()
                             .zip(url::Url::parse(&session.canonical_uri).ok())
-                            .is_some_and(|(candidate, session)| candidate.host() == session.host())
+                            .is_some_and(|(discovered, session)| {
+                                discovered.host() == session.host()
+                                    || (!candidate.ssh_host.is_empty()
+                                        && session.host_str() == Some(candidate.ssh_host.as_str()))
+                            })
                 })
         });
     }

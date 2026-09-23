@@ -13,8 +13,7 @@ tools/native check OUTPUT
 ```
 
 Supported target identifiers are `x86_64-unknown-linux-gnu`,
-`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-gnu` and
-`aarch64-unknown-linux-musl`. GNU inputs must name the corresponding glibc
+and `x86_64-unknown-linux-musl`. GNU inputs must name the corresponding glibc
 interpreter; musl inputs must be static. `verify` checks the whole file set,
 SHA-256, modes, required files and ELF architecture/ABI without executing the
 backend. `check` additionally requires the matching machine, runtime packages
@@ -35,7 +34,6 @@ directory and refuses to replace an existing destination.
 The producer is responsible for building the supplied backend and notices
 from the named source/target. A digest detects corruption; it is not a signed
 build attestation. These local payloads carry no remote provenance claim.
-Cross-target verification is not an ARM runtime or physical-hardware pass.
 
 The production runtime launcher `app/launch` resolves its backend at
 `bin/fileblade`; the payload retains that path without requiring
@@ -170,9 +168,7 @@ both trees.
 Package mapping does not qualify that startup, provide a chooser, or register
 runtime-owned desktop/service metadata that has not yet been implemented.
 Mapping those descriptors and checking real companion-mode coexistence remain
-part of native integration and task 9.4. An ARM package requires an actual
-ARM payload and matching Arch build environment; no ARM execution follows
-from the inventory format accepting an ARM target.
+part of native integration qualification.
 
 Inside the assigned guest,
 `tests/vm/expectations/92-delivery-package.sh SOURCE PAYLOAD` builds and

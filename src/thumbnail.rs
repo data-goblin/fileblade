@@ -210,13 +210,13 @@ fn poster_command(program: &str, bytes: &[u8]) -> CommandSpec {
         .env("MALLOC_ARENA_MAX", "2")
         .args([
             "-v", "error", "-max_alloc", "67108864",
-            "-protocol_whitelist", "pipe",
+            "-protocol_whitelist", "pipe,fd",
             "-format_whitelist", "bmp_pipe,gif,gif_pipe,tiff_pipe,ico,pbm_pipe,pgm_pipe,pgmyuv_pipe,ppm_pipe,pam_pipe,pfm_pipe,svg_pipe,mov,matroska,webm,jpegxl_pipe,hdr_pipe,exr_pipe,psd_pipe,avi,mpeg,mpegts,ogg,flv,asf",
             "-codec_whitelist", "bmp,png,gif,tiff,pbm,pgm,pgmyuv,ppm,pam,pfm,librsvg,hevc,av1,libdav1d,libaom-av1,libjxl,libjxl_anim,hdr,exr,psd,h264,vp8,vp9,ffv1,mpeg1video,mpeg2video,mpeg4,theora,flv,wmv1,wmv2,wmv3,vc1,mjpeg",
             "-max_streams", "16", "-threads", "1",
         ])
         .args(["-frame_size", &bytes.len().to_string(), "-max_pixels", &MAX_SOURCE_PIXELS.to_string()])
-        .stdin(bytes)
+        .seekable_stdin(bytes)
         .timeout(Duration::from_secs(4))
         .resource_limits(0, DECODE_MEMORY_BYTES)
         .limits(CACHE_BYTES, 16 * 1024)
@@ -232,7 +232,7 @@ fn render_poster(bytes: &[u8], width: u32, height: u32) -> AppResult<EncodedThum
     let probe = poster_command("ffprobe", bytes)
         .args([
             "-i",
-            "pipe:0",
+            "fd:",
             "-select_streams",
             "v:0",
             "-show_entries",
@@ -269,7 +269,7 @@ fn render_poster(bytes: &[u8], width: u32, height: u32) -> AppResult<EncodedThum
             "-filter_threads",
             "1",
             "-i",
-            "pipe:0",
+            "fd:",
             "-map",
             "0:v:0",
             "-frames:v",

@@ -43,7 +43,7 @@ jq '.files += [.files[0]]' "$work/manifest" > "$payload/payload.json"
 reject verify "$payload" E-90-03-duplicate
 jq '.files[0].path = "../escape"' "$work/manifest" > "$payload/payload.json"
 reject verify "$payload" E-90-03-traversal
-jq '.architecture = "aarch64" | .target = "aarch64-unknown-linux-musl"' "$work/manifest" > "$payload/payload.json"
+jq '.architecture = "unsupported" | .target = "unsupported-unknown-linux-musl"' "$work/manifest" > "$payload/payload.json"
 reject verify "$payload" E-90-04-architecture
 jq '.target |= (if endswith("-musl") then sub("-musl$"; "-gnu") else sub("-gnu$"; "-musl") end)' "$work/manifest" > "$payload/payload.json"
 reject verify "$payload" E-90-04-abi

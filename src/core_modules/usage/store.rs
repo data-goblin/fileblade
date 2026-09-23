@@ -2,7 +2,7 @@ use super::records::{self, Batch};
 use super::sql::{self, Bound, Sql, literal};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
@@ -374,6 +374,14 @@ pub fn watch_paths(environment: &Environment) -> Vec<PathBuf> {
     let today = chrono::Local::now().date_naive();
     for source in environment.sources() {
         if !source.directory.is_dir() {
+            let mut ancestor = source.directory.parent();
+            while let Some(path) = ancestor {
+                if path.is_dir() {
+                    found.push(path.to_path_buf());
+                    break;
+                }
+                ancestor = path.parent();
+            }
             continue;
         }
         found.push(source.directory.clone());
@@ -390,7 +398,12 @@ pub fn watch_paths(environment: &Environment) -> Vec<PathBuf> {
                         .join(day.format("%m").to_string())
                         .join(day.format("%d").to_string());
                     if daily.is_dir() {
-                        found.push(daily);
+                        found.push(daily.clone());
+                    }
+                    for ancestor in daily.ancestors().skip(1).take(2) {
+                        if ancestor.is_dir() {
+                            found.push(ancestor.to_path_buf());
+                        }
                     }
                 }
             }
@@ -508,12 +521,12 @@ fn user_version(database: &Sql) -> sql::Result<i64> {
         .ok_or_else(|| sql::Error::new("usage store has no schema version"))
 }
 
-struct Lock {
+pub(super) struct Lock {
     file: File,
 }
 
 impl Lock {
-    fn acquire(path: &Path) -> std::io::Result<Option<Self>> {
+    pub(super) fn acquire(path: &Path) -> std::io::Result<Option<Self>> {
         use std::os::unix::fs::OpenOptionsExt;
         let file = std::fs::OpenOptions::new()
             .read(true)
@@ -861,21 +874,35 @@ fn project_reference(script: &mut String, path: Option<&str>) -> String {
     format!("(SELECT id FROM project WHERE path = {value})")
 }
 
-fn write(
-    database: &Sql,
+struct Retention {
+    cutoff: i64,
+    forgotten: HashSet<Vec<u8>>,
+}
+
+impl Retention {
+    fn read(database: &Sql) -> sql::Result<Self> {
+        let cutoff = database
+            .query_one("SELECT coalesce(max(before), -9223372036854775808) FROM retention")?
+            .map_or(i64::MIN, |row| row.integer(0));
+        let forgotten = database
+            .query("SELECT identity FROM forgotten")?
+            .iter()
+            .map(|row| row.blob(0))
+            .collect();
+        Ok(Self { cutoff, forgotten })
+    }
+}
+
+fn append_batch(
+    script: &mut String,
+    retention: &Retention,
     agent: &str,
     path: &str,
     status: Identity,
     batch: &Batch,
-) -> sql::Result<()> {
-    let cutoff = database
-        .query_one("SELECT coalesce(max(before), -9223372036854775808) FROM retention")?
-        .map_or(i64::MIN, |row| row.integer(0));
-    let forgotten: Vec<Vec<u8>> = database
-        .query("SELECT identity FROM forgotten")?
-        .iter()
-        .map(|row| row.blob(0))
-        .collect();
+) {
+    let cutoff = retention.cutoff;
+    let forgotten = &retention.forgotten;
     let kept = |agent: &str, call: &str| {
         forgotten.is_empty() || !forgotten.contains(&identity(agent, call))
     };
@@ -888,9 +915,8 @@ fn write(
         None => false,
         Some(first) => !events.is_empty() || (batch.events.is_empty() && first >= cutoff),
     };
-    let mut script = String::from("BEGIN IMMEDIATE;\n");
     for event in &events {
-        let project = project_reference(&mut script, event.project.as_deref());
+        let project = project_reference(script, event.project.as_deref());
         let values = [
             literal(&Bound::Text(clean_bytes(event.agent.as_bytes()))),
             literal(&Bound::Text(clean_bytes(event.call.as_bytes()))),
@@ -936,7 +962,7 @@ fn write(
         ));
     }
     let project = if covered {
-        project_reference(&mut script, batch.project.as_deref())
+        project_reference(script, batch.project.as_deref())
     } else {
         format!(
             "(SELECT project FROM source WHERE path = {})",
@@ -964,8 +990,15 @@ fn write(
          size = excluded.size, mtime = excluded.mtime, offset = excluded.offset, project = excluded.project;\n",
         values.join(", ")
     ));
-    script.push_str("COMMIT;\n");
-    database.execute(&script)
+}
+
+fn flush(database: &Sql, script: &mut String) -> sql::Result<()> {
+    if script.is_empty() {
+        return Ok(());
+    }
+    database.execute(&format!("BEGIN IMMEDIATE;\n{script}COMMIT;\n"))?;
+    script.clear();
+    Ok(())
 }
 
 fn complete(agent: &str, row: &Known, status: Identity) -> bool {
@@ -1009,6 +1042,8 @@ pub fn ingest(
         );
     }
     let mut pending = false;
+    let mut retention = None;
+    let mut script = String::new();
     for (agent, path, status) in &found {
         let text = clean_path(path);
         let mut row = known.get(&text).cloned();
@@ -1035,7 +1070,20 @@ pub fn ingest(
                     break;
                 }
             };
-            write(database, agent, &text, *status, &batch)?;
+            if retention.is_none() {
+                retention = Some(Retention::read(database)?);
+            }
+            append_batch(
+                &mut script,
+                retention.as_ref().unwrap(),
+                agent,
+                &text,
+                *status,
+                &batch,
+            );
+            if script.len() >= 1024 * 1024 {
+                flush(database, &mut script)?;
+            }
             if !batch.pending || Instant::now() >= deadline {
                 pending = pending || batch.pending;
                 break;
@@ -1050,6 +1098,7 @@ pub fn ingest(
             });
         }
     }
+    flush(database, &mut script)?;
     let seen: std::collections::HashSet<String> =
         found.iter().map(|(_, path, _)| clean_path(path)).collect();
     let vanished: Vec<String> = known

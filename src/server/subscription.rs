@@ -71,6 +71,7 @@ pub(super) fn start_subscription(
     }
     seen.remember(key.clone());
     let generation = object.get("generation").cloned().unwrap_or(Value::Null);
+    let include_writes = object.get("includeWrites").and_then(Value::as_bool) == Some(true);
     let output = Arc::clone(output);
     let active = Arc::clone(active);
     workers.push(thread::spawn(move || {
@@ -81,6 +82,7 @@ pub(super) fn start_subscription(
                 &key,
                 generation,
                 &paths,
+                include_writes,
                 &cancelled,
                 &deadline_exceeded,
                 &output,
@@ -119,11 +121,12 @@ pub(super) fn watch_filesystem(
     key: &RequestKey,
     generation: Value,
     paths: &[PathBuf],
+    include_writes: bool,
     cancelled: &AtomicBool,
     deadline_exceeded: &AtomicBool,
     output: &Output,
 ) {
-    let result = filesystem_events(key, &generation, paths, cancelled, output);
+    let result = filesystem_events(key, &generation, paths, include_writes, cancelled, output);
     let frame = closing_frame(
         key,
         generation,
@@ -139,6 +142,7 @@ pub(super) fn filesystem_events(
     key: &RequestKey,
     generation: &Value,
     paths: &[PathBuf],
+    include_writes: bool,
     cancelled: &AtomicBool,
     output: &Output,
 ) -> AppResult<()> {
@@ -146,7 +150,7 @@ pub(super) fn filesystem_events(
         inotify::init(CreateFlags::CLOEXEC | CreateFlags::NONBLOCK).map_err(|error| {
             AppError::command(format!("could not start filesystem subscription: {error}"))
         })?;
-    let flags = WatchFlags::CREATE
+    let mut flags = WatchFlags::CREATE
         | WatchFlags::DELETE
         | WatchFlags::MOVED_FROM
         | WatchFlags::MOVED_TO
@@ -157,6 +161,9 @@ pub(super) fn filesystem_events(
         | WatchFlags::DONT_FOLLOW
         | WatchFlags::EXCL_UNLINK
         | WatchFlags::ONLYDIR;
+    if include_writes {
+        flags |= WatchFlags::MODIFY;
+    }
     let mut watches = HashMap::new();
     let mut skipped = Vec::new();
     for path in paths {
@@ -285,6 +292,7 @@ pub(super) fn event_names(flags: ReadFlags) -> Vec<&'static str> {
         (ReadFlags::MOVED_FROM, "moved_from"),
         (ReadFlags::MOVED_TO, "moved_to"),
         (ReadFlags::CLOSE_WRITE, "close_write"),
+        (ReadFlags::MODIFY, "modify"),
         (ReadFlags::ATTRIB, "attrib"),
         (ReadFlags::DELETE_SELF, "delete_self"),
         (ReadFlags::MOVE_SELF, "move_self"),

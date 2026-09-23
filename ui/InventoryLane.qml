@@ -16,6 +16,7 @@ Item {
   property int generation: 0
   property var scan: null
   property bool refreshQueued: false
+  property bool loaded: false
   property bool stopping: false
   property var watch: null
   property int watchGeneration: 0
@@ -27,7 +28,8 @@ Item {
     if (retryWatch === true && watchProblem) stopWatch()
     refreshQueued = true
     busy = true
-    debounce.restart()
+    debounce.interval = loaded ? 50 : 0
+    if (!debounce.running) debounce.start()
   }
 
   function invalidate() {
@@ -35,6 +37,7 @@ Item {
     items = []
     projectRoot = ""
     loadError = ""
+    loaded = false
     truncated = false
     suspendScan()
     stopWatch()
@@ -72,6 +75,7 @@ Item {
       if (lane.owner.ready && request.generation === lane.generation) lane.acceptScan(response)
       lane.busy = lane.owner.ready && lane.refreshQueued
       if (lane.refreshQueued) debounce.restart()
+      else lane.owner.queueCounts()
     }, null, 35000)
   }
 
@@ -84,6 +88,7 @@ Item {
       return
     }
     loadError = ""
+    loaded = true
     projectRoot = String(response.project || "")
     truncated = response.truncated === true || response[key].length > owner.maximumItems
     var rows = []
@@ -156,5 +161,5 @@ Item {
     if (request) request.files.cancelBackendRequest(request.id, request.generation, dispose)
   }
 
-  Timer { id: debounce; interval: 180; onTriggered: lane.startScan() }
+  Timer { id: debounce; interval: 0; onTriggered: lane.startScan() }
 }

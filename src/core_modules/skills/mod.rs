@@ -20,6 +20,8 @@ const MAX_ITEM_STUBS: usize = 1024;
 struct Options {
     project: String,
     exact: bool,
+    no_usage: bool,
+    no_ingest: bool,
     home: String,
     prefix: String,
     platform: String,
@@ -50,6 +52,8 @@ fn parsed(arguments: &[String]) -> AppResult<Options> {
         match flag {
             "--json" => {}
             "--exact" => options.exact = true,
+            "--no-usage" => options.no_usage = true,
+            "--no-ingest" => options.no_ingest = true,
             "--project" => options.project = value()?,
             "--home" => options.home = value()?,
             "--prefix" => options.prefix = value()?,
@@ -143,7 +147,16 @@ fn listing(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppR
     let mut plan = WatchPlan::new();
     let mut document = discovery::collect(&mut plan, &environment(&options)?);
     plan.finish(&mut document);
-    usage::attach(context, &mut document);
+    if options.no_usage {
+        document.insert(
+            "usageWatchPaths".to_string(),
+            Value::Array(crate::core_modules::usage::watch_paths(
+                &usage::environment(),
+            )),
+        );
+    } else {
+        usage::attach(context, &mut document);
+    }
     bounded(document)
 }
 
@@ -151,14 +164,26 @@ fn usage_history(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -
     let options = parsed(arguments)?;
     match &options.items {
         Some(raw) => usage::history(context, &item_stubs(raw), true),
-        None => usage::history(context, &discovered_items(&options)?, false),
+        None => {
+            context.check()?;
+            Ok(crate::core_modules::usage::query::skill_history(
+                &usage::environment(),
+                &discovered_items(&options)?,
+                false,
+                !options.no_ingest,
+            ))
+        }
     }
 }
 
 fn usage_counts(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {
     let options = parsed(arguments)?;
     let items = item_stubs(options.items.as_deref().unwrap_or("[]"));
-    usage::counts(context, &items)
+    let mut response = usage::counts(context, &items)?;
+    response["usageWatchPaths"] = Value::Array(crate::core_modules::usage::watch_paths(
+        &usage::environment(),
+    ));
+    Ok(response)
 }
 
 fn usage_day(_: &Request<'_>, arguments: &[String], context: &Context<'_>) -> AppResult<Value> {

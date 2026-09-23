@@ -19,7 +19,7 @@ pub fn plan(launcher: &Path, config: &Path, data: &Path) -> Vec<Planned> {
             data.join("dbus-1/services/org.freedesktop.impl.portal.desktop.fileblade.service"),
             format!(
                 "[D-BUS Service]\nName=org.freedesktop.impl.portal.desktop.fileblade\nExec={} native portal\n",
-                launcher.display()
+                super::entry::exec_path(launcher)
             ),
         ),
         Planned::ini(

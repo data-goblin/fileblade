@@ -346,6 +346,7 @@ FocusScope {
   }
 
   function extraGroupTexts(row) {
+    if (!row || row.kind !== "group") return []
     var keys = extraKeys()
     var result = []
     for (var i = 0; i < keys.length; i++) {
@@ -392,7 +393,7 @@ FocusScope {
   }
 
   function groupText(row) {
-    if (!row) return ""
+    if (!row || row.kind !== "group") return ""
     if (metricKind !== "number") return String(row.badge || "")
     var total = groupTotal(row.path)
     return metricKey === "bytes" ? Format.bytes(total) : Format.compact(total)

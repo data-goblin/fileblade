@@ -68,7 +68,15 @@ impl PublicResult {
 }
 
 pub(super) fn ipc(method: &str, arguments: &[String]) -> AppResult<String> {
-    ipc_on(ipc_target(method), method, arguments)
+    let target = ipc_target(method);
+    let response = ipc_on(target, method, arguments)?;
+    if target == CONTROL_TARGET
+        && (response.starts_with("invalid-")
+            || matches!(response.as_str(), "no-screen" | "unknown-monitor"))
+    {
+        return Err(AppError::command(format!("{method}: {response}")));
+    }
+    Ok(response)
 }
 
 pub(super) fn ipc_target(method: &str) -> &'static str {
@@ -304,10 +312,22 @@ pub(super) fn backend_json_with_timeout(
             .chain(arguments.iter().cloned()),
     )
     .map_err(|error| AppError::invalid(error.to_string().trim().to_string()))?;
-    if crate::lease::selected_root()?.is_some() && crate::server::native_mutating(&command) {
-        return Err(AppError::command(
-            "native owner-unavailable: mutations must be admitted by the native authority",
-        ));
+    if crate::lease::selected_root()?.is_some() {
+        let mut document = Value::Null;
+        let mut bytes = 0usize;
+        crate::native::backend_request(arguments, timeout, &mut |value| {
+            let size = bounded_json_size(value, MAX_IPC_STDOUT.saturating_sub(bytes))
+                .ok_or_else(|| AppError::command("filesystem backend exceeded its output limit"))?;
+            bytes += size;
+            document = value.clone();
+            Ok(())
+        })?;
+        if !document.is_object() {
+            return Err(AppError::command(
+                "filesystem backend returned an unexpected document",
+            ));
+        }
+        return Ok(document);
     }
     let cancelled = Arc::new(AtomicBool::new(false));
     let expired = Arc::new(AtomicBool::new(false));

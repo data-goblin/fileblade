@@ -2261,7 +2261,9 @@ fn a_hidden_toolbar_button_keeps_its_own_route_into_the_pane() {
         "turning every button off must leave the header laid out, not empty and reserved"
     );
     assert!(
-        tree.contains("mediaMode && toolbarButtons.indexOf(\"media\") >= 0 &&"),
+        tree.contains(
+            "mediaMode && !controller.pickerActive && toolbarButtons.indexOf(\"media\") >= 0 &&"
+        ),
         "media is the one action with no keyboard, location bar or CLI route, so hiding its button leaves the pane in Files rather than stranded in the grid"
     );
 

@@ -130,9 +130,9 @@ fn the_mcp_module_keeps_its_qml_and_helper_contract() {
         "itemsKey: \"definitions\", healthBasis: \"configuration-only\""
     );
     assert!(
-        provider.contains("exactProject: false, scanArguments: [\"--watch\"]"),
+        provider.contains("exactProject: false, scanArguments: [\"--watch\", \"--no-usage\"]"),
         "In: {}",
-        "exactProject: false, scanArguments: [\"--watch\"]"
+        "exactProject: false, scanArguments: [\"--watch\", \"--no-usage\"]"
     );
     assert!(
         provider.contains("InventoryProvider {"),

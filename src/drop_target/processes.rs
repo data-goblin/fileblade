@@ -427,43 +427,88 @@ pub(super) fn tmux_client(processes: &[ProcessRow]) -> Value {
     }
     let pids: HashSet<u32> = processes.iter().map(|row| row.pid).collect();
     let socket = environment_value(processes, "TMUX");
-    let Ok(command) = native_tmux_arguments(tmux_command(&socket)) else {
+    let client = processes.iter().find(|row| row.comm == "tmux: client");
+    let cwd = client.and_then(|row| fs::read_link(format!("/proc/{}/cwd", row.pid)).ok());
+    let mut selector = Vec::new();
+    if let Some(client) = client {
+        let mut arguments = client.arguments.iter().skip(1);
+        while let Some(argument) = arguments.next() {
+            if !argument.starts_with('-') || argument == "--" {
+                break;
+            }
+            for (index, option) in argument.char_indices().skip(1) {
+                if matches!(option, 'c' | 'f' | 'L' | 'S' | 'T') {
+                    let value = &argument[index + 1..];
+                    let value = if value.is_empty() {
+                        arguments.next().map(String::as_str).unwrap_or_default()
+                    } else {
+                        value
+                    };
+                    if matches!(option, 'L' | 'S') {
+                        selector.extend([format!("-{option}"), value.to_string()]);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    let mut command = tmux_command(if selector.is_empty() { &socket } else { "" });
+    command.extend(selector);
+    let Ok(command) = native_tmux_arguments(command) else {
         return json!({});
     };
-    let output = CommandSpec::new(command[0].clone())
+    let mut query = CommandSpec::new(command[0].clone())
         .args(command.iter().skip(1))
         .args([
             "list-clients".to_string(),
             "-F".to_string(),
-            "#{client_pid}\t#{client_tty}\t#{session_id}\t#{pane_pid}".to_string(),
+            "#{client_pid}\t#{client_tty}\t#{session_id}\t#{pane_pid}\t#{socket_path}".to_string(),
         ])
         .timeout(CONTROL_TIMEOUT)
-        .limits(256 * 1024, 64 * 1024)
-        .run();
+        .limits(256 * 1024, 64 * 1024);
+    if let Some(client) = client {
+        if let Some(cwd) = &cwd {
+            query = query.cwd(cwd);
+        }
+        let temporary = environment_value(std::slice::from_ref(client), "TMUX_TMPDIR");
+        if !temporary.is_empty() {
+            query = query.env("TMUX_TMPDIR", temporary);
+        }
+    }
+    let output = query.run();
     let Ok(output) = output else {
-        return json!({});
+        return ambiguous("cannot query this terminal's tmux client");
     };
     for line in std::str::from_utf8(&output.stdout)
         .unwrap_or_default()
         .lines()
     {
         let fields = line.split('\t').collect::<Vec<_>>();
-        if fields.len() == 4
+        if fields.len() == 5
+            && !fields[4].is_empty()
             && fields[0]
                 .parse::<u32>()
                 .ok()
                 .is_some_and(|pid| pids.contains(&pid))
         {
+            let socket = Path::new(fields[4]);
+            let socket = if socket.is_absolute() {
+                socket.to_path_buf()
+            } else if let Some(cwd) = &cwd {
+                cwd.join(socket)
+            } else {
+                continue;
+            };
             return json!({
                 "client_pid": fields[0].parse::<u32>().unwrap_or_default(),
                 "tty": fields[1],
                 "session": fields[2],
                 "cwd": fields[3].parse::<u32>().ok().and_then(|pid| fs::read_link(format!("/proc/{pid}/cwd")).ok()).map(|path| path_text(&path)).unwrap_or_default(),
-                "socket": socket,
+                "socket": path_text(&socket),
             });
         }
     }
-    json!({})
+    ambiguous("cannot identify this terminal's tmux client")
 }
 
 pub(super) fn tmux_focused_client(_processes: &[ProcessRow]) -> Value {

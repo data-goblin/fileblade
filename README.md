@@ -21,19 +21,23 @@
 > 
 > I welcome any and all feedback or critique!
 
-> [!WARNING]
-> FileBlade is in 0.1.0-**beta** meaning that it's still undergoing testing and changes.
-> Please only install it if you're comfortable with testing and feedback until it is out of beta.
->
-> **Multiple monitors** is currently not supported in the beta (sorry!) but is planned for v0.1.0
+This file was written by an agent.
 
-This README is human-written. See [here](#details) for more detailed agent-written docs.
+> [!WARNING]
+> FileBlade 0.2.0 is intended for Omarchy on x86-64 Linux. Review the
+> [feature guides](features/index.md) and [release evidence](features/release/readiness.md)
+> before installing.
+
+The introduction is human-written; agent-maintained release and installation guidance is marked below. See [here](#details) for detailed technical docs.
 
 ## Installation / Quick-start
 
+This file was written by an agent.
+
 FileBlade ships its bundled x86-64 Linux binary, so no Rust toolchain or
-separate binary download is needed. Requires Omarchy 4.0.2 or later. Other
-architectures need a compatible backend built separately.
+separate binary download is needed. The plugin requires Omarchy 4.0.2 or
+later. The native runtime additionally requires Quickshell 0.3.1+, Qt 6.11.2+
+and the dependencies in [the runtime contract](packaging/runtime.json).
 
 Pick one of three routes.
 
@@ -49,15 +53,17 @@ OMARCHY_SHELL_IPC_TIMEOUT=10s omarchy plugin add https://github.com/data-goblin/
 curl -fsSL https://raw.githubusercontent.com/data-goblin/fileblade/main/install.sh | sh
 ```
 
-That reads a signed-by-digest release manifest, checks the archive against its
-SHA-256, verifies the payload inventory, and installs to `~/.local/bin`. Set
-`FILEBLADE_INSTALL_MANIFEST` to install from a mirror or a local file.
+That reads the release manifest, checks the archive against its SHA-256 and
+advertised version, verifies the payload inventory, and installs to
+`~/.local/bin`. These checksums detect corruption; the manifest is not signed.
+See [build provenance](docs/agent-written/build-provenance.md) for independent
+artifact verification. Set `FILEBLADE_INSTALL_MANIFEST` to use a mirror or a local file.
 
 **From a package**, once FileBlade is published to a repository you have
 enabled:
 
 ```bash
-pacman -S fileblade
+pacman -S fileblade-native
 ```
 
 Then, whichever route you took:
@@ -77,15 +83,22 @@ Then, whichever route you took:
    resize it, the same gesture that resizes a window. Over anything else the
    gesture still resizes the window underneath.
 
-To remove FileBlade, remove any extensions first, then run:
+To remove the Omarchy plugin, remove its extensions first, then run:
 
 ```bash
 omarchy plugin remove data-goblin.fileblade
 omarchy restart shell
 ```
 
-Your layout, settings, history and recoverable bins are retained. Remove the
-FileBlade bindings you added if you no longer want them.
+For a direct native installation, use its owned removal command:
+
+```bash
+"$HOME/.local/share/fileblade/installation/active/runtime/tools/native" remove
+```
+
+For a package installation, use `pacman -R fileblade-native`. Your layout,
+settings, history and recoverable bins are retained. Native removal reverses
+owned desktop roles; remove any manually added bindings separately.
 
 FileBlade has a plugin system via [extensions](EXTENSIONS.md), which are
 separate Omarchy plugins. Skills, Memory, Hooks and MCP used to be example
@@ -128,6 +141,10 @@ examples of a FileBlade extension.
 
 ## Features
 
+This file was written by an agent.
+
+[Browse all feature guides, screenshots and short videos](features/index.md).
+
 - Left and right sidebars that open on keyboard shortcuts
 - Management and navigation like a normal hyprland window
 - Dock and undock sidebars
@@ -135,7 +152,7 @@ examples of a FileBlade extension.
 - Configurable sections of each sidebar like in an IDE
   - The default layout shows the file tree and properties
   - Bundled Notes keeps multiple named plain-text notes in any slot
-  - Optional companion plugins can add Skills, Memory, MCP, Hooks, and Git modules; they are separate installs and are not installed automatically
+  - Skills, Memory, MCP, Hooks and Branches are built in; third-party extensions can add more panes
 - Selection from the filetree is shared with other modules and agents
 - QoL search functionality
   - `zoxide`-like directory change
@@ -181,8 +198,9 @@ Here's a concise list of what happens when you install FileBlade:
 
 ### Keybindings
 
-FileBlade never writes to your Hyprland config. The binds below are the ones
-you add to `~/.config/hypr/bindings.lua` (the block is in ARCHITECTURE.md under
+The plugin does not write your Hyprland config. Native FileBlade writes an
+owned include only when you explicitly enable its bindings role. You can
+also add the binds below to `~/.config/hypr/bindings.lua` (the block is in ARCHITECTURE.md under
 "Focus and keybindings"); each asks FileBlade first with a short timeout and
 falls back to the plain dispatcher, so nothing breaks when the shell is down.
 
@@ -200,7 +218,7 @@ falls back to the plain dispatcher, so nothing breaks when the shell is down.
 ### Trash and soft deletes
 
 - Trashed files go to `~/.local/share/Trash`, so they show up in other file mgrs
-- Trash is emptied automatically after **7 days by default**; change it in settings
+- First use asks whether Trash should be emptied automatically; **Never** is the initial choice, and the retention period can be changed in settings
 - Things you manage through plugins (skills, memory, hooks, and so on) can be disabled instead of trashed, which moves it to `~/.local/share/fileblade/bin/` until you restore it
 - Every file operation FileBlade performs is logged to `~/.local/state/omarchy/fileblade/audit.jsonl`, and undo/redo works on them
 
@@ -210,7 +228,7 @@ falls back to the plain dispatcher, so nothing breaks when the shell is down.
 
 ## Details
 
-This README is human-written and kept intentionally brief.
+This README includes a human-written introduction and agent-maintained release guidance.
 Please check the below for details which are agent-written, but I've tried to keep responsibly clear to understand for you or your agent.
 
 - **Architecture:** See [ARCHITECTURE.md](ARCHITECTURE.md)
