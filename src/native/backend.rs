@@ -22,12 +22,28 @@ pub fn run(arguments: Vec<OsString>, output: Arc<Output>) -> AppResult<bool> {
                 .map_err(|_| AppError::invalid("native backend arguments must be valid UTF-8"))
         })
         .collect::<AppResult<Vec<_>>>()?;
+    request(
+        &arguments,
+        Duration::from_millis(DEADLINE_MS),
+        &mut |value| {
+            output.machine(value)?;
+            Ok(())
+        },
+    )
+}
+
+pub(crate) fn request(
+    arguments: &[String],
+    timeout: Duration,
+    emit: &mut dyn FnMut(&Value) -> AppResult<()>,
+) -> AppResult<bool> {
     let command = arguments
         .first()
         .cloned()
         .filter(|command| !command.is_empty())
         .ok_or_else(|| AppError::invalid("native backend requires a command"))?;
-    let request_arguments = arguments.into_iter().skip(1).collect::<Vec<_>>();
+    let request_arguments = &arguments[1..];
+    let deadline_ms = timeout.as_millis().min(u128::from(DEADLINE_MS)) as u64;
     let root = crate::lease::selected_root()?.ok_or_else(|| {
         AppError::command("native owner-unavailable: native state root is not configured")
     })?;
@@ -54,7 +70,7 @@ pub fn run(arguments: Vec<OsString>, output: Arc<Output>) -> AppResult<bool> {
             ),
         ));
     }
-    stream.set_read_timeout(Some(Duration::from_millis(DEADLINE_MS)))?;
+    stream.set_read_timeout(Some(Duration::from_millis(deadline_ms)))?;
     let id = format!("native-{}", Uuid::new_v4());
     let generation = Value::from(1_u64);
     write_frame(
@@ -66,7 +82,7 @@ pub fn run(arguments: Vec<OsString>, output: Arc<Output>) -> AppResult<bool> {
             "generation": generation.clone(),
             "command": command,
             "arguments": request_arguments,
-            "deadline_ms": DEADLINE_MS,
+            "deadline_ms": deadline_ms,
         }),
     )?;
     loop {
@@ -79,11 +95,11 @@ pub fn run(arguments: Vec<OsString>, output: Arc<Output>) -> AppResult<bool> {
             }
             Some("progress") => {
                 validate_frame(&frame, &id, &generation)?;
-                output.machine(frame.get("payload").unwrap_or(&Value::Null))?;
+                emit(frame.get("payload").unwrap_or(&Value::Null))?;
             }
             Some("response") => {
                 validate_frame(&frame, &id, &generation)?;
-                output.machine(frame.get("payload").unwrap_or(&Value::Null))?;
+                emit(frame.get("payload").unwrap_or(&Value::Null))?;
                 if let Some(operation) = frame.get("op").and_then(Value::as_str) {
                     write_frame(
                         &mut stream,

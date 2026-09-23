@@ -1885,6 +1885,11 @@ This file was written by an agent.
   start FileBlade; it does not claim FileBlade is missing or restart Omarchy.
 - `fileblade doctor` reports the current folder. Native failures advise starting
   FileBlade, while legacy-plugin failures retain the corresponding shell advice.
+- If startup recovery is blocked, `fileblade doctor` reports an unhealthy
+  runtime, exits unsuccessfully and includes the recovery failure in its advice,
+  even when the backend and view answer requests.
+- Native CLI backend helpers, including drive capacity and archive extraction,
+  use the running authority. They refuse cleanly when that owner is stopped.
 - **E-40-21** The native `fileblade preferences` command reads and saves through
   the running persistence service. Changes survive the next read and a stopped
   service cannot cause a separate writer to modify the settings.

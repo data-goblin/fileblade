@@ -6,6 +6,7 @@ use std::process::ExitCode;
 use std::sync::Arc;
 
 mod backend;
+pub(crate) use backend::request as backend_request;
 pub use backend::run as run_backend;
 mod drain;
 mod filemanager1;

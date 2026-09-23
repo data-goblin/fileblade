@@ -34,7 +34,8 @@ pub(super) fn doctor() -> AppResult<PublicResult> {
         })
         .unwrap_or(0);
     let serve = doctor_handshake(&binary);
-    let ok = !version_skew && shell["ok"] == true && serve["ok"] == true;
+    let recovery_failed = serve["recovered"]["ok"] == false;
+    let ok = !version_skew && shell["ok"] == true && serve["ok"] == true && !recovery_failed;
     let mut advice = Vec::new();
     let native = crate::lease::selected_root()?.is_some();
     if version_skew {
@@ -60,6 +61,14 @@ pub(super) fn doctor() -> AppResult<PublicResult> {
     if inflight > 0 {
         advice.push(format!(
             "{inflight} operation intent(s) exist; recovery skips active operations"
+        ));
+    }
+    if recovery_failed {
+        advice.push(format!(
+            "startup recovery is blocked: {}",
+            serve["recovered"]["error"]
+                .as_str()
+                .unwrap_or("inspect the recovery result and native authority log")
         ));
     }
     Ok(PublicResult::checked(

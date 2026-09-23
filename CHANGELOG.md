@@ -11,6 +11,9 @@ This file was written by an agent.
   refuse mixed versions; the bootstrap verifies the advertised version and target
   before running the payload installer. Desktop integration handles launcher paths
   containing spaces and reserved characters.
+- Native CLI backend helpers reuse the running authority for reads, persistence
+  and mutation admission. `fileblade doctor` reports blocked startup recovery as
+  unhealthy and explains the failure even when the backend and view still answer.
 - Skills, Memory, Hooks and MCP are built into core and run through the Rust
   backend without Python runtime helpers.
 - Theme changes reload native colors in both directions. Holding Space before a

@@ -304,10 +304,22 @@ pub(super) fn backend_json_with_timeout(
             .chain(arguments.iter().cloned()),
     )
     .map_err(|error| AppError::invalid(error.to_string().trim().to_string()))?;
-    if crate::lease::selected_root()?.is_some() && crate::server::native_mutating(&command) {
-        return Err(AppError::command(
-            "native owner-unavailable: mutations must be admitted by the native authority",
-        ));
+    if crate::lease::selected_root()?.is_some() {
+        let mut document = Value::Null;
+        let mut bytes = 0usize;
+        crate::native::backend_request(arguments, timeout, &mut |value| {
+            let size = bounded_json_size(value, MAX_IPC_STDOUT.saturating_sub(bytes))
+                .ok_or_else(|| AppError::command("filesystem backend exceeded its output limit"))?;
+            bytes += size;
+            document = value.clone();
+            Ok(())
+        })?;
+        if !document.is_object() {
+            return Err(AppError::command(
+                "filesystem backend returned an unexpected document",
+            ));
+        }
+        return Ok(document);
     }
     let cancelled = Arc::new(AtomicBool::new(false));
     let expired = Arc::new(AtomicBool::new(false));

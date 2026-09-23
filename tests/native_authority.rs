@@ -465,6 +465,99 @@ fn an_unprepared_authority_refuses_layout_writes_before_admission() {
     );
 }
 
+#[test]
+fn doctor_reports_blocked_native_recovery_as_unhealthy() {
+    let _serial = TEST_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+    let resident = Resident::with_mode(false);
+    let bin = resident.temporary.path().join("bin");
+    fs::create_dir(&bin).unwrap();
+    let qs = bin.join("qs");
+    fs::write(
+        &qs,
+        "#!/bin/sh\nprintf '%s\\n' '{\"open\":true,\"rootPath\":\"/work\"}'\n",
+    )
+    .unwrap();
+    fs::set_permissions(&qs, fs::Permissions::from_mode(0o700)).unwrap();
+    let output = isolated_command(resident.temporary.path(), &resident.root)
+        .env("PATH", &bin)
+        .env("FILEBLADE_APP_ROOT", env!("CARGO_MANIFEST_DIR"))
+        .args(["doctor", "--output", "json"])
+        .output()
+        .unwrap();
+    let report: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["shell"]["ok"], true, "{report}");
+    assert_eq!(report["serve"]["ok"], true, "{report}");
+    assert_eq!(report["serve"]["recovered"]["ok"], false, "{report}");
+    assert_eq!(report["ok"], false, "{report}");
+    assert!(!output.status.success());
+    assert!(
+        report["advice"]
+            .to_string()
+            .contains("startup recovery is blocked")
+    );
+}
+
+#[test]
+fn public_backend_commands_use_the_native_owner_for_reads_and_writes() {
+    let _serial = TEST_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+    let mut resident = Resident::start();
+    let home = resident.temporary.path();
+    let source = home.join("project");
+    fs::create_dir(&source).unwrap();
+    fs::write(source.join("note.txt"), b"preserved archive contents").unwrap();
+    let archive = home.join("sample.tar");
+    assert!(
+        Command::new("tar")
+            .arg("-cf")
+            .arg(&archive)
+            .arg("-C")
+            .arg(&source)
+            .arg("note.txt")
+            .status()
+            .unwrap()
+            .success()
+    );
+    let capacity = isolated_command(home, &resident.root)
+        .args(["space", "--output", "json"])
+        .arg(&source)
+        .output()
+        .unwrap();
+    assert!(
+        capacity.status.success(),
+        "{}",
+        String::from_utf8_lossy(&capacity.stderr)
+    );
+    let capacity: Value = serde_json::from_slice(&capacity.stdout).unwrap();
+    assert_eq!(capacity["ok"], true);
+    assert!(capacity["size"].as_u64().unwrap() > 0);
+    let destination = home.join("extracted");
+    let extracted = isolated_command(home, &resident.root)
+        .args(["extract", "--output", "json"])
+        .arg(&archive)
+        .arg("--to")
+        .arg(&destination)
+        .output()
+        .unwrap();
+    assert!(
+        extracted.status.success(),
+        "{}",
+        String::from_utf8_lossy(&extracted.stderr)
+    );
+    assert_eq!(
+        fs::read(destination.join("note.txt")).unwrap(),
+        b"preserved archive contents"
+    );
+    resident.child.kill().unwrap();
+    resident.child.wait().unwrap();
+    let stopped = isolated_command(home, &resident.root)
+        .arg("space")
+        .arg(&source)
+        .output()
+        .unwrap();
+    assert!(!stopped.status.success());
+    assert!(String::from_utf8_lossy(&stopped.stderr).contains("owner-unavailable"));
+}
+
 impl Drop for Resident {
     fn drop(&mut self) {
         unsafe {
