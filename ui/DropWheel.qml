@@ -359,8 +359,9 @@ PanelWindow {
       id: wedge
       required property var modelData
       required property int index
+      opacity: modelData.enabled === false ? 0.35 : 1
       readonly property var applicationIcon: overlay.applicationIcon(modelData)
-      readonly property bool active: index === overlay.controller.highlighted
+      readonly property bool active: modelData.enabled !== false && index === overlay.controller.highlighted
       readonly property bool parentWedge: overlay.controller.hasChildren(index)
       readonly property real angle: overlay.controller.wedgeAngle(index)
       readonly property point center: overlay.pointOnRing(angle, overlay.labelRadius)
@@ -379,10 +380,10 @@ PanelWindow {
         trustedIconSource: wedge.applicationIcon.icon_source
         monochrome: !wedge.active || monochromeMask !== "alpha"
         monochromeMask: String(wedge.modelData.icon_mask || "alpha")
-        iconColor: wedge.active ? Qt.lighter(Color.accent, 1.5) : Color.accent
+        iconColor: wedge.modelData.enabled === false ? Color.muted : wedge.active ? Qt.lighter(Color.accent, 1.5) : Color.accent
         iconSize: Typography.body + 8
         fallbackGlyph: String(wedge.applicationIcon.glyph || "") || String(wedge.modelData.key || "").toUpperCase()
-        fallbackColor: Color.accent
+        fallbackColor: wedge.modelData.enabled === false ? Color.muted : Color.accent
         fallbackSize: Typography.body + 6
       }
 
@@ -415,6 +416,7 @@ PanelWindow {
       id: child
       required property var modelData
       required property int index
+      opacity: modelData.enabled === false ? 0.35 : 1
       readonly property var applicationIcon: overlay.applicationIcon(modelData)
       readonly property bool third: index >= overlay.controller.outerItems.length
       readonly property int localIndex: third ? index - overlay.controller.outerItems.length : index

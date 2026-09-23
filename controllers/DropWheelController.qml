@@ -35,6 +35,7 @@ Item {
   property real pointerX: 0
   property real pointerY: 0
   property int dragModifiers: 0
+  property bool modifierHeld: false
   readonly property string pathForm: (dragModifiers & Qt.ShiftModifier) ? "absolute" : (dragModifiers & Qt.ControlModifier) ? "relative" : ""
   property string toast: ""
   property bool toastError: false
@@ -113,6 +114,7 @@ Item {
     dragOutside = false
     dragConsumed = false
     dragModifiers = 0
+    modifierHeld = false
     pointerX = Number(x) || 0
     pointerY = Number(y) || 0
     service.bladeHost.pressActive = true
@@ -130,7 +132,7 @@ Item {
       if (wheelFromDrag) hover(pointerX, pointerY)
       return
     }
-    if (modifierFlag !== 0 && dragDocked && dragOutside && (Number(modifiers) & modifierFlag)) openWheel(dragScreen, pointerX, pointerY, true)
+    if (dragDocked && dragOutside && (modifierHeld || (modifierFlag !== 0 && (Number(modifiers) & modifierFlag)))) openWheel(dragScreen, pointerX, pointerY, true)
   }
 
   function modifierPressed() {
@@ -428,7 +430,7 @@ Item {
       outerHighlighted = -1
       resetSub()
     }
-    var children = index >= 0 ? childrenOf(ringItems[index]) : []
+    var children = index >= 0 && ringItems[index].enabled !== false ? childrenOf(ringItems[index]) : []
     parentIndex = children.length > 0 ? index : -1
     outerItems = children
   }
@@ -480,7 +482,7 @@ Item {
   function activate(index) {
     clearPendingRelease()
     var item = ringItems[index]
-    if (!item) return false
+    if (!item || item.enabled === false) return false
     setHighlighted(index)
     if (outerItems.length > 0) return enterOuter()
     if (item.id === "open-with") {
@@ -515,6 +517,7 @@ Item {
   }
 
   function runItem(item, parent) {
+    if (item.enabled === false || (parent && parent.enabled === false)) return false
     if (Array.isArray(item.command_route)) return run("configured", JSON.stringify(item.command_route), "")
     if (item.builtin_action) return run(String(item.builtin_action), String(item.builtin_placement || ""), String(item.desktop_id || ""))
     if (parent && parent.custom) return runCustom(item.run || parent.run, item)

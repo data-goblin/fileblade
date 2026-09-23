@@ -140,7 +140,9 @@ pub(super) fn classify_terminal(
     title: &str,
 ) -> Value {
     let comms: HashSet<&str> = processes.iter().map(|row| row.comm.as_str()).collect();
-    if class == "org.omarchy.nvim" || comms.contains("nvim") {
+    if class == "org.omarchy.nvim"
+        || (comms.contains("nvim") && !comms.contains("herdr") && !comms.contains("tmux: client"))
+    {
         if shared {
             return json!({"kind": "editor", "editor": {"kind": "nvim", "server": "", "ambiguous": true,
                 "reason": "cannot identify this window's nvim: the terminal process is shared with other windows"}});
@@ -245,6 +247,14 @@ pub(super) fn file_facts(raw_paths: &[String]) -> Value {
                 .is_some_and(|value| is_text_like(value) || value == "inode/directory")
         });
     let git_root = repository_root(&paths);
+    let git_changes = !git_root.is_empty()
+        && crate::git::git_worktree_status(&git_root, true).is_some_and(|repository| {
+            repository.ok
+                && repository
+                    .entries
+                    .iter()
+                    .any(|entry| native.iter().any(|path| entry.path.starts_with(path)))
+        });
     let folder = if paths.len() == 1 && !directories.is_empty() {
         directories[0].clone()
     } else {
@@ -263,6 +273,7 @@ pub(super) fn file_facts(raw_paths: &[String]) -> Value {
         "mimes": mimes,
         "text_like": text_like,
         "git_root": git_root,
+        "git_changes": git_changes,
         "review_pair": files.len() == 2 && directories.is_empty(),
         "folder": folder,
     })

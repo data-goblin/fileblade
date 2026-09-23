@@ -171,17 +171,7 @@ pub(super) fn herdr_socket(processes: &[ProcessRow]) -> String {
 }
 
 pub(super) fn herdr_process_context(processes: &[ProcessRow]) -> Value {
-    let socket = herdr_socket(processes);
-    let pane_id = environment_value(processes, "HERDR_PANE_ID");
-    if pane_id.is_empty() {
-        return herdr_focused_pane(&socket);
-    }
-    json!({
-        "workspace_id": environment_value(processes, "HERDR_WORKSPACE_ID"),
-        "tab_id": environment_value(processes, "HERDR_TAB_ID"),
-        "pane_id": pane_id,
-        "socket": socket,
-    })
+    herdr_focused_pane(&herdr_socket(processes))
 }
 
 fn ambiguous(reason: &str) -> Value {

@@ -20,6 +20,7 @@ FocusScope {
   property var parents: []
   property string navigatedKey: ""
   property string levelChoice: ""
+  property bool hourly: false
   property real dragOffset: 0
   property string monthFormat: ""
   property string weekFormat: ""
@@ -37,7 +38,8 @@ FocusScope {
     if (!result || !result.bins.length) return autoDetail
     return showEmptyPeriods ? Bins.compact(result, capacity) : Bins.compact(Bins.withoutEmpty(result), capacity)
   }
-  readonly property var detail: parents.length ? Bins.child(records, parents[parents.length - 1], capacity, calendarRule, showEmptyPeriods) : globalDetail
+  readonly property var dateDetail: parents.length ? Bins.child(records, parents[parents.length - 1], capacity, calendarRule, showEmptyPeriods) : globalDetail
+  readonly property var detail: hourly ? Bins.hourly(records, dateDetail, calendarRule) : dateDetail
   readonly property string coarserLevel: {
     var index = globalLadder.indexOf(detail.level)
     return index > 0 ? globalLadder[index - 1] : ""
@@ -54,7 +56,7 @@ FocusScope {
     }
     return false
   }
-  readonly property bool sparseRows: detail.bins.length > 0 && detail.bins.length * Style.space(26) <= axisHeight && detail.bins.every(function(bin) { return bin.count === 1 })
+  readonly property bool sparseRows: !hourly && detail.bins.length > 0 && detail.bins.length * Style.space(26) <= axisHeight && detail.bins.every(function(bin) { return bin.count === 1 })
   readonly property real rowHeight: Math.min(Style.space(19), sparseRows ? Style.space(26) : axisHeight / Math.max(1, detail.bins.length))
   readonly property real occupiedHeight: records.length ? (Math.ceil(records.length / Math.max(1, columns)) - 1) * pitch + tileHeight : 0
   readonly property bool showOutline: occupiedHeight > viewportHeight && viewport.start !== null
@@ -63,9 +65,11 @@ FocusScope {
     return viewport.first
   }
   readonly property var period: activePeriod >= 0 ? detail.bins[activePeriod] : null
-  readonly property var nextDetail: period ? Bins.child(records, period, capacity, calendarRule, showEmptyPeriods) : null
-  readonly property bool canDrill: !!nextDetail && period.count > 0 && nextDetail.bins.length <= capacity
-  readonly property bool canGoUp: parents.length > 0 || coarserLevel !== ""
+  readonly property var nextDetail: !hourly && period ? Bins.child(records, period, capacity, calendarRule, showEmptyPeriods) : null
+  readonly property bool canDrill: !hourly && (detail.level === "days"
+    ? detail.bins.some(function(day) { return day.level === "days" && day.indices.some(function(index) { return records[index].date.hour !== null }) })
+    : !!nextDetail && period.count > 0 && nextDetail.bins.length <= capacity)
+  readonly property bool canGoUp: hourly || parents.length > 0 || coarserLevel !== ""
   readonly property string periodLabel: period ? label(period, false) : (parents.length ? label(parents[parents.length - 1], false) : "All dates")
   readonly property string levelLabel: ({ ranges: "Years", years: "Years", months: "Months", weeks: "Weeks", days: "Days", hours: "Hours" })[detail.level] || "Dates"
   readonly property color lightBlue: "#89b4fa"
@@ -128,15 +132,17 @@ FocusScope {
     return monthText !== "" ? monthText : String(date.year).slice(-2) + "-" + month
   }
 
-  function reset() { parents = []; navigatedKey = ""; levelChoice = "" }
+  function reset() { hourly = false; parents = []; navigatedKey = ""; levelChoice = "" }
 
   function drill() {
     if (!canDrill) return
+    if (detail.level === "days") { hourly = true; return }
     parents = parents.concat([period])
     navigatedKey = ""
   }
 
   function up() {
+    if (hourly) { hourly = false; return }
     if (parents.length > 0) {
       var previous = parents[parents.length - 1]
       parents = parents.slice(0, -1)
@@ -156,8 +162,16 @@ FocusScope {
     return true
   }
 
-  function seekAt(y) {
+  function seekAt(y, x) {
     var position = Math.max(0, Math.min(detail.bins.length - 0.00001, (y - axisTop) / Math.max(1, rowHeight)))
+    var day = detail.bins[Math.floor(position)]
+    if (hourly && day && day.hours && x >= Style.space(43)) {
+      var hour = Math.max(0, Math.min(23, Math.floor((x - Style.space(43)) * 24 / Math.max(1, width - Style.space(43)))))
+      var hourBounds = Bins.geometry(day.hours, Math.max(1, columns), pitch, tileHeight)
+      var target = Bins.seek(hourBounds, hour, 0, contentHeight, viewportHeight)
+      if (target !== null) { navigatedKey = day.key; seekRequested(target) }
+      return
+    }
     seek(Math.floor(position), position - Math.floor(position))
   }
 
@@ -166,10 +180,13 @@ FocusScope {
     for (; index >= 0 && index < detail.bins.length; index += direction) if (seek(index, 0)) return
   }
 
-  onRecordsChanged: if (parents.length || navigatedKey !== "") reset()
-  onCalendarRuleChanged: if (parents.length || navigatedKey !== "") reset()
+  onRecordsChanged: if (hourly || parents.length || navigatedKey !== "") reset()
+  onCalendarRuleChanged: if (hourly || parents.length || navigatedKey !== "") reset()
   onShowEmptyPeriodsChanged: reset()
-  onCapacityChanged: Qt.callLater(function() { if (timeline.parents.length && timeline.detail.bins.length > timeline.capacity) timeline.reset() })
+  onCapacityChanged: Qt.callLater(function() {
+    if (timeline.hourly && timeline.dateDetail.level !== "days") timeline.hourly = false
+    if (timeline.parents.length && timeline.detail.bins.length > timeline.capacity) timeline.reset()
+  })
 
   Keys.onPressed: function(event) {
     if (event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)) return
@@ -278,7 +295,7 @@ FocusScope {
       }
       Rectangle {
         id: countMark
-        visible: !timeline.sparseRows
+        visible: !timeline.sparseRows && !timeline.hourly
         anchors.right: countText.left
         anchors.rightMargin: Style.space(4)
         anchors.verticalCenter: parent.verticalCenter
@@ -298,7 +315,7 @@ FocusScope {
       }
       Text {
         id: countText
-        visible: !timeline.sparseRows
+        visible: !timeline.sparseRows && !timeline.hourly
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         width: Style.space(22)
@@ -310,6 +327,29 @@ FocusScope {
         font.pixelSize: Typography.caption
         fontSizeMode: Text.HorizontalFit
         minimumPixelSize: Typography.caption * 0.8
+      }
+
+      Item {
+        objectName: "timeline-hours-" + mark.modelData.key
+        visible: timeline.hourly && !!mark.modelData.hours
+        x: Style.space(43)
+        width: parent.width - x
+        height: Math.max(1, parent.height - Style.space(3))
+        anchors.bottom: parent.bottom
+        Repeater {
+          model: timeline.hourly ? mark.modelData.hours || [] : []
+          delegate: Rectangle {
+            required property int index
+            required property var modelData
+            x: index * parent.width / 24
+            width: Math.max(1, parent.width / 24 - 0.5)
+            height: modelData.count > 0 ? Math.max(1, parent.height * modelData.count / Math.max(1, timeline.detail.maximum)) : 0
+            anchors.bottom: parent.bottom
+            color: mark.inViewport ? timeline.lightBlue : timeline.darkBlue
+            Accessible.role: Accessible.Button
+            Accessible.name: timeline.label(modelData, false) + ": " + modelData.count + " media"
+          }
+        }
       }
     }
   }
@@ -335,10 +375,10 @@ FocusScope {
     onPressed: function(mouse) {
       timeline.forceActiveFocus()
       var y = mouse.y + timeline.axisTop
-      var onOutline = timeline.showOutline && y >= timeline.outlineTop && y <= timeline.outlineTop + timeline.outlineHeight
+      var onOutline = !timeline.hourly && timeline.showOutline && y >= timeline.outlineTop && y <= timeline.outlineTop + timeline.outlineHeight
       timeline.dragOffset = onOutline ? y - timeline.outlineTop : 0
-      if (!onOutline) timeline.seekAt(y)
+      if (!onOutline) timeline.seekAt(y, mouse.x)
     }
-    onPositionChanged: function(mouse) { if (pressed) timeline.seekAt(mouse.y + timeline.axisTop - timeline.dragOffset) }
+    onPositionChanged: function(mouse) { if (pressed) timeline.seekAt(mouse.y + timeline.axisTop - timeline.dragOffset, mouse.x) }
   }
 }

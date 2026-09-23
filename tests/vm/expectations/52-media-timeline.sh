@@ -76,9 +76,10 @@ axis = timeline()
 check('header down opens days with finer hourly detail', axis['level'] == 'days' and axis['down'], axis)
 shot('52-days')
 day_count = axis['count']
+day_keys = [day['key'] for day in axis['bins']]
 click_detail(True)
 axis = timeline()
-check('hourly detail preserves the day total and is the finest level', axis['level'] == 'hours' and axis['count'] == day_count and not axis['down'], axis)
+check('hourly detail preserves every day row and is the finest level', axis['level'] == 'hours' and axis['count'] == day_count and [day['key'] for day in axis['bins']] == day_keys and not axis['down'], axis)
 probe('timelineFocus')
 ovm('key', 'left')
 check('timeline-focused Left returns to days', timeline()['level'] == 'days', timeline()['level'])

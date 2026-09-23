@@ -9,6 +9,7 @@ Item {
 
   function handleRelease(event) {
     actionKeys.release(event)
+    if (event.key === controller.modifierKey && !event.isAutoRepeat) controller.modifierHeld = false
     if (!controller.dragActive || !controller.wheelOpen || !controller.wheelFromDrag
         || event.key !== controller.modifierKey) return false
     if (!event.isAutoRepeat) releaseTimer.restart()
@@ -23,6 +24,7 @@ Item {
     }
     var repeated = actionKeys.isRepeat(event)
     if (event.key === controller.modifierKey) {
+      if (!repeated) controller.modifierHeld = true
       releaseTimer.stop()
       return repeated || controller.wheelOpen || controller.modifierPressed()
     }

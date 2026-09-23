@@ -58,7 +58,7 @@ else:
         let mut process = Command::new("/usr/bin/python3")
             .args(["-c", "import ctypes,sys; ctypes.CDLL(None).prctl(15,sys.argv[1].encode(),0,0,0); print('ready',flush=True); sys.stdin.read()", comm])
             .env("HERDR_SOCKET_PATH", root.path().join("herdr.sock"))
-            .env("HERDR_PANE_ID", "w1:p1").env("HERDR_WORKSPACE_ID", "w1")
+            .env("HERDR_PANE_ID", "w1:stale").env("HERDR_WORKSPACE_ID", "w1")
             .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
         let mut ready = String::new();
         BufReader::new(process.stdout.take().unwrap())
@@ -136,6 +136,71 @@ impl Drop for Desktop {
 }
 
 #[test]
+fn review_tracks_selected_git_changes_and_terminal_opens_files_in_nvim() {
+    let desktop = Desktop::new("bash");
+    let review_enabled = |path: &Path| {
+        desktop.context(path)["actions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["id"] == "review")
+            .unwrap()["enabled"]
+            .as_bool()
+            .unwrap()
+    };
+    assert!(!review_enabled(&desktop.file));
+    let git = |args: &[&str]| {
+        assert!(
+            Command::new("git")
+                .arg("-C")
+                .arg(desktop.root.path())
+                .args(args)
+                .status()
+                .unwrap()
+                .success()
+        );
+    };
+    git(&["init", "-q"]);
+    assert!(review_enabled(&desktop.file));
+    git(&["add", "--", desktop.file.to_str().unwrap()]);
+    git(&[
+        "-c",
+        "user.name=FileBlade",
+        "-c",
+        "user.email=test@example.invalid",
+        "commit",
+        "-qm",
+        "fixture",
+    ]);
+    assert!(!review_enabled(&desktop.file));
+    assert!(review_enabled(desktop.root.path()));
+    fs::write(&desktop.file, "changed").unwrap();
+    assert!(review_enabled(&desktop.file));
+    git(&["add", "--", desktop.file.to_str().unwrap()]);
+    assert!(review_enabled(&desktop.file));
+    let file = desktop.run("terminal", "", &json!({}), &desktop.file);
+    assert_eq!(file["ok"], true, "{file}");
+    let command = file["commands"][0].as_array().unwrap();
+    assert_eq!(
+        &command[command.len() - 4..],
+        &[json!("-e"), json!("nvim"), json!("--"), json!(desktop.file)]
+    );
+    let folder = desktop.run("terminal", "", &json!({}), desktop.root.path());
+    assert_eq!(folder["ok"], true, "{folder}");
+    assert!(
+        !folder["commands"][0]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|arg| arg == "nvim")
+    );
+    git(&["reset", "--hard", "-q", "HEAD"]);
+    let refused = desktop.run("review", "", &json!({}), &desktop.file);
+    assert_eq!(refused["ok"], false, "{refused}");
+    assert_eq!(refused["commands"], json!([]));
+}
+
+#[test]
 fn wheel_discovery_and_execution_preserve_mux_destinations_and_focus() {
     for (comm, name, key) in [("herdr", "herdr", "h"), ("tmux: client", "tmux", "t")] {
         let desktop = Desktop::new(comm);
@@ -160,11 +225,14 @@ fn wheel_discovery_and_execution_preserve_mux_destinations_and_focus() {
                 name,
                 "Open in new window",
                 "Open with",
-                "New terminal",
+                "Open in new terminal",
                 "Review with hunk"
             ]
         );
         assert_eq!(actions[0]["label"], name, "{context}");
+        if name == "herdr" {
+            assert_eq!(target["terminal"]["pane_id"], "w1:p1");
+        }
         assert_eq!(actions[0]["key"], key);
         assert_eq!(
             actions[0]["icon_mask"],

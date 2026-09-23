@@ -85,6 +85,9 @@ Changes from upstream:
 - Color omits notification, polkit, lock and image-picker surface objects.
 - Theme colors and shell values use file-change reloads, because the native
   instance does not receive Omarchy shell theme IPC.
+  The stable `current/theme.name` completion marker reloads both theme files
+  after Omarchy replaces their containing directory, including switching back
+  to a previously used theme. The folder palette follows the same marker.
 - BarWidget and KeyboardPanel accept a dynamic bar facade, matching their
   existing accesses to host-provided members.
 - KeyboardPanel.close() catches a throwing owner and hides the panel itself.

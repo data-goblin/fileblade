@@ -76,8 +76,15 @@ pub(super) fn herdr_new_pane(
             .map(|(ok, output, error)| {
                 (
                     if ok {
-                        herdr_result_text(&output, &["result", "pane", "pane_id"])
-                            .unwrap_or_else(|| "w0:p0".to_string())
+                        herdr_result_text(&output, &["result", "pane", "pane_id"]).unwrap_or_else(
+                            || {
+                                if runner.dry_run {
+                                    "w0:p0".to_string()
+                                } else {
+                                    String::new()
+                                }
+                            },
+                        )
                     } else {
                         String::new()
                     },
@@ -89,8 +96,13 @@ pub(super) fn herdr_new_pane(
     let (ok, output, error) = herdr_call(runner, &arguments, &socket)?;
     Ok((
         if ok {
-            herdr_result_text(&output, &["result", "root_pane", "pane_id"])
-                .unwrap_or_else(|| "w0:p0".to_string())
+            herdr_result_text(&output, &["result", "root_pane", "pane_id"]).unwrap_or_else(|| {
+                if runner.dry_run {
+                    "w0:p0".to_string()
+                } else {
+                    String::new()
+                }
+            })
         } else {
             String::new()
         },

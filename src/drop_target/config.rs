@@ -330,7 +330,12 @@ fn custom_node(
         {
             return Err("builtin reference must identify an executable placement".into());
         }
-        for key in ["builtin_action", "builtin_placement", "desktop_id"] {
+        for key in [
+            "builtin_action",
+            "builtin_placement",
+            "desktop_id",
+            "enabled",
+        ] {
             if let Some(value) = source.get(key) {
                 row[key] = value.clone();
             }

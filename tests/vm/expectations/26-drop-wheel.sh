@@ -220,7 +220,7 @@ expect_true E-26-03 "at the pointer" "[[ \$(mid x) -gt 860 && \$(mid x) -lt 940 
 labels=$(jq -r '[.actions[]?.label]|join(",")' <<<"${loaded:-null}" 2>/dev/null)
 expect_true E-26-04 "over the bare desktop the target is the desktop" "[[ \$(seen target) == Desktop ]]"
 expect_contains E-26-04 "which offers the default open" "$labels" "Open in new window"
-expect_contains E-26-04 "and a new terminal" "$labels" "New terminal"
+expect_contains E-26-04 "and a new terminal" "$labels" "Open in new terminal"
 expect_missing E-26-04 "but nothing that needs a window under the pointer" "$labels" "herdr"
 expect_true E-26-09 "releasing on the hub keeps the wheel open" "[[ \$(wheel open) == true && \$(wheel dragging) == false ]]"
 expect_true E-26-09 "as a wheel that no longer follows a drag" "[[ \$(wheel fromDrag) == false ]]"
@@ -233,7 +233,7 @@ if [[ $count -gt 0 && $open_with_index != null ]]; then
   read -r px py <<<"$(wedge_point "$wx" "$wy" "$count" "$open_with_index")"
   "$OVM" mouse move "$px" "$py"; sleep 1.5
 fi
-terminal_index=$(wheel_index "New terminal")
+terminal_index=$(wheel_index "Open in new terminal")
 if [[ $count -gt 0 && $terminal_index != null ]]; then
   read -r px py <<<"$(wedge_point "$wx" "$wy" "$count" "$terminal_index")"
   "$OVM" mouse move "$px" "$py"; sleep 1.5

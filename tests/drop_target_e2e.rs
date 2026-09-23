@@ -93,7 +93,7 @@ fn hunk_review_routes_each_destination_with_repository_cwd_and_quoted_paths() {
 }
 
 #[test]
-fn hunk_review_refuses_unresolved_destinations_and_accepts_a_file_pair() {
+fn hunk_review_refuses_unresolved_destinations_and_non_git_file_pairs() {
     let temporary = tempdir().unwrap();
     let paths: Vec<_> = ["before.txt", "after.txt"]
         .iter()
@@ -129,12 +129,8 @@ fn hunk_review_refuses_unresolved_destinations_and_accepts_a_file_pair() {
         desktop_id: String::new(),
         dry_run: true,
     });
-    assert_eq!(result["ok"], true, "{result}");
-    let command = strings(&result["commands"][0]);
-    assert_eq!(
-        &command[command.len() - 2..],
-        [paths[0].as_str(), paths[1].as_str()]
-    );
+    assert_eq!(result["ok"], false, "{result}");
+    assert_eq!(result["commands"], serde_json::json!([]));
 }
 
 #[test]

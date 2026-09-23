@@ -789,6 +789,8 @@ visible, including zero; screen readers receive the full labels and values.
 
 ## 26. Dragging files outside a blade
 
+This file was written by an agent.
+
 `tests/vm/expectations/26-drop-wheel.sh`
 
 226. **E-26-01** When I drag files outside a blade, a compact ghost follows the
@@ -797,6 +799,7 @@ visible, including zero; screen readers receive the full labels and values.
      I am carrying while still naming the last grabbed row.
 228. **E-26-03** If I hold my configured drop-wheel modifier during the drag, a
      wheel opens at the pointer and shows actions for the items I am carrying.
+     Holding Space before the pointer leaves the blade works too.
 229. **E-26-04** When I drag over an application, editor, terminal, or empty
      desktop, the wheel offers actions that make sense for that target.
 230. **E-26-05** I can move around the wheel with the pointer, scroll wheel,
@@ -825,8 +828,10 @@ visible, including zero; screen readers receive the full labels and values.
 I can choose Vertical split, Horizontal split, New tab, New space, or New
 window, with the same icons as the herdr and tmux opening actions. In tmux, a tab is
 a tmux window and a space is a session; New window opens a separate terminal.
-Each destination reviews the selected paths from their repository, or compares
-two selected files. Over a plain terminal or empty desktop, Hunk opens directly
+Each destination reviews the selected paths from their repository. Hunk is
+greyed out when those paths have no Git status changes, including files outside
+Git. Committing or reverting the changes also prevents an already-open wheel
+from launching an empty review. Over a plain terminal or empty desktop, Hunk opens directly
 in a new terminal without offering multiplexer destinations.
 Covered by `tests/vm/expectations/26-hunk-review.sh`.
 
@@ -837,9 +842,13 @@ which window I dropped on: for Herdr that is the window whose title names
 exactly one workspace across my Herdr sessions, checked again when I pick a
 placement. Otherwise the target reads "shared window", those placements are
 missing, the same goes for "This nvim", and picking one anyway is refused
-with the reason; New terminal and Review with hunk in a new window still
+with the reason; Open in new terminal and Review with hunk in a new window still
 work. tmux gives no way to tell such windows apart, so it always counts as
 shared there.
+
+**E-26-13** Open in new terminal opens the selected files in nvim. A folder-only
+selection opens a shell in that folder. Herdr splits target the currently
+focused pane and tab, even when other tabs contain nvim or an older shell.
 
 ## 27. Updates and recovery
 
@@ -1118,6 +1127,11 @@ is maintained separately.
   rows, without bars or stretched gaps. Periods containing several photos
   have bars sized by their counts. The viewport outline appears only when
   the photo grid is taller than the visible pane.
+  Drilling from days to hours keeps every day row in the current view and
+  replaces its count with vertical bars for the 24 local hours. Hour and count
+  labels stay hidden. Clicking a nonempty hourly bar seeks its photos without
+  changing the selection; going up restores daily counts. Dates without a
+  known time never count as midnight photos.
 - **E-37-06** A bar widget that names the module opens the whole module in a
   dropdown under its icon, with the same header, search, chips, grid and
   timeline; Escape or an outside click closes it, and the blade copy of the
@@ -1832,9 +1846,11 @@ never assumed.
 - **E-98-13** Right after the image is mounted, its row in the Drives list draws
   a bar as full as the backend's fraction says, within two pixels of its own
   track, and the backend reports df's percentage for it.
-- **E-98-14** After a theme switch and a shell restart, the fill takes the
+- **E-98-14** After a theme switch, the fill takes the
   theme's blue when the theme defines one, and falls back to blue when the
-  theme has none. A theme switch alone does not recolour the running shell.
+  theme has none. FileBlade's background, text, accents and folder palette
+  follow the new theme without a restart, including switching back to a
+  previously used theme.
 - **E-98-15** Opening a symlink to a folder on the image keeps the symlink in the
   location while the bar reports the image.
 - **E-98-16** Closing the blade or collapsing its section reports the bar hidden

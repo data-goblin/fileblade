@@ -32,6 +32,12 @@ Built-in ids are `open`, `open-with`, `terminal`, `review`, `mux-open`,
 configuration cannot make an unavailable multiplexer or editor work.
 `application` and `copy-paths` are also reserved dispatch ids.
 
+`terminal` opens files in nvim in a new terminal, or a shell for a folder-only
+selection. `review` stays visible but disabled unless the selected Git paths
+have staged, unstaged or untracked changes. Dispatch checks status again.
+Herdr target discovery queries the live focused pane instead of inherited
+pane identifiers from processes in inactive tabs.
+
 An override can set `label`, `key`, `glyph`, `icon`, `description`, `group`,
 and `placements`. `key` is one ASCII letter or digit, or empty for automatic
 assignment. Keys are unique within each ring; a duplicate receives an

@@ -157,6 +157,17 @@ QtObject {
     mergeShell()
   }
 
+  property FileView themeNameFile: FileView {
+    path: root.currentThemePath + ".name"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: {
+      reload()
+      colorsFile.reload()
+      shellFile.reload()
+    }
+  }
+
   property FileView colorsFile: FileView {
     id: colorsFile
     path: root.currentThemePath + "/colors.toml"

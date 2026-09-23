@@ -63,6 +63,33 @@ TestCase {
     ] }
   }
 
+  function test_space_held_inside_opens_when_drag_leaves_the_blade() {
+    verify(wheel.beginDrag(["/tmp/a.txt"], [], null, true, 200, 200, null))
+    wheel.handleDragKey({ key: Qt.Key_Space, text: " ", isAutoRepeat: false })
+    verify(!wheel.wheelOpen)
+    wheel.updateDrag(500, 200, true, 0)
+    verify(wheel.wheelOpen)
+    compare(callbacks.length, 1)
+    callbacks[0](result())
+    wheel.handleDragKeyRelease({ key: Qt.Key_Space, text: " ", isAutoRepeat: false })
+    tryCompare(wheel, "wheelOpen", false)
+    wheel.updateDrag(510, 200, true, 0)
+    verify(!wheel.wheelOpen)
+    wheel.endDrag(510, 200, true)
+  }
+
+  function test_disabled_review_is_visible_but_never_runs() {
+    begin()
+    var context = result()
+    context.actions.push({ id: "review", label: "Review with hunk", key: "r", enabled: false, placements: [] })
+    callbacks[0](context)
+    compare(wheel.ringItems.length, 3)
+    verify(!wheel.activate(2))
+    wheel.activateKey("r")
+    compare(launches.length, 0)
+    verify(wheel.wheelOpen)
+  }
+
   function test_close_hides_the_wheel_even_when_cleanup_throws() {
     begin()
     verify(wheel.wheelOpen)

@@ -17,6 +17,13 @@ pub(super) fn actions_for(target: &Value, facts: &Value) -> Vec<Value> {
         );
     }
     for row in &mut rows {
+        if row["id"] == "review" {
+            row["enabled"] = json!(review_possible(facts));
+            if !review_possible(facts) {
+                row["description"] = json!("No Git status changes in the selected paths");
+                row["placements"] = json!([]);
+            }
+        }
         if let Some(placements) = row.get_mut("placements").and_then(Value::as_array_mut) {
             assign_keys(placements);
         }
@@ -266,24 +273,26 @@ pub(super) fn generic_actions(facts: &Value) -> Vec<Value> {
     rows.push(open_with);
     rows.push(action(
         "terminal",
-        "New terminal",
+        "Open in new terminal",
         "t",
         "󰆍",
-        "Open a shell in a new terminal window",
+        if has_files(facts) {
+            "Open the selected files in nvim in a new terminal window"
+        } else {
+            "Open a shell in the selected folder in a new terminal window"
+        },
         &[],
         "open",
     ));
-    if review_possible(facts) {
-        rows.push(action(
-            "review",
-            "Review with hunk",
-            "r",
-            "󰹃",
-            "Review the changes with hunk in a new terminal",
-            &[],
-            "open",
-        ));
-    }
+    rows.push(action(
+        "review",
+        "Review with hunk",
+        "r",
+        "󰹃",
+        "Review the changes with hunk in a new terminal",
+        &[],
+        "open",
+    ));
     rows
 }
 
@@ -396,11 +405,7 @@ pub(super) fn open_with_applications(facts: &Value) -> Vec<Value> {
 
 pub(super) fn review_possible(facts: &Value) -> bool {
     facts
-        .get("git_root")
-        .and_then(Value::as_str)
-        .is_some_and(|value| !value.is_empty())
-        || facts
-            .get("review_pair")
-            .and_then(Value::as_bool)
-            .unwrap_or(false)
+        .get("git_changes")
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
 }

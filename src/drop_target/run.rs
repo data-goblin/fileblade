@@ -235,13 +235,24 @@ pub(super) fn run_generic(runner: &mut Runner, action: &str, facts: &Value) -> A
             Ok(json!({"ok": true, "error": ""}))
         }
         "terminal" => {
-            runner.detached(
-                wrapped(vec![
-                    OsString::from("xdg-terminal-exec"),
-                    native_directory_arg(&folder)?,
-                ]),
-                None,
-            )?;
+            let mut command = vec![
+                OsString::from("xdg-terminal-exec"),
+                native_directory_arg(&folder)?,
+            ];
+            if has_files(facts) {
+                command.extend([
+                    OsString::from("-e"),
+                    OsString::from("nvim"),
+                    OsString::from("--"),
+                ]);
+                command.extend(
+                    string_array(facts, "files")
+                        .iter()
+                        .map(|path| parse_path(path).map(PathBuf::into_os_string))
+                        .collect::<std::io::Result<Vec<_>>>()?,
+                );
+            }
+            runner.detached(wrapped(command), None)?;
             Ok(json!({"ok": true, "error": ""}))
         }
         "copy-paths" => {
@@ -282,9 +293,7 @@ fn run_review(
     facts: &Value,
 ) -> AppResult<Value> {
     if !review_possible(facts) {
-        return Ok(
-            json!({"ok": false, "error": "Select a Git repository path or two files to review"}),
-        );
+        return Ok(json!({"ok": false, "error": "No Git status changes in the selected paths"}));
     }
     if matches!(placement, "" | "window") {
         return run_generic(runner, "review", facts);

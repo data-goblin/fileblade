@@ -1314,7 +1314,7 @@ fn drop_drag_leaves_the_blade_at_the_sheet_edge_not_the_layer_edge() {
     assert!(wheel.contains("strokeStyle = overlay.alpha(Color.accent, active ? 0.85 : 0.42)"));
     assert!(!wheel.contains("wedgeGap"));
     assert!(
-        wheel.contains("iconColor: wedge.active ? Qt.lighter(Color.accent, 1.5) : Color.accent")
+        wheel.contains("iconColor: wedge.modelData.enabled === false ? Color.muted : wedge.active ? Qt.lighter(Color.accent, 1.5) : Color.accent")
     );
     assert!(wheel.contains("iconColor: Qt.lighter(Color.accent, child.active ? 1.75 : 1.45)"));
     assert!(!wheel.contains("iconColor: Color.popups.background"));

@@ -872,6 +872,14 @@ Item {
     onFileChanged: { reload(); controller.requestThemeRead() }
   }
 
+  FileView {
+    path: Color.currentThemePath + ".name"
+    preload: false
+    watchChanges: true
+    printErrors: false
+    onFileChanged: { reload(); controller.requestThemeRead() }
+  }
+
   Connections {
     target: controller.service
     function onBackendReadyChanged() {

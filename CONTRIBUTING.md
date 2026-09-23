@@ -93,7 +93,7 @@ surface really is a dot, knob or handle.
 [backend delivery build](docs/agent-written/build-provenance.md) runs on GitHub
 solely to reproduce and attest the bundled backend; it does not run tests there.
 It isolates state in a temporary directory and requires the test dependencies,
-including Qt 6 declarative tools, Python 3 for the developer hooks, `nvim`,
+including Qt 6 declarative tools, Quickshell for native theme reloads, Python 3 for the developer hooks, `nvim`,
 `git`, and `bsdtar`. Set
 `FILEBLADE_OFFLINE=1` to use cached Cargo dependencies.
 

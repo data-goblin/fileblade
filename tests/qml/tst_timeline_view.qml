@@ -154,4 +154,40 @@ TestCase {
     compare(view.period.key, "undated")
     compare(view.canDrill, false)
   }
+
+  function test_hour_detail_keeps_days_and_seeks_hour_bars() {
+    var view = createTemporaryObject(factory, test, { records: Bins.ordered([
+      { path: "/a", date: "2024-06-01T02:00:00" },
+      { path: "/b", date: "2024-06-01T02:30:00" },
+      { path: "/c", date: "2024-06-01T14:00:00" },
+      { path: "/d", date: "2024-06-02T05:00:00" },
+      { path: "/e", date: "2024-06-02" }
+    ]), levelChoice: "days" })
+    verify(view !== null)
+    seekSpy.target = view
+    seekSpy.clear()
+    compare(view.detail.bins.length, 2)
+    var days = view.detail.bins.map(function(day) { return day.key })
+    view.forceActiveFocus()
+    keyClick(Qt.Key_Right)
+    compare(view.hourly, true)
+    compare(view.detail.level, "hours")
+    compare(view.detail.bins.map(function(day) { return day.key }), days)
+    compare(view.detail.count, 5)
+    compare(view.detail.bins[0].hours.length, 24)
+    compare(view.detail.bins[0].hours[2].count, 2)
+    compare(view.detail.bins[0].hours[14].count, 1)
+    compare(view.detail.bins[1].hours[5].count, 1)
+    compare(view.detail.bins[1].hours[0].count, 0)
+    compare(view.canDrill, false)
+    var bars = findChild(view, "timeline-hours-2024-06-01")
+    verify(bars !== null && bars.visible)
+    mouseClick(view, bars.x + bars.width * 14.5 / 24, view.axisTop + view.rowHeight / 2)
+    compare(seekSpy.count, 1)
+    compare(seekSpy.signalArguments[0][0], 248)
+    keyClick(Qt.Key_Left)
+    compare(view.detail.level, "days")
+    compare(view.detail.bins.map(function(day) { return day.key }), days)
+    compare(view.records.length, 5)
+  }
 }

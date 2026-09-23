@@ -11,6 +11,7 @@ TestCase {
     property bool wheelOpen: true
     property bool wheelFromDrag: true
     property int modifierKey: Qt.Key_Space
+    property bool modifierHeld: false
     property int opens: 0
     property int cancellations: 0
     property int actions: 0
