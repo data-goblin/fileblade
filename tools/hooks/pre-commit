@@ -21,7 +21,7 @@ LIMITS = {
     "manifest.json": 64 * 1024,
     "Cargo.toml": 64 * 1024,
     "Cargo.lock": 4 * 1024 * 1024,
-    "CHANGELOG.md": 256 * 1024,
+    "features/release/release-notes.md": 256 * 1024,
     "fileblade-bin": 64 * 1024 * 1024,
 }
 
@@ -94,11 +94,11 @@ def cargo_lock_version(blob):
     return version(records[0].get("version"), "the fileblade record in Cargo.lock")
 
 
-def changelog_headings(blob):
+def release_note_headings(blob):
     try:
         lines = blob.decode().splitlines()
     except UnicodeDecodeError:
-        fail("CHANGELOG.md in the index is not UTF-8")
+        fail("features/release/release-notes.md in the index is not UTF-8")
     headings = []
     for line in lines:
         heading = re.fullmatch(r"##[ \t]+(.*)", line)
@@ -108,9 +108,9 @@ def changelog_headings(blob):
         if len(text) <= 128 and VERSION.fullmatch(text):
             headings.append((text, bool(unreleased)))
         elif not headings and (not text or text[0].isdigit() or text.lower() == "unreleased"):
-            fail(f"the newest CHANGELOG.md release heading {text!r} names no valid version")
+            fail(f"the newest features/release/release-notes.md release heading {text!r} names no valid version")
     if not headings:
-        fail("CHANGELOG.md in the index has no release heading")
+        fail("features/release/release-notes.md in the index has no release heading")
     return headings
 
 
@@ -183,8 +183,8 @@ def main():
         "Cargo.toml": cargo_toml_version(staged("Cargo.toml")),
         "Cargo.lock": cargo_lock_version(staged("Cargo.lock")),
     }
-    headings = changelog_headings(staged("CHANGELOG.md"))
-    sources["CHANGELOG.md"] = headings[0][0]
+    headings = release_note_headings(staged("features/release/release-notes.md"))
+    sources["features/release/release-notes.md"] = headings[0][0]
     expected = sources["manifest.json"]
     for name, value in sources.items():
         if value != expected:

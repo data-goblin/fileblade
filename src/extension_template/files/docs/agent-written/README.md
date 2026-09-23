@@ -2,47 +2,34 @@ This file was written by an agent.
 
 # FileBlade {{PLUGIN_NAME}}
 
-An Omarchy Quattro plugin that adds the `{{MODULE_ID}}` blade module to
-FileBlade. {{DESCRIPTION}}
+A native FileBlade extension providing the `{{MODULE_ID}}` blade module.
+{{DESCRIPTION}}
 
-## Required dependency
+## Installation
 
-**FileBlade (manifest id `data-goblin.fileblade`) must be installed and
-enabled before this plugin does anything.** The plugin ships no window, bar,
-panel or menu of its own. It contributes one module to the
-`data-goblin.fileblade/blade` socket that FileBlade hosts.
-
-Without FileBlade:
-
-- the manifest's `extensions` block is inert JSON and nothing loads it
-- the service starts and does nothing
-- the host guard offers to enable FileBlade when it is installed but off, and
-  restarts the shell; it never installs anything
-
-The module declares `hostContract: 2`. FileBlade lists but refuses a module
-whose contract is newer than its own.
-
-### Install order
+Install and start FileBlade, then register this trusted checkout:
 
 ```bash
-omarchy plugin add https://github.com/data-goblin/fileblade.git --enable
-omarchy plugin add {{REPOSITORY}} --yes --enable
-omarchy restart shell
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions"
+git clone {{REPOSITORY}} "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions/{{PLUGIN_ID}}"
+fileblade rescan-modules
 fileblade blade add right {{PLUGIN_ID}}/{{MODULE_ID}}
 ```
 
-### Removal
+The module declares `hostContract: 2`. FileBlade lists but refuses a module
+whose contract is newer than its own. Review the extension before registration:
+its QML executes with your desktop user's authority.
 
-```bash
-omarchy plugin remove {{PLUGIN_ID}}
-omarchy restart shell
-```
+To remove it, close its tabs, remove its registration from the native extension
+directory and run `fileblade rescan-modules`. When the registration is a symlink,
+remove that link to preserve the source checkout.
 
 ## Layout
 
 ```yaml
-manifest.json:                         plugin identity and the blade module definition
-Service.qml:                           singleton provider; shared work and the host guard loader
+manifest.json:                         extension identity and the blade module definition
+Provider.qml:                          shared provider runtime owned by FileBlade
+Service.qml:                           compatibility wrapper and host guard loader
 HostGuard.qml, HostGuard.js:           the missing-host guard
 blades/Module.qml:                     the blade module
 assets/:                               fileblade-extension-logo.svg (README banner), fileblade-logo.png (host guard)
@@ -75,17 +62,14 @@ Esc:              close the blade
 
 ## Developing
 
-1. Link the checkout: `ln -s "$PWD" ~/.config/omarchy/plugins/{{PLUGIN_ID}}`,
-   then `omarchy plugin enable {{PLUGIN_ID}}` and `omarchy restart shell`
-2. QML does not hot-reload; run `omarchy restart shell` after each edit. If
-   Quickshell reports an error at an impossible line, move
-   `~/.cache/quickshell/qmlcache` aside
-3. `fileblade modules` lists the module; `fileblade blade add right
-   {{PLUGIN_ID}}/{{MODULE_ID}}` places it
-4. After any QML change, check `journalctl --user -b` for "plugin load failed"
-5. `tests/run` before committing; `omarchy plugin validate .` before publishing
-6. After a rename, regenerate the banner:
-   `fileblade extension image --png`
+1. Link a trusted checkout under the native extension directory and run
+   `fileblade rescan-modules`.
+2. Use `fileblade modules` to confirm discovery and `fileblade blade add right
+   {{PLUGIN_ID}}/{{MODULE_ID}}` to place it.
+3. Work in an isolated desktop. After changing QML, drain the native runtime
+   with `fileblade native drain` and start `fileblade` again.
+4. Run `tests/run` and `fileblade extension check .` before committing.
+5. After a rename, regenerate the banner with `fileblade extension image --png`.
 
 ## Going further
 

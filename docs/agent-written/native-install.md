@@ -93,7 +93,7 @@ does not participate in this delivery lock and must not be updated this way.
 Package-owned conventional executable paths and unrelated launchers are
 refused. Modified owned launchers, invalid receipts and receipt/pointer
 disagreement are also refused. Arch package mapping is described below;
-external package removal recovery remains task 9.4 work. Current payload and installer
+interrupted removal and retry are described below. Current payload and installer
 dependency contracts must match unless the new payload lists the digest of
 the current contract under `upgrades` in `packaging/runtime.json`. The digest
 is `sha256sum` of `jq -cS '{schema, backend, commands, packages}'` over that
@@ -165,10 +165,10 @@ through pacman. A direct launcher may still shadow the package after an
 external pacman install; the installer diagnoses that collision and preserves
 both trees.
 
-Package mapping does not qualify that startup, provide a chooser, or register
-runtime-owned desktop/service metadata that has not yet been implemented.
-Mapping those descriptors and checking real companion-mode coexistence remain
-part of native integration qualification.
+Package mapping alone does not qualify graphical startup or a completed chooser
+handoff. Runtime-owned desktop metadata is installed only when its desktop role
+is enabled. Exercise those roles against the installed app separately from
+package integrity checks.
 
 Inside the assigned guest,
 `tests/vm/expectations/92-delivery-package.sh SOURCE PAYLOAD` builds and
@@ -227,7 +227,7 @@ qualify runtime draining or desktop-role reversal.
 Installing, updating, packaging and first launch change nothing on the
 desktop. The Settings sheet of the native app has a "Desktop integration"
 section with five independent switches, all off until the person turns one
-on; the plugin has no such section. The switches and the files each one
+on. The switches and the files each one
 owns:
 
 ```yaml
@@ -284,7 +284,7 @@ Select the adapter and the native shape for installed expectations:
 
 ```bash
 export OVM="$PWD/tests/vm/native-ovm"
-export OVM_REAL="$HOME/.claude/skills/test-omarchy-plugin/scripts/ovm"
+export OVM_REAL=/absolute/path/to/ovm
 export SKIP_PUSH=1 FILEBLADE_SHAPE=native
 "$OVM" ipc data-goblin.fileblade status
 ```
@@ -313,111 +313,22 @@ FILEBLADE_NATIVE_PAYLOAD=/absolute/path/to/payload SKIP_PUSH=0 "$OVM" push "$PWD
 Push transfers that payload into a temporary guest directory, invokes its
 `tools/native install` and removes the temporary copy. Build the payload using
 the staging command above; the adapter does not choose a backend or notices.
-The shared runner also accepts a relative OVM path. Runtime owns native
-control and stop/restart selection in the shared helpers; wheel owns its
-remaining plugin-specific callers. Production launcher/drain qualification
-and the four backend IPC commands remain pending runtime. SSH strings
-forward unchanged; shape selection belongs in their callers.
+The shared runner also accepts a relative OVM path. Use the adapter against an
+installed payload and preserve its source identity: do not replace the guest's
+files after validating its inventory. SSH commands forward unchanged.
 
-## Native integration audit
+## Native integration status
 
-This file was written by an agent.
+The public CLI uses the installed authority for preferences and backend
+operations. Shipped bindings use the stable launcher with bounded IPC and
+Hyprland fallbacks. Generated extensions can detect a stopped native view
+without reporting the installed application as missing.
 
-The September 17, 2026 audit found that desktop bindings still addressed the
-removed Omarchy host plugin. Native bindings now use the stable FileBlade
-launcher and `native ipc`, retaining the 400 ms timeout and Hyprland fallback.
-The installed binding template unbinds Super+B before registering it, including
-when Omarchy has already assigned that key. Existing personal bindings are
-user-owned; updating the application alone does not rewrite them.
+The current engineering review, exact evidence boundaries and remaining
+publication checks are recorded in [release readiness](../../features/release/readiness.md).
+Earlier integration snapshots remain in Git history; they do not describe the
+current candidate's test results.
 
-Generated extensions check the native launcher and view before consulting the
-legacy host plugin state. A stopped native view reports starting, not missing,
-and the guard asks the user to start FileBlade. Legacy plugin detection and its
-explicit Enable action remain available for actual legacy installations.
-
-Demo reset commands use public CLI verbs, which select the proper transport.
-The keymap reread instructions use native IPC. Doctor reports `rootPath` from
-the live status and gives native startup advice when the native view is down.
-Legacy VM fixtures and plugin-only enable paths intentionally retain their
-Omarchy transport. `app/ovm-spike` is an older qualification adapter excluded
-from native payloads.
-
-The host audit covered personal Hyprland bindings, shell startup hooks, local
-launchers, systemd user units, desktop/autostart entries, portal/MIME routing,
-installed extension helpers, and the corresponding source templates. The
-installed launcher, authority and view passed health checks; Goblin Images'
-existing native-host fix reported ready. Its unrelated in-progress edits were
-preserved. Managed autostart, bindings, chooser, folder and reveal roles were
-off, with no conflicts; personal shortcuts remain independently configured.
-These role choices were preserved. Historical backups and retired companion
-repositories were not rewritten.
-
-Reproduce the generated-binding and extension checks in an isolated installed
-native VM with `FILEBLADE_SHAPE=native`, the native OVM adapter and
-`tests/vm/expectations/49-native-bindings.sh`. The scenario installs the bindings
-twice, sends Super+B, Super+Shift+B and Super+Z through virtual keyboard input,
-checks that Super+Z undoes a file creation and does not open quick navigation,
-and runs a newly generated extension's host check.
-
-VM qualification exposed another native migration gap: the public preferences
-command tried to access protected state directly instead of using the resident
-authority. Both reads and writes now reuse the native backend transport. The
-regression starts a real authority process, saves and reads preferences, then
-proves that a write with the authority stopped fails without changing the file.
-The raw mutating backend entry point remains refused; this change routes the
-public command through admission rather than granting it independent ownership.
-
-Personal fallback commands were also migrated from old Hyprland dispatcher
-strings to the current Lua expressions, keeping their original actions. The
-close-window focus predicate now treats missing/null focus as unfocused and uses
-Omarchy's existing shell-quoting helper. These were user-config repairs, separate
-from the source candidate.
-
-Validation of code commit `9e1899a` used native payload
-`d73b542134c3f0de0e5dc19c5a60345e345303a984776bbf6864b00d91be67c2`
-in an isolated VM. All 12 native-binding scenario checks passed. With FileBlade
-drained, virtual keyboard input also moved focus between two owned windows,
-swapped a window, toggled floating, increased its width from 1920 to 2020 pixels,
-and closed the selected probe. Compositor state confirmed each action. Keep the
-guest unlocked and disable idle for this scenario; a locked display intercepts
-the shortcuts before they reach FileBlade.
-
-The final local gate passed formatting, Clippy, QML lint and 488 Rust checks
-across 100 suite results, with seven existing ignored checks. It stopped at five
-Branches QML failures. Running the remaining suites separately gave 809 passing
-QML checks across 85 suites, with those five failures and one heatmap tooltip
-failure. The affected source and test files are unchanged from baseline
-`568d46f`; these are outstanding baseline failures, not a green full gate.
-All Python and companion checks passed. The final static bundle reproduced
-byte for byte. The authority regression also confirmed preferences writes fail
-without changing disk state when the resident process is stopped.
-
-The source candidate stays on `fix/native-integration-audit`; it was not
-installed over the working desktop's separate UI changes. Personal shortcut
-repairs are live, with all 22 fallback expressions parsed and Hyprland reporting
-no configuration errors after reload. The human-maintained root README still
-contains legacy plugin installation/removal instructions and was left unchanged
-under its explicit editing restriction. The owned VM and temporary build data
-were removed after qualification. Complexity review: Lean already.
-
-### Integrated desktop installation
-
-This file was written by an agent.
-
-The integrated snapshot `d1d4e17` preserves the working UI changes captured on
-September 17 and includes the native integration repairs. Its full local gate
-passed: 529 Rust checks, 818 QML checks, Python and companion checks, and a
-byte-for-byte bundle rebuild. All 12 native VM checks passed. Payload
-`d83c736a64944a0d83fee3ed37a282d70b35f48070d39580caa1c48f74ac95fd`
-was installed on the desktop through the native installer after a successful
-drain. The running app reports that payload; doctor and CLI preferences pass.
-Subsequent unrelated source edits remain in the working checkout.
-
-Goblin Images was also still registered as both an Omarchy service and hidden
-bar widget, alongside its independent native FileBlade extension. Its stale
-Omarchy host guard caused the repeated warning. Both Omarchy config entries
-and only the Omarchy registration symlink were removed. The source checkout,
-native extension symlink, enabled receipt and library remain intact. Native
-status still lists `kurt.goblin-images/goblin-images`; Omarchy no longer lists
-the plugin and the compositor reports no host-guard layer. Native installations
-should register this extension only under `~/.config/fileblade/extensions`.
+Register external panes only under `~/.config/fileblade/extensions`, then run
+`fileblade rescan-modules`. Built-in Skills, Memory, Hooks and MCP need no
+additional registration.

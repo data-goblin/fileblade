@@ -7,7 +7,7 @@ each time it opens the wheel and each time it dispatches a custom command.
 The containing settings document keeps its existing version. The wheel member
 has its own `version: 1`. An absent member uses the standard wheel.
 
-The current plugin profile stores this document at
+The native application stores this document at
 `$XDG_CONFIG_HOME/omarchy/fileblade/settings.json` (normally
 `~/.config/omarchy/fileblade/settings.json`). The native profile uses the
 preferences path selected by the native runtime. Edit the existing document,
@@ -312,7 +312,7 @@ against the prepared installation. Shared `lib.sh` helpers select the
 control/backend route (R65); the adapter forwards the published commands.
 The individual scenarios contain no native routing branch. Native
 results must bind the active payload and activation receipt, and must be
-rerun even when the same scenarios passed against the plugin.
+rerun against the installed native payload, preserving its source identity.
 
 `tests/vm/expectations/26-wheel-icons.sh` loads the guest's production
 DropWheel and icon renderer in a disposable Quickshell probe. It uses real

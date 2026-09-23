@@ -1,4 +1,13 @@
+This file was written by an agent.
+
 # Core migration validation
+
+Native migration and persistence are integrated in the current authority.
+The milestone and guest instructions below record historical migration
+qualification, including its original dependency boundaries; they do not
+describe unfinished release work. Current startup ownership is described in
+[the lease README](../src/lease/README.md), and installed runtime validation in
+[the native installation guide](../docs/agent-written/native-install.md).
 
 `migration::prepare(&legacy, &native, &authority)` consumes runtime's root-bound
 `lease::Authority`. Its implementation requires the authority API published at
@@ -24,7 +33,7 @@ configuration remain available; retired artifact-bin objects remain under the or
 `.migration-020-retired/<receipt entry index>`, as well as in the receipt. There is no automatic rollback CLI in this slice.
 
 The importer does not alter shell activation, desktop bindings, companion
-checkouts, generated desktop snippets, journal replay or unrelated shell plugins.
+checkouts, generated desktop snippets, journal replay or unrelated shell components.
 Active and unknown legacy-writer evidence refuse writable ownership.
 
 Run the product tests only in harness C. Compile the test executables with

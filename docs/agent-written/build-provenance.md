@@ -7,7 +7,7 @@ manually dispatched delivery build. It runs the existing `tools/bundle build`
 recipe on GitHub, requires its output to equal the committed bundle, and signs
 the backend's digest with GitHub Actions build provenance. The test suite still
 runs locally; this workflow does not run `tests/run`, create commits, publish a
-release, change tags, or update marketplace threads.
+release or change tags.
 
 This workflow is an authorized exception to the project's former prohibition
 on hosted automation, specifically for independently verifiable build provenance.
@@ -65,7 +65,7 @@ gh workflow run bundle-provenance.yml --repo data-goblin/fileblade \
    alongside those same binary bytes to the owner-managed release. Workflow
    artifacts expire after 90 days; retain the portable attestation with the
    release. The intermediate transfer expires after one day.
-6. Refresh validation and the core marketplace target to that exact commit,
+6. Refresh validation and the native release artifact source to that exact commit,
    include the successful run and verification command, and keep core HEAD still
    through review. Unchanged companion commits retain their own review identities;
    a core-only workflow change does not itself create new companion SHAs.

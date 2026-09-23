@@ -9,7 +9,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 HOOK = ROOT / "tools/hooks/pre-commit"
-SOURCES = ["manifest.json", "Cargo.toml", "Cargo.lock", "CHANGELOG.md", "fileblade-bin"]
+SOURCES = ["manifest.json", "Cargo.toml", "Cargo.lock", "features/release/release-notes.md", "fileblade-bin"]
 
 
 class VersionHookTests(unittest.TestCase):
@@ -41,10 +41,11 @@ class VersionHookTests(unittest.TestCase):
         self.write("manifest.json", json.dumps({"version": value}))
         self.write("Cargo.toml", f'[workspace.package]\nversion = "9.9.9"\n[package]\nname = "fileblade"\nversion = "{value}"\n[dependencies.other]\nversion = "8.8.8"\n')
         self.write("Cargo.lock", f'version = 4\n[[package]]\nname = "before"\nversion = "9.9.9"\n[[package]]\nname = "fileblade"\nversion = "{value}"\n[[package]]\nname = "after"\nversion = "8.8.8"\n')
-        self.write("CHANGELOG.md", f'# Changelog\n\n## {value} (unreleased)\n\n- UI changes\n  - Example.\n')
+        self.write("features/release/release-notes.md", f'# Release notes\n\n## {value} (unreleased)\n\n- UI changes\n  - Example.\n')
         self.write_binary(f'printf "fileblade {value}\\n"')
 
     def write(self, name, content):
+        (self.repo / name).parent.mkdir(parents=True, exist_ok=True)
         (self.repo / name).write_text(content)
 
     def write_binary(self, body):
@@ -149,9 +150,9 @@ class VersionHookTests(unittest.TestCase):
                 self.git("add", "Cargo.lock")
                 self.hook(success, message)
 
-    def test_changelog_requires_a_versioned_release(self):
+    def test_release_notes_require_a_versioned_release(self):
         cases = [
-            ("# Changelog\nNo release heading.\n", False),
+            ("# Release notes\nNo release heading.\n", False),
             ("## \n## 0.9.9\n", False),
             ("## Unreleased\n## 0.1.3\n", False),
             ("## 0.1.3.4\n## 0.1.3\n", False),
@@ -161,8 +162,8 @@ class VersionHookTests(unittest.TestCase):
         ]
         for content, success in cases:
             with self.subTest(content=content):
-                self.write("CHANGELOG.md", content)
-                self.git("add", "CHANGELOG.md")
+                self.write("features/release/release-notes.md", content)
+                self.git("add", "features/release/release-notes.md")
                 self.hook(success)
 
     def test_missing_or_symlinked_sources_are_rejected(self):
@@ -240,7 +241,7 @@ class VersionHookTests(unittest.TestCase):
                 for tag in tags:
                     self.git("tag", tag)
                 self.write_versions(value)
-                self.write("CHANGELOG.md", f"## {value} (unreleased)\n{headings}")
+                self.write("features/release/release-notes.md", f"## {value} (unreleased)\n{headings}")
                 self.git("add", "--", *SOURCES)
                 self.hook(success, message)
                 for tag in tags:

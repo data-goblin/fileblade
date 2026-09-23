@@ -48,9 +48,9 @@ function releaseUrl(manifest, version) {
   var base = repositoryUrl(manifest), tag = String(version || "").trim()
   return base === "" || tag === "" ? "" : base + "/releases/tag/v" + tag
 }
-function changelogUrl(manifest) {
+function releaseNotesUrl(manifest) {
   var base = repositoryUrl(manifest)
-  return base === "" ? "" : base + "/blob/main/CHANGELOG.md"
+  return base === "" ? "" : base + "/blob/main/features/release/release-notes.md"
 }
 function normalizeState(state) { return STATES.indexOf(String(state || "")) >= 0 ? String(state || "") : "" }
 function welcomeSlot() { return { id: "welcome", modules: [{ module: "welcome" }, { module: "notes" }], active: 0 } }

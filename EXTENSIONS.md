@@ -2,22 +2,13 @@ This file was written by an agent.
 
 # FileBlade extensions
 
-![How FileBlade finds and talks to its extensions](assets/docs/omarchy-fileblade-extensions.svg)
-
-FileBlade supports native extensions and legacy Omarchy plugins. This guide uses four names:
-
-- **Omarchy plugin:** the package a person installs, updates, enables, or removes
-- **FileBlade extension:** a package contribution that plugs into FileBlade, discovered by the native app or the legacy plugin host
-- **blade module:** the actual panel that appears in a FileBlade slot
-- **script action:** a safe-shaped menu row that runs a plugin's bundled program
-
-An extension can add blade modules, script actions, or both. Install it in the
-location used by your FileBlade runtime; the native app does not discover
-extensions from Omarchy's enabled-plugin list.
+FileBlade is a native Omarchy application. Extensions add blade modules,
+file-menu actions or shared inventory helpers through a bounded manifest.
+A blade module is a pane that a person places in a FileBlade slot.
 
 ## Native installation
 
-Place a trusted extension directory, containing `manifest.json`, under
+Place a trusted extension directory containing `manifest.json` under
 `${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions/<publisher.name>`.
 A symlink to a local checkout also works. Then refresh discovery:
 
@@ -27,27 +18,13 @@ fileblade modules
 fileblade blade add left publisher.name/module
 ```
 
-The native authority validates the manifest and records activation in its
-installation receipt. Newly discovered valid providers are activated by default.
-Removing the directory and rescanning removes its contributions. Do not enable
-an obsolete Omarchy companion service merely to load a native extension: its
-legacy host guard can misidentify the native host as missing.
+The authority validates the manifest and records activation in its receipt.
+New valid providers are activated by default. Removing the directory and
+rescanning removes its contributions. Extensions execute as the desktop user;
+review the source before registering one.
 
-Goblins is an external gallery extension; Skills, Memory, Hooks and MCP are
-built in. Bar popouts use FileBlade's own Omarchy bar widget and require the
-plugin runtime. Native extensions open in blades; native mode does not provide
-this in-process bar widget. See [the popout guide](features/integrations/popout.md).
-
-## Legacy Omarchy installation
-
-The Omarchy plugin runtime discovers contributions from enabled Omarchy plugins.
-Its install, update, enable and remove commands manage those packages. The
-Omarchy sequences below describe this legacy runtime.
-
-FileBlade is the host. Its built-in modules use the same blade context and
-view contract as extensions.
-This page explains that contract and how to build and debug an extension. It's
-aimed at both you and your agent.
+Native extensions open in blades. Goblin Images is an external gallery
+extension; Skills, Memory, Hooks and MCP are built into FileBlade.
 
 ## Built-ins and legacy aliases
 
@@ -74,8 +51,8 @@ has `version: 1`; its `tab.state` contains the displaced settings for recovery.
 These records survive save/reload. If including them exceeds the layout byte
 limit, saving is refused and the original disk document remains intact.
 
-Core helper requests use `inventory`, an empty `--plugin-dir` and a fixed
-method declaration. They are answered inside the backend process: no helper
+Core helper requests use `inventory`, no external provider directory and a
+fixed method declaration. They are answered inside the backend process: no helper
 executable is resolved and no interpreter is spawned. Supplying a directory for
 a core provider is refused. Historical companion recovery routes retain their original evidence
 but execute the bundled helper; a retired checkout is never used for recovery.
@@ -94,141 +71,21 @@ The reasoning and ownership boundaries behind this contract live in
 > The example at `examples/data-goblin.blade-example/` includes a clock module
 > and an action. Copy it and rename `manifest.example.json` to `manifest.json` before installing it.
 
-> [!TIP]
-> `fileblade extension template <publisher>.<name>` writes a complete starter
-> plugin: manifest, service, host guard, one blade module, tests, docs and the
-> banner generator. See [Starting from the template](#starting-from-the-template).
+## Discovery and ownership
 
-![Module discovery](assets/docs/plugin-discovery.svg)
+Built-in modules live under `modules/<id>/blade.json`. User modules live under
+`~/.config/omarchy/fileblade/modules/<id>/blade.json`. Registered extensions
+supply `manifest.json` from the native extension directory above.
 
-## What happens when an extension loads
+Run `fileblade rescan-modules` after changing registrations. FileBlade checks
+manifest bounds, entry paths, provider identities and `hostContract`, then
+lists valid definitions in the picker and `fileblade modules`, grouped by `category`. Extension
+module IDs are namespaced as `<providerId>/<moduleId>`. QML loads only when
+its module is placed in a slot.
 
-This is the flow that already works today:
-
-```mermaid
-sequenceDiagram
-    actor Person
-    participant Omarchy
-    participant Plugin as Omarchy plugin
-    participant FileBlade
-    participant Module as Blade module
-    participant Action as Script action
-
-    Person->>Omarchy: Enable the plugin
-    Omarchy->>Plugin: Start its background part
-    Omarchy-->>FileBlade: The enabled-plugin list changed
-    FileBlade->>Plugin: Read its FileBlade extension list
-    FileBlade->>FileBlade: Check every contribution is valid and compatible
-    alt The plugin provides a blade module
-        FileBlade-->>Person: Show the module in the picker
-        Person->>FileBlade: Add the module to a slot
-        FileBlade->>Module: Load it and provide FileBlade tools
-        Module-->>Person: Show the new panel
-    else The plugin provides a script action
-        FileBlade-->>Person: Show the action when its file context fits
-        Person->>FileBlade: Choose the action
-        FileBlade->>Action: Run its bounded argument list outside the shell
-        Action-->>Person: Report success or failure
-    end
-```
-
-FileBlade discovers enabled Omarchy plugins and exposes the FileBlade
-contributions they advertise. Skills, Memory, Hooks and MCP are built in; the Welcome pane opens them directly. In the legacy plugin runtime, external extensions are installed through Omarchy; updates and removal also use Omarchy's commands.
-
-This file was written by an agent.
-
-Historical companion extensions and generated extension templates carry a small host guard for the legacy Omarchy runtime. When FileBlade is missing or disabled, the
-first enabled extension shows one pop-up naming every waiting extension. A
-missing host shows an explanation and the repository URL with no install action;
-the guard never downloads FileBlade. An installed but disabled host offers Enable,
-which enables the local plugin and restarts the shell. While FileBlade is enabled
-the guard draws nothing.
-
-## How a person adds an extension
-
-The next two diagrams show the target flow for the
-[planned Omarchy registry](https://github.com/omacom/omarchy-plugin-registry).
-Today, the install starts with a Git repository URL instead. Everything after
-the plugin is enabled already works this way.
-
-Publication currently uses the
-[Omarchy marketplace submission workflow](https://github.com/omacom/omarchy-plugin-marketplace/blob/main/SUBMISSION.md).
-
-```mermaid
-sequenceDiagram
-    actor Person
-    participant Omarchy
-    participant Registry as Omarchy registry
-    participant FileBlade
-
-    Person->>Omarchy: Install publisher/extension-name
-    Omarchy->>Registry: Ask for the latest compatible version
-    Registry-->>Omarchy: Send a checked version that cannot change
-    Omarchy->>Omarchy: Confirm it is genuine and install it disabled
-    Person->>Omarchy: Enable the plugin
-    Omarchy-->>FileBlade: An enabled extension is available
-    FileBlade-->>Person: Its modules and actions appear where they belong
-```
-
-The person installs one normal Omarchy plugin from the normal Omarchy registry.
-They do not register it with FileBlade separately.
-
-## How a developer ships an extension
-
-```mermaid
-sequenceDiagram
-    actor Developer
-    participant Folder as Plugin folder
-    participant Omarchy
-    participant Registry as Omarchy registry
-    actor Person
-
-    Developer->>Folder: Create a normal Omarchy plugin
-    Developer->>Folder: Add module QML or an action script and declare the extension
-    Developer->>Omarchy: Validate and test it locally
-    Omarchy-->>Developer: Report problems or pass it
-    Developer->>Registry: Publish publisher/extension-name
-    Registry->>Registry: Validate and scan the package
-    Registry->>Registry: Lock that exact version so it cannot change
-    Registry-->>Person: List it with every other Omarchy plugin
-    Person->>Omarchy: Install and enable it normally
-```
-
-FileBlade owns the small contract between the extension and the host. Omarchy
-owns publishing, trust checks, installation, updates, enabling, disabling, and
-removal for its plugin runtime. Native extension discovery uses the directory
-and activation receipt described above.
-
-## Where modules come from
-
-```yaml
-builtin:  modules/<id>/blade.json inside the FileBlade payload
-native:   ~/.config/fileblade/extensions/<publisher.name>/manifest.json
-user:     ~/.config/omarchy/fileblade/modules/<id>/blade.json (quickest way to hack)
-plugin:   any enabled Omarchy plugin whose manifest.json declares
-          extensions["data-goblin.fileblade/blade"] (the right way to ship)
-```
-
-The first two are found by a Rust scan (the `blade-modules` backend request)
-and rescanned with `fileblade rescan-modules`. The third comes straight
-from the shell's plugin registry, so enabling or disabling a plugin in Omarchy
-adds or removes its modules live. Plugin module ids are namespaced to
-`<pluginId>/<id>`, so nobody can collide with anyone else.
-
-The satellite repositories are worked examples of the third kind. Each has a
-`manifest.json`, a provider-owned `Service.qml`, and a visual `blades/Module.qml`:
-
-```yaml
-data-goblin.fileblade-skills:  agent skills for the selected project, by scope and source
-data-goblin.fileblade-memory:  agent instructions, rules, and durable auto-memory
-data-goblin.fileblade-hooks:   configured agent hooks by agent, event, and scope, payloads redacted
-data-goblin.fileblade-mcp:     MCP configuration inventory and editing; never starts servers
-data-goblin.fileblade-git:     repository changes, commits, branches, worktrees, and explicit sync
-```
-
-Once a module is known it shows up in the blade settings picker and in
-`fileblade modules`, grouped by `category`. Put it in a slot with the picker or
-with `fileblade blade add right <id>`.
+The extension owns its QML and helpers. FileBlade owns discovery, shared
+services, navigation, focus, state directories and bounded helper execution.
+See [the design guide](docs/agent-written/design.md) for those boundaries.
 
 ## The definition
 
@@ -245,7 +102,7 @@ entry:        QML path relative to the definition; no `..`, no leading `/` (defa
 hostContract: 1, 2 or 3; a module that asks for a newer host is listed but not loadable
 singleton:    true means only one slot may hold it (default true); false allows many
 minHeight:    pixels the slot can't shrink below, 0 to 4096
-category:     one word or a short phrase (max 32) the picker groups by; defaults to `Module` for built-in and user modules, `Plugin` for manifest ones
+category:     one word or a short phrase (max 32) the picker groups by; set this explicitly for a contributed module
 settings:     optional `{ defaults, schema }`; the host renders the schema in blade settings and stores values in `context.state` under each key
 ```
 
@@ -255,7 +112,7 @@ socket key, and can also set `hostContract` once at the top for all of them:
 ```json
 {
   "schemaVersion": 1,
-  "id": "your.plugin",
+  "id": "publisher.example",
   "kinds": ["service"],
   "entryPoints": { "service": "Service.qml" },
   "extensions": {
@@ -275,31 +132,19 @@ socket key, and can also set `hostContract` once at the top for all of them:
 }
 ```
 
-The `Service.qml` of a dependent plugin can be nearly empty (the example's is
-three lines); the shell still needs an entry point to load the plugin at all.
-
 ### The provider a module shares
 
-Omarchy 4.0.3 gives every third-party plugin a registry containing only itself,
-so FileBlade can no longer ask the shell for your plugin's service, and your own
-manifest no longer carries its source directory. Declare `provider` on the blade
-contribution and FileBlade owns that runtime itself: it reads your installed
-manifest from disk, creates one `Provider.qml` per plugin, and hands it to every
-module of yours through `context.service(providerId)` and
-`context.providerService`.
+Declare `provider` on a blade contribution to share one runtime across its
+views. FileBlade reads the installed manifest, creates one `Provider.qml` per
+provider and supplies it as `context.providerService` and through
+`context.service(providerId)`. Use `"provider": null` for a module with no
+shared state.
 
-FileBlade constructs it with exactly four properties: `providerId`,
-`providerRoot`, `files` and `inventoryComponentUrl`. It expects `attach(context)`
-to be idempotent, `detach(context)` to release one view, and `shutdown()` to be
-terminal. Creating a provider does no work; the first `attach` starts it and the
-last `detach` quiets it. When your plugin is disabled the host shuts that runtime
-down, so a provider must stop its watchers there.
-
-Keep `Service.qml` as a thin wrapper around the same `Provider.qml` for older
-hosts, and resolve your own directory from `Qt.resolvedUrl(".")` rather than the
-manifest. A contribution with no `provider` key is treated as legacy: it still
-works on a shell that discloses plugins to each other, and needs an update on a
-restricted one. `"provider": null` declares a module that owns no shared state.
+FileBlade constructs the provider with `providerId`, `providerRoot`, `files`
+and `inventoryComponentUrl`. `attach(context)` must be idempotent,
+`detach(context)` releases one view, and `shutdown()` is terminal. Creating a
+provider does no work; its first attachment starts shared work and its last
+detachment quiets it. Removal shuts it down, including its watchers.
 
 ## What your module gets
 
@@ -310,12 +155,11 @@ actually use:
 ```yaml
 identity:
   context.moduleId, moduleDir:            who you are and where your files are
-  context.providerId:                     Omarchy plugin id for a contributed module; empty for built-in/user modules
+  context.providerId:                     registered provider id for a contributed module; empty for built-in/user modules
   context.edge, slotIndex, slotId:        where you are
   context.tabIndex, tabCount:             tabs inside this slot
 flags (read only, bind to them for styling):
   context.bladeOpen, bladeFocused, slotFocused, collapsed, docked, dragging
-  context.inPopout:                       true when a bar widget hosts the module (see Popping a module out of the bar)
   context.definition:                     the normalized definition; `definition.iconUrl` is the file URL of a declared `icon`
   context.host.fontScale:                 the Font size the user chose, 0.75 to 2.0; multiply your own Style.font sizes by it to follow FileBlade
 state:
@@ -330,12 +174,12 @@ settings (from the definition's schema):
   context.settings.set(key, value):       coerces against the row, then context.state.set; false for an undeclared key
   context.settings.has(key):              true when the definition declares the key
   context.settings.schema / defaults:     the normalized rows and the merged defaults
-  context.category:                       the definition's category, `Module` or `Plugin` unless it set one
+  context.category:                       the normalized definition's category
 shared services:
   context.service("files"):               the files controller: selectedPath, rootPath, contextPath, projectRoot, openInEditor(path),
                                           openDefault(path, targetScreen?, isDir?), revealInFileManager(path, isDir, targetScreen?)
-  context.providerService:                your contributing plugin's singleton service, or null
-  context.service(pluginId):              another loaded Omarchy plugin service, or null
+  context.providerService:                your contributing extension's singleton service, or null
+  context.service(providerId):            a registered provider runtime, or null
 focus:
   context.requestFocus(part):             ask the host to give this slot keyboard focus
   context.focusNext() / focusPrevious():  hand focus to the neighbouring slot (Tab and Shift+Tab, by convention)
@@ -375,7 +219,7 @@ All shared primitives that leave FileBlade (`openInEditor`, `openAtLine`, file
 `openDefault`, `openWithApplication`, and `revealInFileManager`) first release
 the blade and any modal drop wheel's keyboard focus without restoring the
 previously focused window.
-The application being opened therefore becomes the only focus target; plugins
+The application being opened therefore becomes the only focus target; extensions
 must use these shared primitives instead of spawning their own opener.
 
 Standard metric keys are `off`, `agents`, `status`, `updated`, `created`,
@@ -387,12 +231,9 @@ Host contract 2 adds `context.metrics` and passes the wanted state on the
 all-agents signal (below). A module that declares `hostContract: 2` is listed
 but not loadable on a contract 1 host.
 
-`context.service(id)` checks FileBlade's built-in services first, then asks the
-Omarchy shell for the loaded service with that plugin id. For a module supplied
-through a plugin manifest, `context.providerService` is the same lookup using
-`context.providerId`; it remains `null` when the provider has no loaded service.
-Treat either result as nullable because enable, disable, and shell reloads can
-change service availability.
+`context.service(id)` resolves FileBlade-owned services and registered provider
+runtimes. Treat the result and `context.providerService` as nullable because
+registration, removal and application restarts can change availability.
 
 A loaded module keeps its own context identity until destruction. Changing the
 slot's active module does not redirect that context to the incoming provider.
@@ -402,20 +243,20 @@ as they occur; accepted shared work belongs in the provider service.
 
 `context.stateDir` and `context.configDir` are
 `~/.local/state/omarchy/fileblade/modules/<id>/` and
-`~/.config/omarchy/fileblade/config/<id>/`, with the `/` in a plugin module id
+`~/.config/omarchy/fileblade/config/<id>/`, with the `/` in a extension module id
 written as `+` (`data-goblin.blade-example/clock` becomes
 `data-goblin.blade-example+clock`). The backend creates them `0700` when the
 module loads; `context.dirsReady` says when, `context.ensureDirs(cb)` when you
 cannot wait. Keep large or shared things here, not in `context.state`. They are
-private to you, not to your module: any plugin in the shell can read them.
+private to you, not to your module: any code running as the same user can read them.
 
 The visual module is instantiated once for every slot that displays it, and
 potentially once per screen. Keep per-tab presentation state in
 `context.state`, but put shared scanners, subprocesses, watchers, caches, and
-mutation logic in the provider's `Service.qml`. The module should bind to
+mutation logic in the provider's `Provider.qml`. The module should bind to
 `context.providerService` instead of starting another copy of that work. This
-also gives the service one teardown boundary when the companion plugin is
-disabled or the shell reloads.
+also gives the service one teardown boundary when the companion extension is
+removed or the application restarts.
 
 For JSON inventories, load `context.ui.url("ArtifactInventory")` once in the
 provider service. Bind its `observers` to the active view contexts, and supply
@@ -464,10 +305,10 @@ stdin, not argv. Reads cannot replace newer-project or post-mutation state.
 Owners using backend requests directly can pass `true` as the third argument
 to `cancelBackendRequest(id, generation, true)` during destruction to discard
 callbacks. Sent requests still occupy their concurrency slot until completion.
-The native transport confines executables to their declaring plugin, separates
+The native transport confines executables to their declaring extension, separates
 read and write methods, enforces a 30-second maximum timeout, and retains at
 most 2 MiB stdout, 4 KiB stderr, and 64 KiB stdin. These are resource and
-ownership boundaries, not a sandbox for enabled plugins.
+ownership boundaries, not a sandbox for enabled extensions.
 
 Your module can expose a few things back to the host. All optional:
 
@@ -516,7 +357,7 @@ raises `dismissRequested`. `query` uses the Files search grammar (`SearchQuery.j
 with the module's `filterKeys`; an invalid pattern shows up in `filterInvalid`.
 Thumbnails come from the backend `thumbnail` request through `ThumbnailCache`,
 so they land in `~/.cache/fileblade/thumbnails/` beside the Properties previews
-and are shared between screens and between a blade and a bar popout.
+and are shared between screens and blade instances.
 
 `ImageTile` releases its thumbnail subscription when recycled or destroyed.
 Custom consumers of `ThumbnailCache.request` must call `cancel(callback)` when
@@ -524,45 +365,6 @@ that callback is no longer useful; the last subscriber cancels the backend
 request. The cache retains at most 4,096 results and 1,024 pending keys, with
 at most 128 subscribers per key. `reset()` invalidates cached results and
 cancels pending work.
-
-## Popping a module out of the bar
-
-This file was written by an agent.
-
-`blades/BladePopout.qml` hosts any registered module outside a blade, with a
-real `BladeContext` whose `popout` seam replaces the slot: `closeBlade()` closes
-the popout, `state.set` writes to a popout-local map that lasts for the shell
-session, `requestFocus` focuses the module, and slot drags, tab cycling and
-collapsing become no-ops. Give it `host` (the files service's `bladeHost`),
-`shell`, `services` (the files service's `services`), `screen`, `moduleId` and
-`opened`; it loads the module while open and unloads it when closed. Changing
-`moduleId` resets the popout's state so one module never inherits another's keys.
-
-A popout handing a file action to the host closes itself and calls
-`files.openActionMenu` with `standalone: true` in the placement object. This
-lets the menu draw and take keyboard focus while both blades remain closed.
-Choose `edge: "right"` for an anchor in the right half of the screen and
-`edge: "left"` otherwise, using screen-local coordinates (the menu's Y anchor
-excludes the top bar inset).
-
-FileBlade's own `bar-widget` entry hosts registered modules through the current
-Omarchy API. An extension must not request FileBlade's service through a foreign
-`bar.shell.serviceFor` call: Omarchy scopes that lookup to the calling plugin.
-
-Enable FileBlade's bar entry, then choose the module in its widget settings:
-
-```sh
-omarchy plugin enable data-goblin.fileblade --section right
-omarchy-shell shell setBarWidget data-goblin.fileblade module '"publisher.name/module"' '{}'
-fileblade popout publisher.name/module
-fileblade popout
-```
-
-The last two commands open and close the same popout. Clicking the bar icon opens
-its configured module; Escape or an outside click closes it and unloads the
-content. Opening gives the module keyboard focus. Width and height use the
-ordinary bar-widget settings. This integration requires the Omarchy plugin
-runtime; native standalone extensions use blades.
 
 ## Settings without QML
 
@@ -609,12 +411,12 @@ picker above that, minus and plus buttons around an editable field for
 `integer` and `number`, and an inline field for `string` and `path`; a `path`
 row has a trailing button that fills in the selected path from the files
 blade. Rows show up in the settings search by label, description, and option
-labels. The example plugin's clock declares a format, a caption, and a scale
+labels. The example extension's clock declares a format, a caption, and a scale
 this way; see `examples/data-goblin.blade-example`.
 
 ## Script actions
 
-A plugin can contribute rows to the file actions menu without any QML: list
+A extension can contribute rows to the file actions menu without any QML: list
 them under `extensions["data-goblin.fileblade/action"]`. Each row runs an argv,
 no shell, with the selection in the environment.
 
@@ -630,7 +432,6 @@ no shell, with the selection in the environment.
         "contexts": ["dir", "root"],
         "argv": ["scripts/open-in-herdr", "--space"],
         "paths": "env",
-        "cwd": "plugin",
         "confirm": false,
         "timeout": 60,
         "detach": false,
@@ -642,14 +443,14 @@ no shell, with the selection in the environment.
 ```
 
 ```yaml
-id:          required; [A-Za-z0-9][A-Za-z0-9._-]*, max 64; the row key is <pluginId>/<id>
+id:          required; [A-Za-z0-9][A-Za-z0-9._-]*, max 64; the row key is <providerId>/<id>
 title:       required; 1 to 64 characters
 glyph:       optional, max 16 characters
 description: optional, max 160; shown as the row tooltip
 contexts:    required; any of file, dir, selection, root, none
 argv:        required; 1 to 32 items, 1024 bytes each, 8 KiB in total
 paths:       env (default) or append; append adds every target as a trailing argument
-cwd:         plugin (default), root, or target
+cwd:         omit for the extension directory; root or target selects another working directory
 confirm:     ask before running; default false
 timeout:     1 to 900 seconds; default 60; ignored when detach is true
 detach:      fire and forget, no capture, no exit code; default false
@@ -658,21 +459,22 @@ output:      notice (default) or silent
 
 `contexts` decides when the row shows and what the script gets: `file` and
 `dir` want exactly one entry, `selection` any number up to 256, `root` the tree
-root, `none` nothing. `argv[0]` must be a file inside your plugin with the exec
+root, `none` nothing. `argv[0]` must be a file inside your extension with the exec
 bit; the backend re-reads your manifest at run time, so nothing the UI holds
 can change what runs.
 
-Environment: `FILEBLADE_SELECTION_JSON` (empty past 64 KiB, with
+Selection environment: `FILEBLADE_SELECTION_JSON` (empty past 64 KiB, with
 `FILEBLADE_SELECTION_FILE` naming a `0600` file instead; the unused one is
 always empty, never missing), `FILEBLADE_SELECTION_COUNT`, `FILEBLADE_ROOT`,
 `FILEBLADE_TARGET`, `FILEBLADE_CONTEXT`, `FILEBLADE_ACTION`,
-`FILEBLADE_SOURCE`, `FILEBLADE_PLUGIN_ID`, `FILEBLADE_PLUGIN_ROOT`,
+`FILEBLADE_SOURCE`,
 `FILEBLADE_STATE_DIR`, `FILEBLADE_CONFIG_DIR`, `FILEBLADE_CLI`,
 `FILEBLADE_HOST_VERSION`, `FILEBLADE_SCREEN`. Each selection entry is
 `{ path, name, dir, symlink, size, mime }`, where `dir` says the entry is a
-directory. The cwd is the plugin root unless `cwd` says `target` or `root`.
-Write to the state dir, never next to your manifest; a package-managed plugin
-root is read only.
+directory. The cwd is the extension root unless `cwd` says `target` or `root`.
+Write to the state dir, never next to your manifest; a package-managed extension
+root may be read only. Provider identity variables are defined in
+[src/actions/run.rs](src/actions/run.rs).
 
 Output: the first line of stdout and the exit code show as a notice in the
 blade; the run lands in `audit.jsonl` (`fileblade log --command action-run`).
@@ -687,15 +489,15 @@ From a terminal: `fileblade actions` lists what the menu would show, and
 seconds. The terminal path list is also capped at 64 KiB before it crosses the
 shell IPC boundary.
 
-The example plugin ships one: `dump` writes its environment to
+The example extension ships one: `dump` writes its environment to
 `last.json` in the module state dir, so
 `fileblade action data-goblin.blade-example/dump . --yes` shows you exactly
 what a script receives.
 
-Your own actions without a plugin: drop `<id>.json` files in
+Your own actions without a extension: drop `<id>.json` files in
 `~/.config/omarchy/fileblade/actions/`, one action object per file with the
 file name equal to the id. Their keys start with `user/` and they may name a
-program on `PATH` or an absolute path. Graduate them into a plugin when they
+program on `PATH` or an absolute path. Graduate them into a extension when they
 are worth shipping.
 
 ## Starting from the template
@@ -714,7 +516,7 @@ document.
 ```yaml
 DIRECTORY:      where to write; defaults to ./<id>
 --name:         extension name for tabs and the README; defaults to the module id in title case
---module:       blade module id; defaults to the plugin name without its fileblade- prefix
+--module:       blade module id; defaults to the extension name without its fileblade- prefix
 --author:       manifest author and LICENSE holder; defaults to $USER
 --description:  one line for the manifest and the module picker
 --repository:   git URL in the README install command; defaults to https://github.com/<publisher>/<name>.git
@@ -737,30 +539,18 @@ The template carries no interpreter. Three verbs of the host binary do the
 work the scaffold used to ship as scripts:
 
 ```yaml
-fileblade host-status --companion <id>:  what HostGuard.qml calls; prints {schemaVersion, state, plugins} with state missing, disabled, starting, ready or unknown, within a two second deadline
+fileblade host-status --companion <id>:  reports host availability within a two-second deadline
 fileblade extension check <dir>:         the manifest-shape and host-guard rules tests/run enforces; defaults to the working directory
 fileblade extension image:               writes assets/fileblade-extension-logo.svg with the extension name outlined under the wordmark; --png and --host-logo rasterize with rsvg-convert
 ```
 
-The scaffolded `HostGuard.js` resolves that binary from
-`${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/data-goblin.fileblade/fileblade`
-before falling back to `PATH`, because a plugin-route install adds nothing to
-`PATH`. Only exit code 127, meaning neither route resolved, reports the host as
-missing.
+Register a generated checkout under the native extension directory described
+above, then rescan and add its module. Use `fileblade extension check .` and
+its generated `tests/run` gate before registration. The stable `fileblade`
+launcher must be available on `PATH` for CLI and host checks.
 
-`fileblade extension image --name "Agent Skills"` reproduces the satellite
-banners exactly, so a renamed extension keeps the shared look.
-
-Extensions scaffolded before this change keep working untouched: their
-`bin/fileblade-host-status`, `tests/test_contract.py` and
-`scripts/fileblade-extension-image.py` are ordinary files in their own
-repositories and FileBlade never reads them. Move to the verbs when it suits
-you: point `HostGuard.qml` and `tests/run` at the host binary the way the
-scaffold does, resolving
-`${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/data-goblin.fileblade/fileblade`
-first and `PATH` only as a fallback, then call `--output json host-status
---companion <id>` from the guard and `extension check .` from the gate, and
-delete the three files.
+`fileblade extension image --name "Agent Skills"` outlines the extension name
+under the FileBlade wordmark; `--png` renders through `rsvg-convert`.
 
 ## Writing one, step by step
 
@@ -771,17 +561,16 @@ delete the three files.
    Tab to `focusNext()` and Esc to `closeBlade()`
 4. `fileblade rescan-modules && fileblade modules` and confirm it's listed
 5. `fileblade blade add right hello`
-6. Iterate. QML does not hot-reload, so `omarchy-restart-shell` after each
-   edit; if Quickshell keeps showing an error at an impossible line, its QML
-   cache under `~/.cache/quickshell/qmlcache` is stale, move it aside
-7. When it works, move it into a real plugin with a manifest so it's
+6. Iterate in an isolated session. Drain the native runtime with `fileblade
+   native drain`, then start `fileblade` again to load changed QML
+7. When it works, move it into a real extension with a manifest so it's
    installable, and delete the user copy so the ids don't shadow each other
 
 ## Rules the host enforces
 
 - a definition must be a bounded, regular JSON file with a safe relative entry path; anything else is skipped silently
 - at most 128 modules in total; ids, names, and descriptions are length-capped and stripped of control characters
-- a plugin's modules exist only while that plugin is enabled in Omarchy
+- contributed modules exist only while their provider remains registered and enabled
 - a module with `hostContract` above what the host supports is shown as incompatible, not loaded
 - singleton modules can't be added twice; the picker greys them out
 
@@ -794,8 +583,8 @@ checklist.
 
 ## Satellites and artifact bins
 
-The satellite plugins (`data-goblin.fileblade-skills`, `-memory`, `-hooks`,
-`-mcp`, `-git`) are the reference for a "real" plugin. The pattern they use:
+The built-in Skills, Memory, Hooks and MCP modules demonstrate the inventory
+pattern extensions can reuse:
 
 - use `context.service("files").contextPath` as the exact folder scope; by default it is the selected folder, falling back to the opened folder for a file selection, while FileBlade's `projectContext` setting can switch it to the nearest Git root
 - list user-scope items always, project-scope items when a root resolves
@@ -864,7 +653,7 @@ Loader {
 | Behavior | Owner and required wiring |
 | --- | --- |
 | Navigation and cursor | `ArtifactTree` uses the host key router, preserves row identity across refreshes, keeps the scroll position anchored to the first visible row while rows are replaced, and scrolls the cursor into view only when the cursor lands on a different row. |
-| Scroll ruler | `ArtifactTree` draws `ui/MarkedScrollBar.qml` along the right edge: a thin accent thumb plus coloured position marks. Marks come from `rowMark(item)`, which defaults to the item's `gitStatus` or `git_status` field (also read from `item.source`) and is coloured through the files service `gitStatusColor`. Override `rowMark` to mark rows by another status letter (`D`, `U`, `M`, `A`, `?`, `R`, `C`) or return `""` for none. Marks for rows outside the viewport render at half opacity, and the Files setting "Git marks on the scroll ruler" (`scrollMarks` in the state document) hides them in every tree. `ui/ListAnchor.qml` and `lib/ScrollMarks.js` are loadable through `context.ui.url(...)` and `context.host.pluginDir` for a module that renders its own list. |
+| Scroll ruler | `ArtifactTree` draws `ui/MarkedScrollBar.qml` along the right edge: a thin accent thumb plus coloured position marks. Marks come from `rowMark(item)`, which defaults to the item's `gitStatus` or `git_status` field (also read from `item.source`) and is coloured through the files service `gitStatusColor`. Override `rowMark` to mark rows by another status letter (`D`, `U`, `M`, `A`, `?`, `R`, `C`) or return `""` for none. Marks for rows outside the viewport render at half opacity, and the Files setting "Git marks on the scroll ruler" (`scrollMarks` in the state document) hides them in every tree. `ui/ListAnchor.qml` is loadable through `context.ui.url("ListAnchor")` for a module that renders its own list; the shared tree already owns its scroll marks. |
 | Module shortcuts | An optional `keyHandler(event, repeated)` runs before generic tree actions. Return `true` only for a handled key; acknowledge repeated action keys without running the action again. Shifted domain shortcuts such as Git's Diff/Fetch remain available. |
 | Search options | Bind both `caseSensitive` and `regex` from the search field to the tree. `PaneSearchField.showDeepOption` defaults to `false`; enable it only when `deepToggled` has a working whole-root search handler. |
 | Search visibility | Give `PaneSearchField` the module `context` (or Files `service`). It inherits `autoHideSearch`, off by default. Call `reveal()` for the configured search action, normally `/`; it focuses and selects the query. When enabled, the bar collapses on focus loss without clearing the query. Escape should clear the query and return focus to the tree. Keep the field loaded and let its visibility size the containing Loader; do not implement a separate visibility toggle. |
@@ -934,7 +723,7 @@ TERM waits for cleanup before the request completes, and abrupt death of the
 request still triggers group cleanup. Independently detached groups, including
 credential agents, have a separate lifetime. They cannot hold the output reader
 indefinitely. This is process ownership, not a sandbox for repository hooks or
-plugins.
+extensions.
 
 Configuration writers retain a bounded, byte-exact preimage and delegate
 publication to the native write path. That path checks file identity and
@@ -950,7 +739,7 @@ Send private text through stdin, not command arguments. Git's commit path
 accepts at most 64 KiB and closes stdin after writing; Git receives the same
 message through `-F -`. Invalid input is refused before optional staging.
 
-A provider service gets the same two directories, keyed by its plugin id
+A provider service gets the same two directories, keyed by its extension id
 instead of a module id, through the files service:
 
 ```

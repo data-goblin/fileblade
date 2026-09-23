@@ -61,7 +61,7 @@ old cache:    $XDG_CACHE_HOME/omarchy/fileblade/agent-usage.json and agent-usage
 ```
 
 It is state, not cache: a cache cleaner must not erase history. Uninstalling
-the plugin keeps it with the rest of `~/.local/state/omarchy/fileblade/`.
+FileBlade keeps it with the rest of `~/.local/state/omarchy/fileblade/`.
 
 The `-json` output of the sqlite3 tool renders a TEXT column as its characters
 and a BLOB column as one character per byte. Reading a column byte for byte is
@@ -138,7 +138,7 @@ Claude Code transcripts:
 
 ```yaml
 skill:          assistant tool_use named Skill: kind skill, origin agent, name = input.skill
-                exactly as written, which may be <plugin>:<skill>
+                exactly as written, which may be <namespace>:<skill>
 tool:           tool_use named mcp__<server>__<tool>: kind tool, origin agent, server = the
                 second segment, name = the rest joined by "__"
 resource-list:  tool_use ListMcpResourcesTool: server = input.server or "", name ""
@@ -381,14 +381,12 @@ Matching lives in `query.rs` and is shared by `list` and `usage`.
 sanitize(name):   every character outside [a-zA-Z0-9_-] becomes "_"; for a name starting with
                   "claude.ai " also collapse runs of "_" and strip them from both ends.
                   This is the rule Claude Code 2.1.258 uses to build mcp__ tool names
-skill row:        events of kind skill or command named exactly the row name, or
-                  <plugin>:<row name> when the row source is plugin:<plugin>@<marketplace>
-mcp, claude:      the row's event server is sanitize(name). A plugin-scope row uses
-                  plugin_<sanitize(plugin)>_<sanitize(name)>, using source.plugin from the
-                  manifest name or installed registry identity, independent of cache layout
-                  Stored Claude servers are sanitized before comparison, so a resource call
-                  recorded with input.server "my.server" or "plugin:toolkit:docs" meets the
-                  same row as mcp__my_server__ or mcp__plugin_toolkit_docs__ tool calls
+skill row:        events of kind skill or command named exactly the row name, including
+                  the owning namespace for a namespaced agent skill
+mcp, claude:      the row's event server is sanitized using the agent's naming convention;
+                  namespaced definitions retain their owning package identity.
+                  Stored Claude server names are normalized before comparison, so resource
+                  calls and tool calls match the same configured server.
 mcp, codex:       the event server equals the configured name
 mcp, copilot:     the event server equals the configured name (mcpConfigServerName, else the
                   display name the CLI recorded)
@@ -648,7 +646,7 @@ transcript format:   Claude Code and Codex transcripts are undocumented internal
 unobserved records:  Claude resource tool records come from the 2.1.258 binary's schemas and one
                      probe session, not from everyday history. Codex failure detection has only
                      seen completed calls
-plugin mcp servers:  redacted server names or plugin identities report 0 rather than guessing
+namespaced MCP servers:  redacted server names or package identities report 0 rather than guessing
 first read:          history fills progressively, newest transcripts first. The CLI reports
                      ingestPending; visible heatmaps continue until ingestion finishes
 walk cap:            beyond 8192 transcripts per agent, which ones are read follows directory

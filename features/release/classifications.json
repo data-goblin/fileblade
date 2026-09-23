@@ -2,52 +2,6 @@
   "schema": 1,
   "records": [
     {
-      "id": "extension-scope",
-      "context": "Native extensions use a registration directory and explicit trust/activation; the existing docs described only plugin links. The test fixture installed duplicate QML below the working checkout. The popout could be exercised only through its qualification host.",
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "extension_docs": {
-            "type": "choice",
-            "choice": "deployment_paths_gap",
-            "confidence": 1.0,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "same_install_flow": 0.0,
-              "none": 0.0,
-              "deployment_paths_gap": 1.0
-            }
-          },
-          "gate_failure": {
-            "type": "choice",
-            "choice": "owned_fixture_contamination",
-            "confidence": 1.0,
-            "probabilities": {
-              "owned_fixture_contamination": 1.0,
-              "need_more_context": 0.0,
-              "production_corner_bug": 0.0,
-              "none": 0.0
-            }
-          },
-          "popout_evidence": {
-            "type": "choice",
-            "choice": "qualified_component_only",
-            "confidence": 1.0,
-            "probabilities": {
-              "qualified_component_only": 1.0,
-              "need_more_context": 0.0,
-              "production_end_to_end": 0.0,
-              "none": 0.0
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 839,
-          "output_tokens": 164
-        }
-      }
-    },
-    {
       "id": "collision",
       "context": "A real copy collision reached the history controller, but the Files pane did not instantiate the existing ActionDialog. Reusing that dialog restored a visible choice without new infrastructure.",
       "response": {
@@ -103,74 +57,6 @@
         "usage": {
           "input_tokens": 562,
           "output_tokens": 63
-        }
-      }
-    },
-    {
-      "id": "final-evidence-scope",
-      "context": "Desktop role recordings showed registration rather than completed handoff. Plugin recording showed install without activation. Recovery proof would seed a documented interrupted-operation fixture. A clean combined snapshot included concurrent changes; capture scripts contained session-specific host paths.",
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "role_coverage": {
-            "type": "choice",
-            "choice": "registration_only",
-            "confidence": 1.0,
-            "probabilities": {
-              "registration_only": 1.0,
-              "none": 0.0,
-              "need_more_context": 0.0,
-              "full_handoff": 0.0
-            }
-          },
-          "plugin_coverage": {
-            "type": "choice",
-            "choice": "installation_only",
-            "confidence": 1.0,
-            "probabilities": {
-              "installation_only": 1.0,
-              "need_more_context": 0.0,
-              "none": 0.0,
-              "runtime_proven": 0.0
-            }
-          },
-          "recovery_fixture": {
-            "type": "choice",
-            "choice": "documented_fixture_proof",
-            "confidence": 1.0,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "crash_proof": 0.0,
-              "documented_fixture_proof": 1.0,
-              "none": 0.0
-            }
-          },
-          "combined_gate": {
-            "type": "choice",
-            "choice": "coherent_combined_validation",
-            "confidence": 0.96,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "none": 0.0,
-              "coherent_combined_validation": 0.97,
-              "weakened_gate": 0.03
-            }
-          },
-          "harness_delivery": {
-            "type": "choice",
-            "choice": "owned_scratch",
-            "confidence": 1.0,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "reusable_public_tool": 0.0,
-              "none": 0.0,
-              "owned_scratch": 1.0
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 1116,
-          "output_tokens": 281
         }
       }
     },
@@ -503,144 +389,6 @@
       }
     },
     {
-      "id": "final-review",
-      "context": {
-        "state": {
-          "task": "Final classification of FileBlade v0.2.0 release review and agent-written feature documentation. No publication is requested.",
-          "facts": [
-            "Complete tests/run passed on disposable snapshot eb5c951515eef0141f680da189984f0dde67d8ac: 761 Rust checks, 832 QML checks, generated extension scaffolds, native theme replacement and return, bundle source/hash/static linkage and byte-identical rebuild.",
-            "Runtime source in the working checkout is byte-identical to the staged corrected snapshot. Working branch is 0.2.0, with concurrent unrelated changes preserved; no final main commit has been selected or verified in the marketplace.",
-            "Review fixed mixed-version archives, bootstrap identity validation, native desktop quoting, native CLI routing and refusal exit status, recovery diagnostics, MP4 posters, collision dialog wiring, picker/media interaction, reveal selection races and named tmux socket discovery.",
-            "Real tmux regression uses actual PTYs, server, client and Neovim; named, joined, explicit and relative sockets pass. The final real compositor clip opens the requested file in a second pane.",
-            "112 feature workflow pages exist in root features/ with pane subgroups. 111 have screenshots and short MP4s plus media hashes and actual visual acceptance. Artifact gate reports 111/112 passing; only SFTP lacks media because no authorized peer, SSH username and sample directory were supplied.",
-            "Accepted PNG and H.264 MP4 dimensions are 2560x1440. Videos are continuous, muted, original speed, 5.466667 to 7.933333 seconds. Wallpaper is visible. Each blade is normally 650px and at most 700px, below 2560/3.",
-            "Logo is the complete original SVG icon and FileBlade wordmark rendered faithfully through librsvg at four times display size; aspect ratio is preserved. Paired actual compositor frames measured artwork bounds [2144,1330,2528,1408], giving right=32 and bottom=32 visible pixels.",
-            "Real capture ran in a disposable local Hyprland window on workspace 9. Its shell, app, portals, clipboard helpers, private bus and compositor are stopped. Owned disk image is detached and removed; raw recordings and prior exports are retained. No OEVM was used.",
-            "Final x86_64 native payload, Arch package and native archive/latest.json were built and verified locally. They are not published assets. Working desktop reinstall and shell restart remain pending because the latest instruction forbids session disruption.",
-            "Some clips intentionally establish bounded behaviors: desktop role registration, legacy plugin installation without activation, a popout in the qualification host, and recovery from a disclosed interrupted-operation fixture. A real portal chooser request and FileManager1 reveal handoff now have completed proofs.",
-            "Root README is explicitly human-maintained and its proposed patch awaits authorization. Existing old release assets/verification do not establish this candidate."
-          ],
-          "documentation_groups": {
-            "workspace": 13,
-            "panes/files": 25,
-            "panes/properties": 3,
-            "panes/notes": 3,
-            "panes/skills": 4,
-            "panes/memory": 2,
-            "panes/hooks": 2,
-            "panes/mcp": 3,
-            "panes/branches": 3,
-            "panes/welcome": 3,
-            "operations": 17,
-            "integrations": 23,
-            "delivery": 10,
-            "panes/activity": 1
-          },
-          "preferences": [
-            "Fix discovered defects immediately. Every feature must have a screenshot and short focused MP4. Full SVG logo, visible wallpaper, equal padding and blade no wider than one-third. Consult Jev with context and probabilities. Do not disrupt the working desktop."
-          ]
-        },
-        "questions": {
-          "release_state": {
-            "instructions": "Which readiness state is established by the completed local review and remaining delivery gates?",
-            "criteria": {
-              "locally_validated_release_blocked": "Local code and packages pass but final exact-main verification, scoped production qualification or required evidence remain open.",
-              "ready_to_publish": "All requested evidence and final release identity/distribution gates are complete.",
-              "local_code_gate_failed": "The final complete local code and bundle gate failed.",
-              "none": "No release assessment is warranted from these facts.",
-              "need_more_context": "The facts do not establish a readiness class."
-            }
-          },
-          "evidence_completeness": {
-            "instructions": "Which completeness class matches the owner\u2019s every-feature requirement?",
-            "criteria": {
-              "111_verified_one_missing_with_bounded_claims": "111 completed media pairs are reviewed; SFTP is missing and integration limits are disclosed.",
-              "complete_all_features": "Every requested workflow has complete end-to-end media proof.",
-              "media_exists_without_review": "Files exist but there is no actual visual or behavior acceptance.",
-              "none": "No additional evidence is required under the stated request.",
-              "need_more_context": "Coverage cannot be determined."
-            }
-          },
-          "structure": {
-            "instructions": "Which organization class best describes the supplied groups against the requested logical features/ hierarchy?",
-            "criteria": {
-              "coherent_workflow_and_pane_groups": "Workspace, pane, operation, integration and delivery workflows are logically grouped, including nested panes.",
-              "implementation_detail_dump": "The pages follow internal functions or source files rather than observable features.",
-              "flat_unstructured": "The documentation ignores logical grouping and pane nesting.",
-              "none": "The classification adds no useful distinction.",
-              "need_more_context": "The supplied grouping is insufficient to classify."
-            }
-          },
-          "branding": {
-            "instructions": "Which class do the measured captures meet under the explicit visual requirements?",
-            "criteria": {
-              "meets_measured_requirements": "Full-resolution captures show wallpaper, complete undistorted SVG artwork, equal visible padding and blades below one-third.",
-              "geometry_or_branding_failure": "The measured capture violates a stated size, padding, artwork or wallpaper requirement.",
-              "none": "The requirements do not apply to these artifacts.",
-              "need_more_context": "Measurements cannot establish the requested properties."
-            }
-          }
-        },
-        "facts": []
-      },
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "release_state": {
-            "type": "choice",
-            "choice": "locally_validated_release_blocked",
-            "confidence": 1.0,
-            "probabilities": {
-              "local_code_gate_failed": 0.0,
-              "locally_validated_release_blocked": 1.0,
-              "none": 0.0,
-              "ready_to_publish": 0.0,
-              "need_more_context": 0.0
-            }
-          },
-          "evidence_completeness": {
-            "type": "choice",
-            "choice": "111_verified_one_missing_with_bounded_claims",
-            "confidence": 0.98,
-            "probabilities": {
-              "111_verified_one_missing_with_bounded_claims": 0.99,
-              "media_exists_without_review": 0.0,
-              "complete_all_features": 0.01,
-              "none": 0.0,
-              "need_more_context": 0.0
-            }
-          },
-          "structure": {
-            "type": "choice",
-            "choice": "coherent_workflow_and_pane_groups",
-            "confidence": 1.0,
-            "probabilities": {
-              "coherent_workflow_and_pane_groups": 1.0,
-              "flat_unstructured": 0.0,
-              "none": 0.0,
-              "implementation_detail_dump": 0.0,
-              "need_more_context": 0.0
-            }
-          },
-          "branding": {
-            "type": "choice",
-            "choice": "meets_measured_requirements",
-            "confidence": 0.91,
-            "probabilities": {
-              "meets_measured_requirements": 0.93,
-              "geometry_or_branding_failure": 0.06,
-              "none": 0.0,
-              "need_more_context": 0.01
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 1733,
-          "output_tokens": 301
-        }
-      }
-    },
-    {
       "id": "omen-alias-retention",
       "context": {
         "task": "FileBlade v0.2.0 release review; user explicitly requested real Omen tailnet proof and immediate fixes",
@@ -752,76 +500,6 @@
         "usage": {
           "input_tokens": 1299,
           "output_tokens": 185
-        }
-      }
-    },
-    {
-      "id": "popout-production-update",
-      "context": "Current Omarchy service lookup is self-scoped. FileBlade owns the service and existing BladePopout. A FileBlade-owned plugin bar entry reuses those components; native extensions remain in blades.",
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "repair_scope": {
-            "type": "choice",
-            "choice": "own_plugin_bar_entry",
-            "confidence": 1.0,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "new_cross_process_protocol_required": 0.0,
-              "none": 0.0,
-              "own_plugin_bar_entry": 1.0
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 681,
-          "output_tokens": 58
-        }
-      }
-    },
-    {
-      "id": "production-production-update",
-      "context": "Real isolated installed-plugin lifecycle, registered extension popout, keyboard and mouse dismissal, both runtime shortcuts, GIO autostart/folder, automatically activated Reveal and chooser, and role reversal passed. Autostart did not perform a logout/login transition.",
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "production_scope": {
-            "type": "choice",
-            "choice": "production_paths_exercised",
-            "confidence": 1.0,
-            "probabilities": {
-              "production_paths_exercised": 1.0,
-              "need_more_context": 0.0,
-              "none": 0.0,
-              "registration_only": 0.0
-            }
-          },
-          "autostart_claim": {
-            "type": "choice",
-            "choice": "desktop_entry_launch",
-            "confidence": 0.97,
-            "probabilities": {
-              "none": 0.02,
-              "need_more_context": 0.0,
-              "desktop_entry_launch": 0.98,
-              "complete_login_transition": 0.0
-            }
-          },
-          "popout_group": {
-            "type": "choice",
-            "choice": "plugin_integration",
-            "confidence": 1.0,
-            "probabilities": {
-              "none": 0.0,
-              "need_more_context": 0.0,
-              "native_integration": 0.0,
-              "plugin_integration": 1.0
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 992,
-          "output_tokens": 165
         }
       }
     },
@@ -957,188 +635,213 @@
       }
     },
     {
-      "id": "main-merge",
+      "id": "native-documentation-and-badge",
       "context": {
-        "task": "Classify main-history merge conflicts before final FileBlade 0.2.0 commit",
+        "task": "Native FileBlade 0.2.0 public documentation cleanup and Built for Omarchy badge.",
         "facts": [
-          "Main ends at the 0.1.3 release merge; the 0.2.0 branch contains separately cherry-picked 0.1.3 fixes, so histories diverge although source changes were carried over.",
-          "The merge has 32 conflicted files and no additional nonconflicting staged changes. Conflicts were inspected: release versions/binary differ, newer font zoom/density and Quick Nav controls expand the same typography/visibility fixes, the Welcome pane is rewritten around built-in modules, native roles and media paths are added, the Rust core replaces prior Python contracts, and the version hook adds stricter SemVer release checks.",
-          "Candidate commit 9d3c4cf carries hide-internal-caches/Quick-Nav changes; 554d7f1 carries typed font size. Candidate history explicitly records 997d4fc rebuilding the bundle for changes carried from 0.1.3. Hidden Git entries intentionally remain visible through feature commit 1602be6, and Quick Nav has separate hidden/case controls in d224028.",
-          "The complete candidate tree just passed 761 Rust and 832 QML checks, real native/plugin integration, and all 112 feature artifacts. Resolving these duplicate older conflicts to the reviewed current files produces a merge with the exact same tree while retaining main as a parent. No new runtime behavior is needed."
+          "The owner requested native-only README and documentation.",
+          "Two shell-hosted workflows are outside the native scope; the catalogue now contains 111 guides.",
+          "The authority implementation already initializes migration and persistence; previous internal READMEs described them as pending.",
+          "The badge author publishes an App SVG pinned to 75975e5b5bf75e7ede3764bcd2950046f7abfe2c.",
+          "This is a community identity badge, not certification.",
+          "Original classification records remain in Git history; retained native records preserve their original probabilities."
         ]
-      },
-      "questions": {
-        "conflict_class": {
-          "instructions": "Which class describes the inspected merge conflicts?",
-          "criteria": {
-            "already_ported_older_history": "Older main changes are already carried and evolved in the tested candidate; retain the reviewed current tree and merge the history",
-            "missing_main_behavior": "The inspected conflicts show unique main functionality absent from the candidate that must be ported",
-            "none": "No merge or conflict resolution is necessary",
-            "need_more_context": "Insufficient evidence to classify"
-          }
-        }
       },
       "response": {
         "model": "jev-1.13.0",
         "answers": {
-          "conflict_class": {
+          "documentation_scope": {
             "type": "choice",
-            "choice": "already_ported_older_history",
+            "choice": "native_docs_with_legacy_drift",
             "confidence": 1.0,
             "probabilities": {
-              "missing_main_behavior": 0.0,
+              "none": 0.0,
+              "native_docs_with_legacy_drift": 1.0,
+              "runtime_removal_required": 0.0,
+              "need_more_context": 0.0
+            }
+          },
+          "badge": {
+            "type": "choice",
+            "choice": "app",
+            "confidence": 1.0,
+            "probabilities": {
+              "app": 1.0,
+              "none": 0.0,
+              "general": 0.0,
+              "need_more_context": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 968,
+          "output_tokens": 107
+        }
+      }
+    },
+    {
+      "id": "native-test-documentation",
+      "context": {
+        "task": "Complete the owner-requested native-only documentation sweep.",
+        "facts": [
+          "Three Markdown test guides still described historical shell-host lifecycle and update flows as current release requirements.",
+          "Native runtime behavior and compatibility regression code are unchanged.",
+          "Useful historical fixture instructions remain explicitly scoped; obsolete native release requirements are removed."
+        ]
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "remaining_docs": {
+            "type": "choice",
+            "choice": "in_scope_documentation_drift",
+            "confidence": 1.0,
+            "probabilities": {
               "need_more_context": 0.0,
-              "already_ported_older_history": 1.0,
+              "runtime_change_required": 0.0,
+              "in_scope_documentation_drift": 1.0,
               "none": 0.0
             }
           }
         },
         "usage": {
-          "input_tokens": 722,
+          "input_tokens": 590,
+          "output_tokens": 62
+        }
+      }
+    },
+    {
+      "id": "native-documentation-complete",
+      "context": {
+        "task": "Classify the completed native documentation update and remaining release work.",
+        "facts": [
+          "148 Markdown files and retained diagrams passed terminology and local-link checks.",
+          "All four generated extension guides, manifest validation and documented SVG banner generation passed.",
+          "The original community Built for Omarchy App SVG is pinned in README.",
+          "The final code gate passed 761 Rust and 832 QML checks, native theme reload and byte-identical backend reproduction.",
+          "111 native screenshot/video pairs pass evidence validation.",
+          "Prepared release assets still bind cdbf272fa06ec8de5d652f2ada0ada6281fa4590 and require replacement from a fresh committed snapshot.",
+          "Publication and published-download VM qualification remain incomplete."
+        ]
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "documentation": {
+            "type": "choice",
+            "choice": "complete",
+            "confidence": 0.89,
+            "probabilities": {
+              "complete": 0.92,
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "gaps_remain": 0.08
+            }
+          },
+          "release": {
+            "type": "choice",
+            "choice": "validated_working_tree_pending_release_artifacts",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "published_and_qualified": 0.0,
+              "product_regression_blocked": 0.0,
+              "need_more_context": 0.0,
+              "validated_working_tree_pending_release_artifacts": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 871,
+          "output_tokens": 129
+        }
+      }
+    },
+    {
+      "id": "release-notes-crops-and-branches",
+      "context": "Four native-resolution workspace 9 screenshots use focused crops of Skills activity, Branches, media ordering and drive capacity. Each has the complete original SVG artwork and equal visible 32px right/bottom padding. The isolated compositor preserves the working desktop. Both auxiliary branches are ancestors of main and have no active worktrees; the owner requested keeping only main and 0.2.0. Correction: the branch classification used an incorrect ancestry assertion and is superseded by release-history-ancestry. The screenshot classification is unchanged.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "screenshots": {
+            "type": "choice",
+            "choice": "complete_focused_crops",
+            "confidence": 0.98,
+            "probabilities": {
+              "gaps_remain": 0.01,
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "complete_focused_crops": 0.99
+            }
+          },
+          "branches": {
+            "type": "choice",
+            "choice": "fully_merged_inactive_refs",
+            "confidence": 1.0,
+            "probabilities": {
+              "unique_work_present": 0.0,
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "active_checkout": 0.0,
+              "fully_merged_inactive_refs": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1062,
+          "output_tokens": 129
+        }
+      }
+    },
+    {
+      "id": "consolidated-release-history",
+      "context": "The owner requested one release history instead of a changelog and release notes. The illustrated 0.2.0 notes preserve the owner-edited text and incorporate unique changelog fixes and versions 0.1.3 through 0.1.0. One unversioned features/release/release-notes.md is used by README, the catalogue, Welcome and the existing version gate.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "structure": {
+            "type": "choice",
+            "choice": "single_unversioned_release_history",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "keep_separate_documents": 0.0,
+              "single_unversioned_release_history": 1.0,
+              "none": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 733,
+          "output_tokens": 61
+        }
+      }
+    },
+    {
+      "id": "release-history-ancestry",
+      "context": "An explicit merge-base check found seven original review branch commits outside main ancestry. Their production Rust and archive changes are already present exactly; later changes strengthen long-path coverage, remove unsupported targets and supersede documentation. A trial merge changes only duplicate release entries and conflict markers in superseded documentation, metadata and tests. The current tree passed the complete gate. A merge retaining the current tree preserves all original review commits before branch deletion. This corrects the previous branch classification.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "history": {
+            "type": "choice",
+            "choice": "superseded_content_unmerged_history",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "unique_product_change": 0.0,
+              "none": 0.0,
+              "superseded_content_unmerged_history": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 721,
           "output_tokens": 63
         }
       }
-    },
-    {
-      "id": "final-readiness",
-      "context": {
-        "task": "Classify FileBlade 0.2.0 release readiness after actual fixes, full gates and visual evidence",
-        "facts": [
-          "The clean main candidate contains all reviewed code, a rebuilt static backend, aligned version 0.2.0, installation docs and preserved older main ancestry. No public push/tag/release has been made.",
-          "The complete tests/run gate passed: 761 Rust checks and 832 QML checks, generated-extension checks, native-theme reload, formatting, Clippy, lint and a byte-identical bundled-backend rebuild. The installed Omarchy plugin validator passed on the clean candidate worktree.",
-          "Real disposable local production integration passed: plugin add/enable/update/disable/remove and fresh shell restart; own FileBlade bar popout loads a registered Sample extension; keyboard Escape and outside click unload it; invalid module refusal and repeat passed.",
-          "Real native installed tests passed actual Super+B in plugin and native mode, cold GIO launch of installed autostart entry, folder handoff, automatically activated FileManager1 Reveal and real portal frontend/backend response0. All five roles restored owned entries. Full logout/login was not performed.",
-          "Real Omen tailnet discovery and SSH/SFTP connect-refresh-list-disconnect passed; remote browse showed 230 entries from authorized /usr/share/doc. No user data was mutated.",
-          "A final native-install smoke exposed valid long state-path cleanup failure. Actual authority/CLI regression reproduced before fix; directory-descriptor socket addressing fixed both bind/connect and offline cleanup. Full native authority and roles integration suites now pass.",
-          "Newest media first is now independent persisted pane state; actual installed UI mouse, Space and restart tests passed. A continuous 6.5 second video visibly reverses oldest/newest order. Git and column overflow controls are hidden in media mode.",
-          "All 113 feature guides now have verified PNG/MP4 pairs. Native2560x1440,4\u20138seconds,real wallpaper,full SVG artwork,equal32pxvisiblepadding,650pxblade meet explicit requirements. Independent artifacts gate113/113 passed.",
-          "Final exact-SHA payload/package/archive are being rebuilt after documentation is committed; their installation/removal smoke and hash receipt must pass before handoff. Earlier artifacts and exact runtime payload already passed installation/removal checks apart from the now-fixed long-path case.",
-          "User explicitly forbids VM and working-desktop disruption. All real UI was isolated local nested Hyprland on silent workspace9; personal shell/install untouched. Repository AGENTS explicitly reserves marketplace posts for Kurt; draft must name final main SHA and public repository must match it before submission."
-        ],
-        "preferences": [
-          "Classify facts; do not authorize publication. Probabilities are classifier label distributions, not measured release-success probabilities."
-        ]
-      },
-      "questions": {
-        "engineering": {
-          "instructions": "Which engineering state matches the measured gates and known limitations?",
-          "criteria": {
-            "local_candidate_passes": "Code, actual production integrations and feature evidence pass; final exact-SHA artifact assembly is the remaining local deliverable",
-            "known_product_blocker": "A known unrepaired behavior still blocks this release",
-            "none": "Current evidence is not sufficient to change an earlier incomplete state",
-            "need_more_context": "Facts cannot separate the states"
-          }
-        },
-        "publication": {
-          "instructions": "Which publication state matches the actual external evidence?",
-          "criteria": {
-            "owner_publication_pending": "No publication yet; exact public commit and owner marketplace verification remain",
-            "released_verified": "Current candidate is publicly released and verified",
-            "none": "No publication workflow applies",
-            "need_more_context": "Insufficient facts"
-          }
-        }
-      },
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "engineering": {
-            "type": "choice",
-            "choice": "local_candidate_passes",
-            "confidence": 1.0,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "known_product_blocker": 0.0,
-              "none": 0.0,
-              "local_candidate_passes": 1.0
-            }
-          },
-          "publication": {
-            "type": "choice",
-            "choice": "owner_publication_pending",
-            "confidence": 1.0,
-            "probabilities": {
-              "need_more_context": 0.0,
-              "owner_publication_pending": 1.0,
-              "none": 0.0,
-              "released_verified": 0.0
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 1097,
-          "output_tokens": 112
-        }
-      }
-    },
-    {
-      "id": "native-release-scope-correction",
-      "supersedes": "final-readiness",
-      "context": {
-        "task": "Correct FileBlade 0.2.0 release readiness after the owner clarified native application scope",
-        "facts": [
-          "Kurt explicitly states that 0.2.0 is a full native Omarchy application and does not require plugin marketplace verification.",
-          "The actual native runtime has its own launcher, process authority, XDG desktop roles, versioned payload installer, package and downloadable archive. These were built and verified locally.",
-          "The complete gate passed 761 Rust checks and 832 QML checks, reproducible backend verification and all 113 feature evidence pairs. Real installed native integration, Omen SFTP and final archive installation/removal including the long-state-path regression passed. No known unrepaired product blocker remains.",
-          "Optional legacy plugin compatibility was also checked, but this release is not a plugin marketplace publication. AGENTS places its verification-issue rule under Omarchy plugin marketplace; Kurt's explicit current scope takes precedence.",
-          "The assistant incorrectly described a marketplace verification issue as a mandatory remaining native release gate and wrote that incorrect requirement into readiness docs and a local owner handoff. No public issue, push, tag or release was created.",
-          "Only readiness prose and historical decision records need correction. Runtime code, binaries, package contents and recorded test evidence remain unchanged. Prepared native artifacts identify runtime source 7a2f39cfadffbd43fef40526f0898b6c2a3f3bbb."
-        ],
-        "preferences": [
-          "Use the owner's explicit native release scope. Classify the reasoning error and current measured state; do not request permission or authorize publication."
-        ]
-      },
-      "questions": {
-        "gate_error": {
-          "instructions": "Which category describes applying the marketplace issue requirement to this release?",
-          "criteria": {
-            "misapplied_plugin_gate": "A plugin distribution requirement was incorrectly applied to the native application release",
-            "native_product_blocker": "A real unresolved native application defect requires marketplace verification",
-            "none": "The earlier gate already correctly matches the owner's native scope",
-            "need_more_context": "Insufficient evidence"
-          }
-        },
-        "readiness": {
-          "instructions": "Which readiness state matches the native release evidence?",
-          "criteria": {
-            "ready_to_publish_native": "Native release engineering gates pass; publishing remains an action, not an unpassed engineering gate",
-            "native_checks_incomplete": "Required native checks remain incomplete",
-            "none": "No change to the earlier blocked classification is warranted",
-            "need_more_context": "Insufficient evidence"
-          }
-        }
-      },
-      "response": {
-        "model": "jev-1.13.0",
-        "answers": {
-          "gate_error": {
-            "type": "choice",
-            "choice": "misapplied_plugin_gate",
-            "confidence": 1.0,
-            "probabilities": {
-              "none": 0.0,
-              "need_more_context": 0.0,
-              "native_product_blocker": 0.0,
-              "misapplied_plugin_gate": 1.0
-            }
-          },
-          "readiness": {
-            "type": "choice",
-            "choice": "ready_to_publish_native",
-            "confidence": 1.0,
-            "probabilities": {
-              "none": 0.0,
-              "need_more_context": 0.0,
-              "native_checks_incomplete": 0.0,
-              "ready_to_publish_native": 1.0
-            }
-          }
-        },
-        "usage": {
-          "input_tokens": 840,
-          "output_tokens": 117
-        }
-      }
     }
-  ]
+  ],
+  "history_commit": "cdbf272fa06ec8de5d652f2ada0ada6281fa4590",
+  "scope": "Native release classifications. Earlier distribution-specific records remain in the recorded Git history."
 }

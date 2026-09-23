@@ -11,8 +11,8 @@ lists and reads count under their server. A failed result marks the call
 failed. Codex `function_call` items with a namespace are not MCP calls.
 
 Server matching follows the name the agent recorded, sanitized the way each
-agent does it (`my.server` becomes `my_server` for Claude Code, plugin servers
-become `plugin_<plugin>_<server>`).
+agent does it (`my.server` becomes `my_server` for Claude Code). Namespaced
+definitions also retain the owning package identity when matching calls.
 
 The heatmap tooltip is the shared `UsageHeatmap` component, so it shows the
 same date, total, unit and stacked bar as the Skills blade. There is no
