@@ -1906,3 +1906,7 @@ This file was written by an agent.
 This file was written by an agent.
 
 The public CLI exits unsuccessfully for invalid module, slot and tab control replies or an unavailable target screen. A rejected blade action preserves the existing layout.
+
+This file was written by an agent.
+
+Ordinary H.264 MP4 files with metadata after the media packets produce static posters in Media and Properties. Decoder input remains bounded and sealed; file and network protocols remain unavailable.

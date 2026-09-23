@@ -62,8 +62,8 @@ The reasoning and ownership boundaries behind this contract live in
 [`docs/agent-written/design.md`](docs/agent-written/design.md).
 
 > [!NOTE]
-> The example plugin at `examples/data-goblin.blade-example/` is a complete,
-> working module in about 100 lines. Copy it and go.
+> The example at `examples/data-goblin.blade-example/` includes a clock module
+> and an action. Copy it and rename `manifest.example.json` to `manifest.json` before installing it.
 
 > [!TIP]
 > `fileblade extension template <publisher>.<name>` writes a complete starter
@@ -104,11 +104,7 @@ sequenceDiagram
 ```
 
 FileBlade discovers enabled Omarchy plugins and exposes the FileBlade
-contributions they advertise. The Welcome tab also offers an explicit Install
-action for the four example extensions: Memory, Skills, MCP, and Hooks. It
-stages their public GitHub clones together, validates them with Omarchy, and
-enables them through Omarchy's CLI. Other extensions are installed through
-Omarchy; updates and removal also use Omarchy's commands.
+contributions they advertise. Skills, Memory, Hooks and MCP are built in; the Welcome pane opens them directly. External extensions are installed through Omarchy; updates and removal also use Omarchy's commands.
 
 This file was written by an agent.
 

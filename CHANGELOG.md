@@ -4,6 +4,8 @@ This file was written by an agent.
 
 ## 0.2.0 (unreleased)
 
+- Static video posters now support ordinary MP4 files with trailing metadata through bounded, sealed seekable input.
+
 - CLI control refusals such as invalid modules, slots and tabs now exit unsuccessfully instead of reporting success.
 
 This file was written by an agent.

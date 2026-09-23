@@ -98,3 +98,57 @@ fn jpeg_orientation_is_applied_before_scaling_the_static_preview() {
     assert!(preview.get_pixel(5, 2)[0] > 220);
     assert!(preview.get_pixel(5, 17)[1] > 220);
 }
+
+#[test]
+fn ordinary_mp4_with_metadata_after_packets_produces_a_real_poster() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("ordinary.mp4");
+    let output = Command::new("ffmpeg")
+        .args([
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc2=size=640x400:rate=20",
+            "-t",
+            "2",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+        ])
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let source = fs::read(&path).unwrap();
+    assert!(source.len() > 32768);
+    let mdat = source
+        .windows(4)
+        .position(|value| value == b"mdat")
+        .unwrap();
+    let moov = source
+        .windows(4)
+        .position(|value| value == b"moov")
+        .unwrap();
+    assert!(moov > mdat);
+    let result = thumbnail(&path, &dir.path().join("cache"));
+    assert_eq!(result["ok"], true, "{result}");
+    assert_eq!(
+        (result["width"].as_u64(), result["height"].as_u64()),
+        (Some(64), Some(40))
+    );
+    let preview = image::open(result["path"].as_str().unwrap())
+        .unwrap()
+        .to_rgb8();
+    assert!(
+        preview
+            .pixels()
+            .any(|pixel| pixel != preview.get_pixel(0, 0))
+    );
+}

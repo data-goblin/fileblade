@@ -1,7 +1,7 @@
 use super::{CommandSpec, guard};
 use crate::{AppError, AppResult};
 use std::fs::File;
-use std::io::{self, Write};
+use std::io::{self, Seek, Write};
 use std::os::fd::{AsFd, AsRawFd, OwnedFd};
 use std::os::unix::process::CommandExt;
 use std::process::{Child, Stdio};
@@ -44,7 +44,25 @@ impl Running {
         };
         let mut command = spec.command();
         command
-            .stdin(if spec.stdin_data.is_some() {
+            .stdin(if spec.seekable_stdin {
+                let mut input: File = rustix::fs::memfd_create(
+                    c"fileblade-input",
+                    rustix::fs::MemfdFlags::CLOEXEC | rustix::fs::MemfdFlags::ALLOW_SEALING,
+                )
+                .map_err(io::Error::from)?
+                .into();
+                input.write_all(spec.stdin_data.as_deref().unwrap_or_default())?;
+                input.rewind()?;
+                rustix::fs::fcntl_add_seals(
+                    &input,
+                    rustix::fs::SealFlags::SEAL
+                        | rustix::fs::SealFlags::SHRINK
+                        | rustix::fs::SealFlags::GROW
+                        | rustix::fs::SealFlags::WRITE,
+                )
+                .map_err(io::Error::from)?;
+                Stdio::from(input)
+            } else if spec.stdin_data.is_some() {
                 Stdio::piped()
             } else {
                 Stdio::null()

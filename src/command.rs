@@ -31,6 +31,7 @@ pub struct CommandSpec {
     pub stderr_limit: usize,
     pub retain_tail: bool,
     stdin_data: Option<Vec<u8>>,
+    seekable_stdin: bool,
     directory_budget: Option<disk::Budget>,
     file_limit: Option<u64>,
     memory_limit: Option<u64>,
@@ -59,6 +60,7 @@ impl CommandSpec {
             stderr_limit: 256 * 1024,
             retain_tail: false,
             stdin_data: None,
+            seekable_stdin: false,
             directory_budget: None,
             file_limit: None,
             memory_limit: None,
@@ -128,6 +130,13 @@ impl CommandSpec {
 
     pub fn stdin(mut self, value: impl Into<Vec<u8>>) -> Self {
         self.stdin_data = Some(value.into());
+        self.seekable_stdin = false;
+        self
+    }
+
+    pub fn seekable_stdin(mut self, value: impl Into<Vec<u8>>) -> Self {
+        self.stdin_data = Some(value.into());
+        self.seekable_stdin = true;
         self
     }
 

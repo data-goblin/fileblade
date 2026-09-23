@@ -525,7 +525,7 @@ in the child ends that one render and shows "Preview unavailable"; the shell
 and the resident backend are not affected. Before the child is even started,
 the type, link, byte, and target-size gates limit exposure.
 Other recognized images and static video posters use `ffprobe` and `ffmpeg`
-with fixed demuxer/codec allowlists and only the `pipe` protocol. Both receive
+with fixed demuxer/codec allowlists and only the `fd` and `pipe` protocols. Input is a sealed anonymous memory file, allowing container seeks without enabling filesystem or network URLs. Both receive
 bounded source bytes on stdin, have four-second command deadlines, one decoder
 thread, a 512 MiB address-space cap and no regular-file writes. Output is capped
 at 8 MiB and checked as a PNG within the requested dimensions. Unsupported
