@@ -4,7 +4,11 @@
 > The expectations are not complete. Please update them if you
 > will modify this source code. - Kurt
 
-The rest of this file is written by an agent.
+This file was written by an agent.
+
+After an update, Welcome links to the single release-history document under
+`features/release/release-notes.md`. Release downloads remains a separate link
+to that version's hosted assets.
 
 ---
 
@@ -14,7 +18,7 @@ The expectations run in order, basic first, so an early failure explains later
 failures.
 
 This catalog covers the FileBlade host and its bundled Files, Properties, and
-Notes modules. Optional companion plugins keep their own expectations.
+Notes modules. Optional extensions keep their own expectations.
 
 Each expectation carries the script that proves it and the case label that
 script prints. Set `OVM` to your headless VM harness executable, then run a section:
@@ -399,7 +403,7 @@ This file was written by an agent.
 111. **E-13-10** While I click-drag any item, the mouse cursor is a grab hand for
      the entire drag, even when I move it outside the blade.
 112. **E-13-11** I see the same cursor behavior and appearance in the left and
-     right blades unless a FileBlade plugin deliberately supplies its own
+     right blades unless a FileBlade extension deliberately supplies its own
      cursor for its interface.
 
 ## 14. Trash
@@ -877,8 +881,9 @@ This file was written by an agent.
      it is the highest valid version and resolves to the checked branch tip;
      otherwise the checker needs that tip's manifest already stored locally.
      The notice says FileBlade only checks and does not install while running,
-     tells me to stop the shell, run `omarchy plugin update`, then run
-     `omarchy restart shell`, and keeps Close and Check again.
+     and keeps Close and Check again. Historical shell-update instructions are
+     outside native qualification; native updates follow the
+     [native installation guide](../docs/agent-written/native-install.md).
 238. **E-27-03** If my FileBlade checkout has local work or commits that must
      not be overwritten, the update details tell me it was skipped.
 239. **E-27-04** If FileBlade's interface and native helper are out of sync after
@@ -1036,26 +1041,14 @@ startup targets also have deterministic QML coverage.
 - **E-34-16** Unplugging the source monitor during a held module or file drag
   cancels it. The layout and files stay unchanged, and no paste is dispatched.
 
-## 35. Extensions on a shell that hides plugins from each other
+## 35. Historical extension discovery fixtures
 
 This file was written by an agent.
 
-- **E-35-01** On Omarchy 4.0.3, where a plugin is told only about itself, my
-  installed FileBlade extensions still appear as tabs with their contents. The
-  Welcome tab, the module picker and the settings sheet list them exactly as
-  they do on 4.0.2.
-- **E-35-02** Disabling an extension with `omarchy plugin disable` removes its
-  tab within a few seconds without restarting the shell, and the extension
-  stops watching my files. Enabling it again brings the tab back the same way.
-- **E-35-03** Installing an extension while FileBlade is running makes it
-  available within a few seconds of enabling it. Closing and reopening one
-  blade also picks it up, even when my other blade stayed open the whole time.
-- **E-35-04** If the list of installed plugins cannot be read, the extensions I
-  already have keep their tabs but are shown as unavailable rather than
-  silently continuing to run.
-- **E-35-05** An extension built before this change still works on a shell that
-  discloses plugins to each other, and says it needs an update on one that does
-  not, rather than showing an empty tab.
+E-35-01 through E-35-05 belong to historical shell-host discovery fixtures.
+They remain in the regression scripts and Git history, but do not qualify
+native registration. Native extension directories, providers and rescanning
+are described in [the extension contract](../EXTENSIONS.md).
 
 ## 36. Explicit cleanup and agent-file management
 
@@ -1140,10 +1133,8 @@ is maintained separately.
   labels stay hidden. Clicking a nonempty hourly bar seeks its photos without
   changing the selection; going up restores daily counts. Dates without a
   known time never count as midnight photos.
-- **E-37-06** FileBlade's plugin-mode bar widget configured with the module opens it in a
-  dropdown under its icon, with the same header, search, chips, grid and
-  timeline; Escape or an outside click closes it, and the blade copy of the
-  module is unaffected.
+
+E-37-06 is a retired shell-host popout expectation and is outside native scope.
 
 ## 38. Configuring the drop wheel
 
@@ -1251,7 +1242,7 @@ against temporary XDG roots in the installed guest.
     and reports the exact document the installer requires; a second run
     reports every role already off.
 
-## 41. Native modules and extension popouts
+## 41. Native modules
 
 This file was written by an agent.
 
@@ -1260,10 +1251,9 @@ This file was written by an agent.
 1. **E-41-01** In the native app I can open Files, Properties, Notes, Welcome,
    Skills, Memory, Hooks and MCP as blade tabs. Each draws its content without
    an import error or an unavailable-module notice.
-2. **E-41-02** The historical native component harness can load a Goblins
-   popout through its fixture bar. Production bar popouts are qualified in the
-   Omarchy plugin runtime by `tests/plugin_popout_live.py`; native mode does not
-   expose a cross-process bar widget.
+
+E-41-02 belongs to a historical fixture bar and does not qualify a production
+native feature. Native extensions open as blade tabs.
 
 ## 42. Native section and tab placement
 
@@ -1282,15 +1272,14 @@ This file was written by an agent.
 
 `tests/vm/expectations/43-native-parity.sh`
 
-1. **E-43-01** In both plugin and native FileBlade, focusing either blade lets
+1. **E-43-01** In native FileBlade, focusing either blade lets
    me type into that blade without typing into the application behind it.
    Clicking an ordinary application returns keyboard input to that window.
-2. **E-43-02** In both shapes, opening a blade reserves its width at the
+2. **E-43-02** Opening a blade reserves its width at the
    corresponding desktop edge. With both blades open, each reserves its own
    side; closing them returns that space to ordinary windows.
 3. **E-43-03** If I explicitly hide the desktop bar while both blades are open,
    the bar gives back its space and both blades extend to the top edge.
-   The native blades behave like the plugin blades.
 
 ## 44. Native blades follow the desktop bar
 
@@ -1444,15 +1433,15 @@ field both shown and auto-hidden. See
    transcript, the Uses, Uses (agent) and Uses (user) columns and the grid still
    count the uses it held. Counts only go down when I run `fileblade usage forget`.
 10. **E-48-10** Skills Uses counts an agent calling a skill and me typing
-    `/<skill>`. A plugin skill also counts calls recorded as `<plugin>:<skill>`.
+    `/<skill>`. A namespaced skill also counts calls recorded as `<namespace>:<skill>`.
     A command run by a scheduled task is not in Uses, and a slash command that
     is not a skill, such as `/clear`, counts for nothing. A command copied into
     a resumed session counts once. A typed command counts the same no matter
     which tab reads the transcript first.
 11. **E-48-11** An MCP server row counts calls under the name the agent recorded
     for it. A Claude Code server configured as `my.server` counts its
-    `mcp__my_server__…` calls, a plugin server counts its
-    `plugin_<plugin>_<name>` calls, and a Codex server counts Codex's calls to
+    `mcp__my_server__…` calls, a bundled agent server counts its namespaced
+    calls, and a Codex server counts Codex's calls to
     it. When two servers of one agent would be recorded under the same name,
     such as `twin.a` and `twin_a`, both show 0 instead of a guess. Servers of
     other agents show 0.
@@ -1898,13 +1887,13 @@ This file was written by an agent.
 - **E-40-19** Native FileBlade's desktop bindings reach the standalone app through its stable
   launcher. Super+B opens or focuses the left blade, Super+Shift+B the right,
   and Super+Z undoes the last file operation without opening quick navigation,
-  even when the legacy host plugin is absent.
+  without requiring a legacy shell host.
   Repeated binding installation does not leave duplicate Super+B actions.
-- **E-40-20** A generated extension recognizes a running native FileBlade without the old
-  host plugin in Omarchy's catalogue. If installed but stopped, it asks me to
+- **E-40-20** A generated extension recognizes a running native FileBlade without an old
+  shell-host entry in Omarchy's catalogue. If installed but stopped, it asks me to
   start FileBlade; it does not claim FileBlade is missing or restart Omarchy.
 - `fileblade doctor` reports the current folder. Native failures advise starting
-  FileBlade, while legacy-plugin failures retain the corresponding shell advice.
+  FileBlade, while historical compatibility failures retain their shell advice.
 - If startup recovery is blocked, `fileblade doctor` reports an unhealthy
   runtime, exits unsuccessfully and includes the recovery failure in its advice,
   even when the backend and view answer requests.
@@ -1917,7 +1906,7 @@ This file was written by an agent.
 This file was written by an agent.
 
 - **E-40-22** Starting native FileBlade while Omarchy is still loading waits for
-  plugin discovery before checking for old writers. Once the shell is ready,
+  shell discovery before checking for old writers. Once the shell is ready,
   keybindings load without a legacy-writer warning. A recovered backend clears
   a previous keybinding error automatically.
 - **E-07-09** Hovering the repository summary above the file tree shows branch,
@@ -1951,13 +1940,7 @@ This file was written by an agent.
 
 ## Release desktop integration
 
-- The real Omarchy plugin installs, activates, updates and survives a shell restart.
-  Disabling it removes its UI; re-enabling restores its saved folder and layout.
-- FileBlade's own bar button opens a registered module. The popout receives keyboard
-  focus; Escape and outside clicks close it and release the module instance.
-  An unknown module fails without replacing the current content. This bar widget
-  belongs to the plugin runtime.
-- The shipped Hyprland bindings control both plugin and native blades. Desktop
+- The shipped Hyprland bindings control native blades. Desktop
   roles preserve unrelated configuration and reverse only their own entries.
 - Autostart launches the installed stable entry. Folder and Reveal handoffs reach
   the existing native view; D-Bus activation starts the registered Reveal and

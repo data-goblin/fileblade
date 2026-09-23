@@ -1,18 +1,23 @@
 <p align="center"><img src="assets/fileblade-logo.svg" alt="FileBlade" width="640"></p>
 
+<p align="center"><a href="https://github.com/tcballard/omarchy-badges"><img src="https://raw.githubusercontent.com/tcballard/omarchy-badges/75975e5b5bf75e7ede3764bcd2950046f7abfe2c/badges/v1/omarchy-app.svg" alt="Built for Omarchy: App" height="24"></a></p>
+
 ---
 
-**FileBlade** is gives you IDE-like sidebars in Omarchy:
+**FileBlade** gives you IDE-like sidebars in Omarchy:
+
 - View, search, and manage files or their properties and contents
 - Helpful and malleable UI showing Git status or other information
 - Drag files and hold spacebar to get an intuitive quick-action wheel
 - Keyboard- or mouse-first; designed to quickly use and sheathe to get it out of your way
 - Extend FileBlade to show other information or interactions in your sidebars
 
+Review the [feature guides](features/index.md) for details.
+
 <p align="center"><img src="assets/fileblade-overview.gif" alt="FileBlade highlights" width="720"></p>
 
 > [!NOTE]
-> **Hello there!** I made this plugin mostly as an experiment using coding agents;
+> **Hello there!** I made this app mostly as an experiment using coding agents;
 > I needed something like this to support other projects.
 >
 > I think it's important to be transparent that I'm from a non-technical background;
@@ -21,31 +26,16 @@
 > 
 > I welcome any and all feedback or critique!
 
-This file was written by an agent.
-
-> [!WARNING]
-> FileBlade 0.2.0 is intended for Omarchy on x86-64 Linux. Review the
-> [feature guides](features/index.md) and [release evidence](features/release/readiness.md)
-> before installing.
-
-The introduction is human-written; agent-maintained release and installation guidance is marked below. See [here](#details) for detailed technical docs.
 
 ## Installation / Quick-start
 
-This file was written by an agent.
 
-FileBlade ships its bundled x86-64 Linux binary, so no Rust toolchain or
-separate binary download is needed. The plugin requires Omarchy 4.0.2 or
-later. The native runtime additionally requires Quickshell 0.3.1+, Qt 6.11.2+
-and the dependencies in [the runtime contract](packaging/runtime.json).
+FileBlade ships a bundled x86-64 Linux binary, so no Rust toolchain or separate
+binary download is needed. Use an up-to-date Omarchy installation with
+Quickshell 0.3.1+, Qt 6.11.2+ and the dependencies in
+[the runtime contract](packaging/runtime.json).
 
-Pick one of three routes.
-
-**As an Omarchy plugin:**
-
-```bash
-OMARCHY_SHELL_IPC_TIMEOUT=10s omarchy plugin add https://github.com/data-goblin/fileblade.git --enable
-```
+Choose the user-local installer or the Arch package.
 
 **As a native app:**
 
@@ -66,11 +56,6 @@ artifact verification. Set `FILEBLADE_INSTALL_MANIFEST` to use a mirror or a loc
 sudo pacman -U ./fileblade-native-0.2.0-1-x86_64.pkg.tar.zst
 ```
 
-For the **plugin**, restart the shell after installation with `omarchy restart
-shell`. Its bar button opens a Notes popout. Add the contents of
-[`examples/fileblade-bindings.lua`](examples/fileblade-bindings.lua) to your
-existing `~/.config/hypr/bindings.lua`, then run `hyprctl reload`.
-
 For the **native app**, run `fileblade` to open it. Desktop roles start disabled;
 enable only the ones you want in Settings → Desktop integration, or through the CLI:
 
@@ -83,34 +68,32 @@ With the bindings installed, `Super+B` and `Super+Shift+B` open the left and rig
 blade. Hold `Super` and drag with the right mouse button over a docked blade to
 resize it. The same gesture over a window resizes that window.
 
-To remove the Omarchy plugin, remove its extensions first, then run:
-
-```bash
-omarchy plugin remove data-goblin.fileblade
-omarchy restart shell
-```
-
 For a direct native installation, use its owned removal command:
 
 ```bash
 "$HOME/.local/share/fileblade/installation/active/runtime/tools/native" remove
 ```
 
-For a package installation, use `pacman -R fileblade-native`. Your layout,
+Before removing the package, reverse its desktop roles and stop its runtime:
+
+```bash
+fileblade native roles disable --all
+fileblade native drain --timeout-ms 30000
+sudo pacman -R fileblade-native
+```
+
+Your layout,
 settings, history and recoverable bins are retained. Native removal reverses
 owned desktop roles; remove any manually added bindings separately.
 
-FileBlade loads [extensions](EXTENSIONS.md) from native extension directories
-or enabled Omarchy plugins, depending on the runtime. Skills, Memory, Hooks and MCP used to be example
-extensions; they are built into core since 0.2.0 and need no separate install.
+FileBlade loads [extensions](EXTENSIONS.md) from its native extension directories.
+Skills, Memory, Hooks and MCP are built into core and need no separate install.
 
-![Omarchy, FileBlade and FileBlade extensions](assets/docs/fileblade-extensions-simple.svg)
-
-Click an extension to see it:
+Click a built-in pane to see it:
 
 <details>
 <summary><b>Agent Skills example</b></summary>
-<p align="center"><img src="assets/readme/skills.png" alt="The skills blade listing plugin and marketplace skills with the agent strip" width="300"></p>
+<p align="center"><img src="assets/readme/skills.png" alt="The Skills blade listing installed agent skills with the agent strip" width="300"></p>
 </details>
 
 <details>
@@ -124,26 +107,23 @@ More details below :)
 
 ---
 
-# FileBlade: An Omarchy Plugin
+# FileBlade: A native Omarchy app
 
-FileBlade is an IDE-style filesystem and extensible blade host for the Omarchy
-Quattro shell. It provides left and right edge blades that can stay docked as
+FileBlade is a native application providing IDE-like sidebars and an extensible
+blade host for Omarchy. It provides left and right edge blades that can stay docked as
 layer surfaces or become ordinary tiled Hyprland windows. Each blade contains
-movable, resizable, tabbed module slots, which you can extend with a plugin system.
+movable, resizable, tabbed module slots, which you can extend with additional panes and actions.
 
 ### FileBlade Repos
 
 - [FileBlade core](https://github.com/data-goblin/fileblade)
 
-The Memory, Skills, MCP and Hooks extension repositories are archived. Their
-blades are built into core since 0.2.0, and they remain readable as worked
-examples of a FileBlade extension.
+Memory, Skills, MCP and Hooks are maintained in this repository as built-in panes.
 
 ## Features
 
-This file was written by an agent.
-
-[Browse all feature guides, screenshots and short videos](features/index.md).
+[Read the 0.2.0 release notes](features/release/release-notes.md) or
+[browse all feature guides, screenshots and short videos](features/index.md).
 
 - Left and right sidebars that open on keyboard shortcuts
 - Management and navigation like a normal hyprland window
@@ -198,11 +178,11 @@ Here's a concise list of what happens when you install FileBlade:
 
 ### Keybindings
 
-The plugin does not write your Hyprland config. Native FileBlade writes an
+FileBlade writes an
 owned include only when you explicitly enable its bindings role. You can
 also add the binds below to `~/.config/hypr/bindings.lua` (the block is in ARCHITECTURE.md under
 "Focus and keybindings"); each asks FileBlade first with a short timeout and
-falls back to the plain dispatcher, so nothing breaks when the shell is down.
+falls back to the plain dispatcher when FileBlade is stopped.
 
 - Super + B and Super + Shift + B open/close the left/right blades, respectively
 - Super + W closes the focused sidebar, or a regular Hyprland window when no sidebar has focus
@@ -219,8 +199,8 @@ falls back to the plain dispatcher, so nothing breaks when the shell is down.
 
 - Trashed files go to `~/.local/share/Trash`, so they show up in other file mgrs
 - First use asks whether Trash should be emptied automatically; **Never** is the initial choice, and the retention period can be changed in settings
-- Things you manage through plugins (skills, memory, hooks, and so on) can be disabled instead of trashed, which moves it to `~/.local/share/fileblade/bin/` until you restore it
-- Every file operation FileBlade performs is logged to `~/.local/state/omarchy/fileblade/audit.jsonl`, and undo/redo works on them
+- Agent resources you manage through panes (skills, memory, hooks, and so on) can be disabled instead of trashed, which moves it to `~/.local/share/fileblade/bin/` until you restore it
+- Recorded mutations appear in `~/.local/state/omarchy/fileblade/audit.jsonl`; [undo/redo](features/operations/undo-redo.md) reverses eligible completed operations
 
 ### Other
 

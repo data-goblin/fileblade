@@ -1119,7 +1119,7 @@ fn contributed_blade_modules_receive_their_singleton_provider_service() {
     let plugins = text(&root.join("EXTENSIONS.md"));
     assert!(plugins.contains("context.providerId"));
     assert!(plugins.contains("context.providerService"));
-    assert!(plugins.contains("context.service(pluginId)"));
+    assert!(plugins.contains("context.service(providerId)"));
     assert!(plugins.contains("potentially once per screen"));
     assert!(plugins.contains("shared scanners, subprocesses, watchers, caches"));
 }
@@ -1732,9 +1732,7 @@ fn module_definitions_are_normalized_once_and_grouped_by_category() {
     assert!(
         plugins.contains("category:     one word or a short phrase (max 32) the picker groups by")
     );
-    assert!(plugins.contains(
-        "defaults to `Module` for built-in and user modules, `Plugin` for manifest ones"
-    ));
+    assert!(plugins.contains("set this explicitly for a contributed module"));
     assert!(plugins.contains("grouped by `category`"));
 }
 

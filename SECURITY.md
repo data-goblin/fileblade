@@ -4,7 +4,7 @@ This file was written by an agent.
 
 ---
 
-FileBlade runs as a native Quickshell app or a schema-v1 Omarchy Quattro plugin.
+FileBlade runs as a native Quickshell application.
 Its QML and Rust binary run unsandboxed with the authority of the desktop user.
 That authority intentionally includes reading user-selected filesystem metadata
 and content and mutating paths after explicit actions.
@@ -20,14 +20,12 @@ Treat these inputs as untrusted data:
   mounted filesystems;
 - clipboard data, picker options, public CLI arguments, and IPC strings;
 - Freedesktop Trash metadata and directory-size indexes;
-- user blade definitions and installed plugin manifests.
+- user blade definitions and installed extension manifests.
 
-User or satellite QML modules are executable code, not data. Once loaded, they
-share the same Quickshell process and user authority as FileBlade. In plugin
-mode, another enabled schema-v1 plugin can interfere with FileBlade or inspect
-its in-process state. Native mode uses a separate view process, but does not
-sandbox extensions or protect against other programs running as the same user.
-Extension review remains the user's responsibility.
+User and extension QML modules are executable code, not data. Once loaded,
+they share the same Quickshell process and user authority as FileBlade.
+The native view does not sandbox extensions or protect against other programs
+running as the same user. Extension review remains the user's responsibility.
 
 This file was written by an agent.
 
@@ -48,9 +46,8 @@ Missing or invalid versions stay unknown; same-version and older-version changes
 are distinguished. Local history comparisons use existing objects only, with
 promisor lazy fetching disabled. Automatic checks run at most once per six hours;
 the attempt is saved before requesting the network.
-Set `"checkUpdates": false` in plugin settings to disable automatic checks.
+Set `"checkUpdates": false` in extension settings to disable automatic checks.
 
-Plugin installation clones the source and bundled static backend from GitHub.
 Native bootstrap installation downloads a release manifest and an architecture-
 specific archive, checks its SHA-256, requires matching version and target, then
 verifies its payload inventory before installation. The checksum is supplied by
@@ -79,8 +76,8 @@ no stripping, and the checkout, cargo home and target directories remapped out
 of the binary, then compares the result byte for byte with the committed
 `fileblade-bin` and fails if they differ. The build does not depend on where
 the repository sits or which machine runs it, so a matching rebuild shows the
-shipped bytes are that commit's source. What a user installs is the binary
-inside the cloned commit; the release asset is a copy of the same bytes.
+shipped bytes are that commit's source. The native release archive carries this same verified backend alongside its
+runtime payload inventory.
 
 The manual [backend provenance workflow](docs/agent-written/build-provenance.md)
 rebuilds that same recipe on GitHub and refuses attestation unless its output is
@@ -92,12 +89,9 @@ releases. A successful run and verified attestation must exist for the exact
 reviewed commit before claiming hosted provenance. The workflow's presence alone
 is not that evidence, and attestations are not a security audit of the code.
 
-The update checker reads branch/tag IDs and local repository state; it never merges, resets,
-validates, builds, or rescans plugins, and it never changes checked-out source.
-Plugin updates happen outside FileBlade with the shell stopped before replacing
-watched plugin files, followed by a fresh shell start. Disabling only a pane
-does not stop Omarchy's plugin watcher. Native updates use the payload installer
-and its drain/activation protocol, not replacement of watched plugin files.
+The update checker reads branch/tag IDs and local repository state; it never
+merges, resets, builds or modifies a checkout. Native updates use the verified
+payload installer and its drain/activation protocol.
 
 This file was written by an agent.
 
@@ -111,10 +105,11 @@ and portal preferences as described below.
 
 ## Dependencies and previews
 
-FileBlade does not install packages or use elevated privileges. Omarchy Quattro 4.0.2 or newer
-supplies its normal desktop stack: Bash, Quickshell, Hyprland/`hyprctl`, `gio`,
+FileBlade does not install packages or use elevated privileges. An up-to-date
+Omarchy installation supplies its desktop stack: Bash, Quickshell, Hyprland/`hyprctl`, `gio`,
 `gtk-launch`, `xdg-mime`, `xdg-terminal-exec`, `omarchy-launch-editor`,
-Nautilus, and the Omarchy plugin commands. The x86-64 backend is bundled, so
+and Nautilus. Required runtime versions are recorded in
+[the runtime contract](packaging/runtime.json). The x86-64 backend is bundled, so
 installation and updates need no Rust toolchain. Source builds use the pinned
 maintainer toolchain; the in-app update check does not build or apply updates.
 
@@ -138,7 +133,7 @@ child renders a bounded PNG into `~/.cache/fileblade/thumbnails/`; the shell
 displays that PNG. PNG, JPEG and WebP use the image crate. Optional FFmpeg tools
 decode additional image formats and static video posters under the limits below.
 
-Plugin removal deletes the checkout but deliberately preserves your layout,
+Native removal deletes owned runtime files but preserves your layout,
 settings, history, audit log, and disabled-module bins under
 `~/.config/omarchy/fileblade/`, `~/.local/state/omarchy/fileblade/`, and
 `~/.local/share/fileblade/`. Delete those directories manually only if you also
@@ -154,12 +149,6 @@ must be disabled and the native runtime drained first. See
 
 ## Resident backend boundary
 
-In plugin mode, the QML service creates one child process, `fileblade serve`, with anonymous
-stdin and stdout pipes. The version-1 protocol is newline-delimited JSON. It
-does not bind a Unix/TCP socket, create a FIFO, write a protocol log, or publish
-a shared endpoint. Payloads sent by QML, including artifact documents, travel
-through the pipe rather than the child argv or environment.
-
 Native mode uses one resident authority and an `authority.sock` Unix socket
 under `$XDG_STATE_HOME/omarchy/fileblade`, protected by an owner-checked state
 directory and mode 0600 socket. Up to 32 client connections share the bounded
@@ -174,22 +163,17 @@ generation)` pair. It bounds protocol lines, response bytes, argument count,
 identifiers, remembered request keys, concurrency, and subscription paths.
 Requests have bounded deadlines and cooperative cancellation; filesystem
 subscriptions are bounded and close on cancellation or EOF. Server shutdown
-cancels active work, joins workers, and is also tied to parent death on Linux.
-On plugin teardown, one detached cleanup command waits at most three seconds
-for the old backend to exit and restores its recorded window-border changes.
-It does not restore borders claimed by a replacement backend or modified by
-another application. It exits after cleanup; no background daemon remains.
+stops admission and drains accepted work before releasing its lease. View EOF
+cancels reads and subscriptions. Owned window borders are restored when the
+last view disappears, including changes completed by later operations.
 
-Plugin-mode anonymous pipes prevent an unrelated process from discovering and connecting
-to an ambient FileBlade backend service. They do not provide encryption or
-protection from a process already able to debug/read the same-user shell or
-child, a compromised plugin, or a compromised desktop session. The public
-`fileblade` CLI also necessarily exposes its own command-line arguments through
-ordinary process metadata.
+The socket does not protect against code able to debug or inspect processes
+running as the same user. The public `fileblade` CLI exposes its own command-line
+arguments through ordinary process metadata.
 
-Live public commands use bounded Quickshell IPC. Local backend-backed public
-commands call the Rust dispatcher in-process, with deadlines and independent
-output budgets; they do not place a second backend payload in a spawned argv.
+Live public commands use bounded Quickshell IPC. Backend-backed public
+commands route through the selected resident authority, with deadlines and
+independent output budgets; they do not place a second backend payload in a spawned argv.
 The hidden `_backend` compatibility surface is not a security boundary or a
 stable public API.
 
@@ -202,7 +186,7 @@ public CLI.
 These IPC targets are privileged desktop-integration APIs, not a file-selection portal.
 Read responses can disclose private paths, selection, search, and history, and
 control calls alter live FileBlade state. Do not expose or proxy them to
-untrusted applications or plugins. Use a real desktop portal for sandboxed
+untrusted applications or extensions. Use a real desktop portal for sandboxed
 file selection. The separate opt-in native chooser implements a portal backend:
 only the current `org.freedesktop.portal.Desktop` bus owner may offer requests,
 and cancellation is tied to that sender. It does not expose the control IPC to
@@ -327,7 +311,7 @@ version path: no symlink following, regular files only, same uid, parent
 rechecked, and an entry whose content changed since FileBlade wrote it is
 left in place rather than overwritten. Enabling reveal never kills the
 current owner of `org.freedesktop.FileManager1`. `RolesSet` is a mutating
-backend command; it uses the selected plugin pipe or native authority transport.
+backend command; it uses the native authority transport.
 
 ## FileBlade Trash
 
@@ -485,7 +469,7 @@ read and write methods cannot overlap. Timeouts are limited to 30 seconds,
 stdout to 2 MiB, stderr to 4 KiB, and private stdin to 64 KiB. Nonzero exits
 cannot be reported as success. Helper-write audit records retain only declared
 provider/helper/method identifiers and success, never private input, helper
-arguments, output or detailed errors. Enabled plugins remain trusted session
+arguments, output or detailed errors. Enabled extensions remain trusted session
 code; declaring a helper does not sandbox it.
 
 Intentional desktop application launches are detached and may outlive the
@@ -493,15 +477,15 @@ request. FileBlade resolves optional programs through `PATH`, so the desktop
 session's `PATH` and installed executables are part of the trusted computing
 base. Do not run FileBlade with an untrusted `PATH`.
 
-Script actions contributed by plugins run as argv vectors read from the
-manifest on disk, with `argv[0]` confined to the plugin directory, the
+Script actions contributed by extensions run as argv vectors read from the
+manifest on disk, with `argv[0]` confined to the extension directory, the
 selection in the environment or a private file, bounded output, a deadline, a
-concurrency cap, and an audit line. They are unsandboxed, like the plugin's
+concurrency cap, and an audit line. They are unsandboxed, like the extension's
 QML, but they run outside the shell process. The backend re-reads the manifest
 at run time, so neither the UI nor an IPC caller can supply a command vector.
 Actions that declare `confirm` need an explicit approval, in the menu or with
 `--yes`. Your own actions under `~/.config/omarchy/fileblade/actions/` may name
-a program on `PATH`; a plugin's may not.
+a program on `PATH`; an extension's may not.
 
 ## QML and extensions
 
@@ -542,7 +526,7 @@ Cache reads reject symlinks, non-regular files, unsafe permissions, files over
 are regenerated inside the private cache directory.
 
 Those checks validate discovery data; they do not sandbox the QML referenced by
-an accepted definition. Review user modules and satellite plugins for plain
+an accepted definition. Review user modules and satellite extensions for plain
 text rendering, bounded models, process/URL sinks, teardown, and persistence
 before enabling them. FileBlade does not execute a discovered module's
 unrelated hooks, MCP commands, or agent configuration merely to display it.
@@ -551,5 +535,5 @@ unrelated hooks, MCP commands, or agent configuration merely to display it.
 
 Report vulnerabilities privately to the repository owner. Include the exact
 commit, reproduction steps, affected paths, and whether the issue requires the
-plugin to be enabled. Do not include credentials, private file contents, Trash
+application or a particular extension to be running. Do not include credentials, private file contents, Trash
 payloads, or other personal data in the report.

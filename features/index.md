@@ -2,9 +2,9 @@ This file was written by an agent.
 
 # FileBlade features
 
-Focused guides to each observable workflow, grouped by workspace, pane, file operation, integration and delivery. Each completed page includes a native-resolution screenshot and a short original-speed MP4. Coverage: all 113 workflows have reviewed screenshot/MP4 pairs, including real read-only SFTP browsing on Omen.
+Focused guides to each observable workflow, grouped by workspace, pane, file operation, integration and delivery. Each completed page includes a native-resolution screenshot and a short original-speed MP4. Coverage: all 111 workflows have reviewed screenshot/MP4 pairs, including real read-only SFTP browsing on Omen.
 
-[Evidence standard](evidence.md) · [Coverage](catalog.json) · [v0.2.0 readiness](release/readiness.md) · [Jev decisions](release/decisions.md)
+[Evidence standard](evidence.md) · [Coverage](catalog.json) · [v0.2.0 release notes](release/release-notes.md) · [v0.2.0 readiness](release/readiness.md) · [Jev decisions](release/decisions.md)
 
 ## Workspace
 
@@ -141,13 +141,11 @@ Focused guides to each observable workflow, grouped by workspace, pane, file ope
 - [Add an extension pane](integrations/extensions.md)
 - [Run an extension action](integrations/custom-actions.md)
 - [Browse an extension image gallery](integrations/gallery.md)
-- [Open an extension bar popout](integrations/popout.md)
 - [Scaffold an extension](integrations/scaffolding.md)
 
 ## Delivery
 
 - [Install the native app](delivery/native-install.md)
-- [Install the Omarchy plugin](delivery/plugin-install.md)
 - [Build the Arch package](delivery/package.md)
 - [Migrate legacy state](delivery/migration.md)
 - [Update and roll back](delivery/update-rollback.md)

@@ -1,3 +1,5 @@
+This file was written by an agent.
+
 # Core module integration
 
 The Skills, Memory, Hooks and MCP modules are implemented in the backend under
@@ -8,9 +10,11 @@ which drives all four providers through the shared `ArtifactInventory`: two-view
 sharing, final detach, late callbacks and accepted mutation arguments after a
 detach or project change.
 
-The guest runners `run-live.py`, `run-lifecycle.py` and `settings.py` drive a
-real shell over `omarchy-shell` IPC; they never called the retired Python
-helpers and still apply unchanged.
+The guest runners `run-live.py`, `run-lifecycle.py` and `settings.py` describe
+historical shell-host fixtures over `omarchy-shell` IPC. They never called the
+retired Python helpers. Their original hosting and instrumentation steps below
+do not qualify native installation or authority ownership; native qualification
+uses the adapter in [the native installation guide](../../docs/agent-written/native-install.md).
 
 ## Declared slots
 
@@ -61,7 +65,7 @@ the guest Service before adding a persistent test probe. It explicitly selects
 the freshly built `target/release/fileblade` for the Service backend. Restart C,
 verify the populated catalog and inspect an open blade before running
 `python3 -B tests/core_modules/run-lifecycle.py check` in the staged checkout.
-Do not change staged files during the check: the plugin watcher reloads Service.
+Do not change staged files during the check: the historical host watcher reloads Service.
 
 The check opens and closes each real core view twice, waits for both inventory
 watches, then requires zero observers, scans, watches and pending subscription
@@ -75,7 +79,7 @@ the plain Service. Only the temporary Service source is instrumented.
 
 ## Settings version changes
 
-`settings.py` runs only from the plugin staged in the allocated guest. Build
+`settings.py` runs only from the historical shell-host fixture staged in the allocated guest. Build
 and push the current binary first. Its `prepare` phase backs up Service,
 StateController, state and layout under `/tmp/rivet-settings-version`, selects
 the fresh binary, and attaches a temporary IPC probe to the real Service.
@@ -97,7 +101,7 @@ Stop the guest shell before `settings.py restore` so no queued write can
 replace the restored documents. Restart once more, inspect the original
 layout, and retain the logs and screenshots. The backup directory remains
 available for recovery; archive or remove it before a new run. This qualifies
-state/settings evolution in the plugin Service; desktop binding-role receipts
+state/settings evolution in the historical Service; desktop binding-role receipts
 are a separate runtime integration contract.
 
 Save the guest's original layout, root and preferences first. The scenarios
@@ -115,7 +119,7 @@ python3 -B tests/vm/fixtures/core-live.py restore
 Restart the shell once more, verify all four definitions still resolve, and
 capture an open core blade without the probe. The screenshots prove rendering;
 IPC and filesystem assertions prove the tested state transitions. These
-plugin-shape checks do not qualify the native authority continuation or the
+historical host checks do not qualify the native authority continuation or the
 complete worker lifetime contract.
 
 `LifecycleProbe.qml` is the persistent probe used for the same kind of manual

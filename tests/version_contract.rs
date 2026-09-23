@@ -14,8 +14,8 @@ fn released_version(text: &str) -> Option<Version> {
 fn working_version_is_above_every_released_version() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let working = released_version(env!("CARGO_PKG_VERSION")).unwrap();
-    let changelog = fs::read_to_string(root.join("CHANGELOG.md")).unwrap();
-    let headings: Vec<_> = changelog
+    let notes = fs::read_to_string(root.join("features/release/release-notes.md")).unwrap();
+    let headings: Vec<_> = notes
         .lines()
         .filter_map(|line| line.strip_prefix("## "))
         .map(str::trim)
@@ -25,7 +25,7 @@ fn working_version_is_above_every_released_version() {
             .first()
             .map(|h| h.trim_end_matches(" (unreleased)")),
         Some(working.to_string().as_str()),
-        "the newest CHANGELOG.md heading must name the working version"
+        "the newest features/release/release-notes.md heading must name the working version"
     );
     let mut released: Vec<Version> = headings[1..]
         .iter()
@@ -34,7 +34,7 @@ fn working_version_is_above_every_released_version() {
         .collect();
     assert!(
         !released.is_empty(),
-        "CHANGELOG.md lists no released version"
+        "features/release/release-notes.md lists no released version"
     );
     if let Ok(output) = Command::new("git")
         .args(["-C", root.to_str().unwrap(), "tag", "--list", "v*"])
@@ -90,7 +90,7 @@ fn provenance_actions_are_pinned_to_full_commits() {
 }
 
 #[test]
-fn marketplace_release_metadata_and_bundled_install_are_documented() {
+fn native_release_metadata_and_bundled_install_are_documented() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let manifest: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(root.join("manifest.json")).unwrap()).unwrap();
@@ -104,13 +104,14 @@ fn marketplace_release_metadata_and_bundled_install_are_documented() {
 
     let security = fs::read_to_string(root.join("SECURITY.md")).unwrap();
     for required in [
-        "Omarchy Quattro 4.0.2 or newer",
+        "FileBlade runs as a native Quickshell application",
+        "[the runtime contract](packaging/runtime.json)",
         "## Dependencies and previews",
         "`gtk-launch`",
         "`xdg-terminal-exec`",
         "git ls-remote",
         "sends no telemetry",
-        "deliberately preserves your layout",
+        "preserves your layout",
         "Eligible media previews load automatically on selection",
         "automatically renders a size-constrained inline preview out of process",
         "`fileblade _backend thumbnail-render`",
@@ -146,7 +147,7 @@ fn marketplace_release_metadata_and_bundled_install_are_documented() {
     assert_eq!(
         u32::from_be_bytes(social[20..24].try_into().unwrap()),
         1200,
-        "the social preview stays a 1200x1200 PNG while the marketplace preview is the overview still"
+        "the social preview stays a 1200x1200 PNG while the release preview is the overview still"
     );
     let preview_source =
         fs::read_to_string(root.join("assets/fileblade-twitter-preview.svg")).unwrap();

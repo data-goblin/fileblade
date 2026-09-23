@@ -1,5 +1,7 @@
 # Contributing
 
+This file was written by an agent.
+
 Hello! Any contributions are welcome. If you contribute, I'd ask that you use
 the [PR template](.github/PULL_REQUEST_TEMPLATE.md), ensure that
 [UI expectations](tests/EXPECTATIONS.md) are updated, and honor the vision
@@ -10,7 +12,7 @@ who are using coding agent CLIs in terminals as their primary interface for the 
 Therefore, FileBlade strives to provide quick, streamlined ways to view or find information,
 which is typically files in a project, but could be other data. Hopefully, in the future,
 FileBlade can be a place like the NavBar where people can put whatever information they want,
-including other plugins. FileBlade also intentionally neglects some traditional IDE features
+including extensions. FileBlade also intentionally neglects some traditional IDE features
 like a space to write commit messages for Git, for instance, under the assumption that most
 people have agents doing this for them, anyways. I expect (and hope) that FileBlade will
 continue to evolve and optimize in the direction of the most optimal experience for agent-
@@ -41,14 +43,13 @@ FILEBLADE_BINARY="$PWD/target/release/fileblade" ./fileblade --version
 Normal installation uses the bundled static backend and requires no Cargo build.
 For development, set `FILEBLADE_BINARY`
 to test a local build, or run `tools/bundle build` to refresh the bundle before
-installing the checkout in a test VM. Stop the VM shell before replacing watched
-plugin files, then start a fresh shell; do not rely on hot reload to validate
-QML changes.
+staging a native payload for a test VM. Use the installer to drain and replace
+the runtime, then start a fresh view; do not rely on hot reload for QML changes.
 
 ```yaml
 requires:
   rust:      rustup with the pinned rust-toolchain.toml toolchain, edition 2024
-  omarchy:   Quattro (v4) with omarchy-shell; schema v1 plugins
+  omarchy:   up-to-date Omarchy with Quickshell and the packages in packaging/runtime.json
   hyprland:  for docking, the focus grab, and the blade-aware keybinds
 optional:
   plocate:   `scope:everywhere` search
@@ -63,7 +64,7 @@ src/, crates/:                                                     Rust
 tests/*.rs:      cargo integration and end-to-end tests, plus the source contract tests
 tests/qml/:      QML and JavaScript regression tests
 tests/vm/:       scripts for a headless Omarchy VM
-examples/:       a minimal dependent plugin, also the reference for EXTENSIONS.md
+examples/:       a minimal extension, also the reference for EXTENSIONS.md
 demos/:          scripted tours used for screenshots and recordings
 assets/:         logos, icons, and other visual assets
 ```
@@ -111,7 +112,7 @@ The pinned Rust toolchain is required even when only verifying the bundle.
 both refuse a version that is not strictly above every released version,
 compared as SemVer with prerelease precedence and build metadata ignored. The
 released set is the union of the `v<version>` git tags and the `## <version>`
-headings of `CHANGELOG.md` below the newest one, without `(unreleased)`.
+headings of `features/release/release-notes.md` below the newest one, without `(unreleased)`.
 
 Source contracts check process ownership, bounded models, command boundaries,
 and UI conventions. Explain deliberate contract changes with the implementation.
@@ -122,44 +123,32 @@ Update [UI expectations](tests/EXPECTATIONS.md) when behavior changes.
 ### Testing the GUI in a VM
 
 Use an isolated QEMU/KVM guest installed from the [official Omarchy ISO](https://iso.omarchy.org).
-Do not test focus grabs on the working desktop. The external `ovm` harness is
-provided by the `test-omarchy-plugin` skill, not bundled in this repository.
-Set `OVM` to its executable and provision its base image before running scenarios.
+Keep its HOME, XDG roots, compositor and input separate from the working desktop.
+Set `OVM_REAL` to the external `ovm` harness executable, and use a dedicated
+`OVM_HOME` and `OVM_SSH_PORT` for your guest.
+
+Stage a native payload from a clean committed tree after the code gate passes:
 
 ```bash
-tests/vm/expectations/run '07-hidden-and-git.sh'
+tools/native stage "$PWD" "$PWD/fileblade-bin" x86_64-unknown-linux-musl "$PWD/THIRD_PARTY_NOTICES.html" "$PWD/target/native-payload"
+export OVM="$PWD/tests/vm/native-ovm"
+FILEBLADE_NATIVE_PAYLOAD="$PWD/target/native-payload" SKIP_PUSH=0 "$OVM" push "$PWD"
+export SKIP_PUSH=1 FILEBLADE_SHAPE=native
+"$OVM" restart
+tests/vm/expectations/09-search.sh
 ```
 
-The [runner](tests/vm/expectations/run) builds the bundle, pushes the checkout,
-restarts the guest shell, and runs matching scripts. Omit the pattern for the
-full suite; normally run only scenarios affected by your change. Use
-`SKIP_PUSH=1` only when the guest already has the exact build being tested.
-The runner can reset an unbootable guest overlay, so use a disposable test VM.
+The native adapter verifies the installed payload identity, routes CLI calls
+through its stable launcher, and drains before restarting. `SKIP_PUSH=1`
+preserves the installed bytes during testing. For release verification, install
+the published download in the guest and run against that payload; do not push
+local source over it.
 
-This file was written by an agent.
-
-For manual pushes, stop the guest shell before replacing watched plugin files,
-then restart it:
-
-```bash
-tests/vm/stop-shell
-"$OVM" push "$PWD"
-"$OVM" restart-shell
-```
-
-The stop helper terminates the guest's Omarchy shell supervisor and waits for
-Quickshell to stay stopped. Killing Quickshell alone lets the supervisor relaunch
-it while files are being replaced. Restarting that replacement can trigger
-[Quickshell's shutdown IPC crash](https://github.com/quickshell-mirror/quickshell/issues/956).
-The helper avoids that overlap; it does not patch the upstream shutdown bug.
-
-Load the [binding example](examples/fileblade-bindings.lua)
-in the guest. Drive keys through QMP and clicks through virtual-pointer input;
-compare screenshots with compositor and plugin status. If a restart still
-shows old QML, clear only the guest's QML cache with its shell stopped.
-
-Report what you exercised, the expected and observed behavior, and any pending
-or untested scenarios. Remove your temporary captures after verification.
+Drive keys through QMP and clicks through virtual-pointer input. Compare captures
+with compositor state and `fileblade status`. Run only the affected scenarios
+unless a broader release gate is required. Report expected and observed behavior,
+and identify pending checks. Stop the owned guest when finished and remove only
+your temporary captures and fixture state.
 
 ## Conventions
 
@@ -170,7 +159,7 @@ or untested scenarios. Remove your temporary captures after verification.
 - external commands take argument vectors, never a shell string
 - mutations report completed work and journal failures separately; see SECURITY.md for recovery limits
 - dynamic text from the filesystem is `Text.PlainText` and length-bounded before it enters a model
-- Built-in and user modules use `blade.json`; plugin modules register through
+- Built-in and user modules use `blade.json`; extension modules register through
   their manifest. Share scanners, watchers, and processes through the host
   contract rather than duplicating them in each view; see [EXTENSIONS.md](EXTENSIONS.md).
 - commit messages start with a prefix: `Fix:`, `Feat:`, `Clean:`, `Docs:`
@@ -188,14 +177,3 @@ Read [SECURITY.md](SECURITY.md) before changing `src/filesystem/`, `src/operatio
 `src/trash/`, `src/secure/`, or the IPC handlers in
 `controllers/FileTreeIpc.qml`. Report vulnerabilities privately as described
 there, not in a public issue.
-
-This file was written by an agent.
-
-### Installed popout regression
-
-With a registered module and FileBlade's bar entry enabled in a disposable
-Omarchy session, run `python3 tests/plugin_popout_live.py publisher.name/module
---confirm-isolated-session`. It exercises the actual plugin, repeated loading,
-invalid-module refusal, keyboard focus, Escape, and content teardown. The command
-sends input to the current Wayland session; provide the isolated session's
-`HOME`, XDG paths, `WAYLAND_DISPLAY`, D-Bus address and Hyprland instance.

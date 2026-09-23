@@ -18,7 +18,7 @@ FocusScope {
   readonly property var manifest: files ? files.manifest : null
   readonly property string issuesUrl: WelcomePlan.issuesUrl(manifest)
   readonly property string releaseUrl: WelcomePlan.releaseUrl(manifest, appVersion)
-  readonly property string changelogUrl: WelcomePlan.changelogUrl(manifest)
+  readonly property string releaseNotesUrl: WelcomePlan.releaseNotesUrl(manifest)
   readonly property var shortcuts: [
     { title: "Welcome", items: [{ shortcut: "Enter", text: "Open Files" }, { shortcut: "Esc", text: "Close Welcome" }] }
   ]
@@ -187,8 +187,8 @@ FocusScope {
         width: parent.width
         visible: module.updated
         spacing: Style.space(2)
-        Action { inline: true; text: "Release notes"; detail: "On GitHub"; onClicked: module.openLink(module.releaseUrl) }
-        Action { inline: true; text: "Full changelog"; detail: "On GitHub"; onClicked: module.openLink(module.changelogUrl) }
+        Action { inline: true; text: "Release downloads"; detail: "On GitHub"; onClicked: module.openLink(module.releaseUrl) }
+        Action { inline: true; text: "Release notes"; detail: "On GitHub"; onClicked: module.openLink(module.releaseNotesUrl) }
       }
       Column {
         width: parent.width

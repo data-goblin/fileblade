@@ -27,7 +27,7 @@ the resident authority and returns its JSON payloads, fetching completed
 mutation results after delivery. It never falls back to an ownerless writer.
 
 The authority pins the selected state, config and recovery roots. Normal
-startup prepares the current plugin namespace in place with core's importer
+startup prepares the existing settings namespace in place with core's importer
 before persistence or recovery. Ready enables writes; active or unknown
 legacy writers and refused migration keep the app read-only with a reason
 and receipt path. No pre-import rename selects the old `omarchy/filetree`
@@ -68,19 +68,6 @@ The kit derives from Omarchy v4.0.2, commit
 adaptation. `licenses/omarchy-MIT.txt` retains the upstream copyright and
 permission notice. No upstream UI path is symlinked into this directory.
 
-The inventory found five direct FileBlade UI dependencies: BorderOverlay,
-BorderSurface, Button, PanelToolTip and TextField. Goblins additionally imports
-BarWidget, BarIconButton and KeyboardPanel; the latter components bring
-WidgetButton and OpticalGlyph into the closure. Commons supplies Color, Style,
-Util, Border and BorderGeometry. Supported companion QML also consumes this
-theme surface. The live importer gate loads all eight built-in modules and the unchanged
-Goblins bar widget and KeyboardPanel popout. Its opt-in fixture supplies the
-bar host and provider descriptor; production extension discovery and helper
-activation remain separate qualification. The release review separately exercised
-FileBlade's own bar widget in the real Omarchy plugin host, including registered
-extension content, update, shell restart, and keyboard/mouse dismissal. This
-plugin-mode proof does not add native bar integration.
-
 Changes from upstream:
 
 - Explanatory code comments are removed; the license is retained separately.
@@ -103,12 +90,12 @@ Changes from upstream:
 Harness A, SSH 2422: Qt base 6.11.2-2, Qt declarative 6.11.2-1,
 Quickshell 0.3.1-1, Omarchy 4.0.2-1, Hyprland 0.56.2-1, software rendering.
 Cold native loading, fixture listing/selection and live Tokyo Night to
-Catppuccin repaint were observed with the FileBlade plugin unavailable.
+Catppuccin repaint were observed with the native runtime isolated from the host session.
 Docking, conversion to an ordinary window, and docking again work through
 the native authority. The Never preference was saved through the QML client
 and verified on disk.
 
-Matched Catppuccin plugin/native blade captures differed at three of 400,520
+Matched Catppuccin previous-host/native blade captures differed at three of 400,520
 pixels, each by one RGB channel level. R12 declares a pass at no more than one
 level per channel and fewer than 0.1 percent differing pixels. This passes.
 
@@ -130,7 +117,7 @@ A real QML copy interrupted by root replacement leaves the replacement
 sentinel unchanged and retains an explicit authority-lost result after view
 exit.
 Monitor and hotplug qualification passes in harness A. The matched
-single-output plugin/native focus and exclusive-zone checks pass. Lock/unlock interaction, remaining retained expectations and chooser
+single-output previous-host/native focus and exclusive-zone checks pass. Lock/unlock interaction, remaining retained expectations and chooser
 remain separate qualification work.
 
 `ovm-spike` adapts the retained expectation scripts to harness A and the native
@@ -175,8 +162,8 @@ before running a suite. These scripts target harness A only.
 - `tests/vm/expectations/43-native-parity.sh native`: E43-01 tests keyboard
   capture and release to a terminal; E43-02 measures docked exclusive zones
   and their release; E43-03 records real bar hide/restore geometry. The
-  `plugin` argument runs the same procedure against an already prepared
-  plugin baseline. Guest-only staging and activation are authorized fixture
+  comparison mode runs the same procedure against an already prepared
+  historical baseline. Guest-only staging and activation are authorized fixture
   operations under R43; host and package installation remain outside this procedure.
 
 E20 needs `/tmp/fileblade-qualification-pointer` in the guest. Build it using
@@ -195,7 +182,7 @@ y=0, height=1080. The facade now reports barHidden=true and surfaceOriginY=0;
 restoring the bar restores the 26-pixel internal origin. Bottom, left and
 right reservations also match internal coordinates after each transition.
 The visibility flag is named bar-off, so `omarchy-toggle-bar on` hides it and
-`off` shows it. The earlier matched plugin/native run has identical compositor
+`off` shows it. The earlier matched previous-host/native run has identical compositor
 geometry and reservations at all eight captured phases. These are explicit
 visibility-toggle measurements; timed hover-autohide and lock/unlock
 interaction remain unqualified.

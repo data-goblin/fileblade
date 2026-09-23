@@ -43,7 +43,7 @@ TestCase {
     var manifest = { repository: "https://github.com/data-goblin/fileblade" }
     compare(WelcomePlan.issuesUrl(manifest), "https://github.com/data-goblin/fileblade/issues/new")
     compare(WelcomePlan.releaseUrl(manifest, "0.2.0"), "https://github.com/data-goblin/fileblade/releases/tag/v0.2.0")
-    compare(WelcomePlan.changelogUrl(manifest), "https://github.com/data-goblin/fileblade/blob/main/CHANGELOG.md")
+    compare(WelcomePlan.releaseNotesUrl(manifest), "https://github.com/data-goblin/fileblade/blob/main/features/release/release-notes.md")
     compare(WelcomePlan.releaseUrl(manifest, ""), "")
     compare(WelcomePlan.issuesUrl(null), "")
     compare(WelcomePlan.issuesUrl({ repository: "http://github.com/data-goblin/fileblade" }), "")

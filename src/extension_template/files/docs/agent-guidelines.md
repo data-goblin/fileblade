@@ -1,13 +1,15 @@
+This file was written by an agent.
+
 # Instructions for agents
 
 Communicate concisely in plain language. Preserve the project's design intent.
 
 ## About this project
 
-- This is a FileBlade extension: an Omarchy plugin that contributes the
+- This is a native FileBlade extension that contributes the
   `{{MODULE_ID}}` blade module to FileBlade (`data-goblin.fileblade`). Read
   FileBlade's EXTENSIONS.md before changing anything the host contract covers.
-- `Service.qml` owns shared work; `blades/Module.qml` stays visual. Do not add
+- `Provider.qml` owns shared work; `blades/Module.qml` stays visual. Do not add
   a `Process`, a second cache or a watcher to the module.
 - Reuse the host's services and conventions: `context.service("files")` for
   opening and revealing, `context.ui.url(...)` for shared widgets,
@@ -23,7 +25,7 @@ Communicate concisely in plain language. Preserve the project's design intent.
 - `tests/run` is the local gate: the manifest contract, the banner generator,
   QML tests and qmllint.
 - Test live changes in an isolated VM, not the working desktop. After any QML
-  change, check `journalctl --user` for "plugin load failed" before reporting.
+  change, inspect native FileBlade's logs for import and runtime errors.
 - Report skipped or pending checks honestly.
 
 ## Authorship

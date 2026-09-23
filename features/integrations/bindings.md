@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # Install blade keybindings
 
-Opt into the native bindings role to install FileBlade's Hyprland include. Super+B opens, closes and refocuses the left blade; Super+Shift+B controls the right. The shipped include also works with the plugin runtime.
+Opt into the native bindings role to install FileBlade's Hyprland include. Super+B opens, closes and refocuses the left blade; Super+Shift+B controls the right.
 
 ```sh
 fileblade native roles enable --role bindings

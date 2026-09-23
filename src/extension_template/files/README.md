@@ -1,3 +1,5 @@
+This file was written by an agent.
+
 <p align="center"><img src="assets/fileblade-extension-logo.svg" alt="FileBlade extension" width="640"></p>
 
 ---
@@ -13,11 +15,12 @@
 
 ## Installation / Quick-start
 
-Install FileBlade first, then this extension:
+Install and start the native FileBlade app first, then register this trusted extension:
 
 ```bash
-omarchy plugin add {{REPOSITORY}} --yes --enable
-omarchy restart shell
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions"
+git clone {{REPOSITORY}} "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions/{{PLUGIN_ID}}"
+fileblade rescan-modules
 ```
 
 Then put the blade in a slot from the blade settings, or from a terminal:
@@ -26,7 +29,7 @@ Then put the blade in a slot from the blade settings, or from a terminal:
 fileblade blade add right {{PLUGIN_ID}}/{{MODULE_ID}}
 ```
 
-This concise README is human-written to convey the simple intent and purpose of this extension. Full (agent-written) docs are in [docs/agent-written/README.md](docs/agent-written/README.md); design notes in [ARCHITECTURE.md](ARCHITECTURE.md).
+Customize this starter README to describe your extension. Full technical docs are in [docs/agent-written/README.md](docs/agent-written/README.md); design notes in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Building your own extension is covered in FileBlade's [EXTENSIONS.md](https://github.com/data-goblin/fileblade/blob/main/EXTENSIONS.md).
 

@@ -1,3 +1,5 @@
+This file was written by an agent.
+
 # Native chooser request boundary
 
 `Request` holds one immutable `Offer`, one optional overwrite identity and
@@ -43,15 +45,18 @@ The consumer is always on; `FILEBLADE_CHOOSER=0` is a development override
 that disables it. The "File chooser" desktop role (`native roles`) decides
 whether the portal service activates `native portal` at all.
 
-The backend registers this command group on the resident authority.
-Portal D-Bus registration, exported-parent association and real browser
-upload remain unqualified; this slice does not complete tasks 3.1/3.2.
+The backend registers this command group on the resident authority. The
+opt-in desktop role registers the portal D-Bus service. The release review
+exercised frontend/backend activation and a successful chosen-file response;
+see [the chooser guide](../../features/integrations/portal.md). Foreign-window
+parenting and modality are not implemented. A completed response does not by
+itself prove every browser upload flow.
 
 Runnable checks: compile `cargo test --locked --test chooser_requests
 --test chooser_transport --no-run` and execute those binaries in the assigned
 VM. `tests/vm/expectations/45-native-chooser.sh` checks live window/selection
 isolation with qualification fixtures, independently of portal completion.
-The runtime lane uses only harness A, SSH port 2422.
+Use a dedicated isolated guest and its assigned SSH port.
 
 `46-native-chooser-resident.sh` uses actual socket callers against the freshly
 built native fixture: filtered Open, existing/new Save, multiple and folder

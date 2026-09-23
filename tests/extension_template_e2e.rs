@@ -166,11 +166,12 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
 
     let readme = text(&rendered(&files, "README.md"));
     assert!(readme.contains("**FileBlade Weather**"));
-    assert!(readme.contains(
-        "omarchy plugin add https://github.com/acme/fileblade-weather.git --yes --enable"
-    ));
+    assert!(readme.contains("git clone https://github.com/acme/fileblade-weather.git"));
     assert!(readme.contains("fileblade blade add right acme.fileblade-weather/weather"));
     assert!(readme.contains("assets/fileblade-extension-logo.svg"));
+    assert!(readme.contains("fileblade/extensions/acme.fileblade-weather"));
+    assert!(readme.contains("fileblade rescan-modules"));
+    assert!(!readme.contains("omarchy plugin"));
     let license = text(&rendered(&files, "LICENSE"));
     assert!(license.contains(&format!("Copyright (c) {} Jane Doe", scaffold.year)));
     let module_qml = text(&rendered(&files, "blades/Module.qml"));

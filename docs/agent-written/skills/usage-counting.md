@@ -14,7 +14,7 @@ usesAgent:     kind skill events: the agent loaded the skill on its own
 usesUser:      kind command events with origin user whose name is a skill name: you typed /name
 usesScheduled: kind command with origin scheduled (Claude Code scheduled tasks); not in uses
 failed:        skill events whose tool result was an error
-name match:    an item counts events named exactly as the skill, plus <plugin>:<skill> for plugin skills
+name match:    an item counts events named exactly as the skill, plus <namespace>:<skill> for namespaced skills
 ```
 
 Per agent, a skill event is: Claude Code's `Skill` tool call; a Codex turn

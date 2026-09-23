@@ -5,25 +5,21 @@ This file was written by an agent.
 ---
 
 FileBlade runs as a native Quickshell application with a resident Rust authority.
-The legacy Omarchy Quattro plugin entry remains available for compatibility.
-Both shapes share the blade services and extension contract described here;
+The blade services and extension contract share this runtime;
 [native installation](docs/agent-written/native-install.md) documents standalone
 process ownership, persistence and desktop integration.
-
-![Process and data flow](assets/docs/architecture.svg)
 
 ## The two halves
 
 ### QML side
 
-The native app owns its Quickshell view; the legacy plugin loads `Service.qml`
-inside omarchy-shell (`keepLoaded: true` in `manifest.json`). The visual services
-share this structure:
+The native app owns its Quickshell view and loads `Service.qml` for shared
+services. Its structure is:
 
 ```yaml
-Service.qml:                 plugin entry; owns the host, the IPC handlers, and shared services
+Service.qml:                 shared service entry; owns the host, the IPC handlers, and shared services
 blades/BladeHost.qml:        the layout model; reads and writes blades.json, routes focus, holds the module registry
-blades/BladeRegistry.qml:    finds modules (built in, yours, other plugins); see EXTENSIONS.md
+blades/BladeRegistry.qml:    finds modules (built in, yours, registered extensions); see EXTENSIONS.md
 blades/BladeSurface.qml:     one docked PanelWindow per edge per enabled screen
 blades/BladeWindow.qml:      one ordinary window per undocked edge
 blades/BladeSlot.qml:        loads a module's entry QML and hands it a BladeContext
@@ -35,7 +31,6 @@ modules/files, properties, notes, welcome:  the bundled modules; welcome is seed
 controllers/*.qml:           state machines: tree, search, selection, operations, watches, trash, config, updates
 panes/*.qml:                 the views the files module is made of (tree, trash, favorites, picker, actions menu)
 ui/*.qml:                    shared widgets; PaneHeader, HintTip, ActionDialog, ArtifactBin, ImageGrid, TimelineScrubber, and so on
-blades/BladePopout.qml:      hosts one module outside a blade, for a bar widget's dropdown
 lib/*.js:                    pure helpers: key routing, search syntax, icons, formatting, tree order
 ```
 
@@ -82,8 +77,9 @@ frequency scores.
 
 ## How the QML talks to Rust
 
-`BackendClient.qml` starts `fileblade serve` once, keeps it alive, and
-restarts it with backoff if it dies. The protocol is newline-delimited JSON on
+`app/launch` starts the resident authority before QML. `BackendClient.qml`
+uses a `fileblade serve` relay and reconnects with backoff when it dies.
+The authority owns persistence and accepted work independently of the view. The protocol is newline-delimited JSON on
 stdin and stdout, version 1:
 
 ```yaml
@@ -117,8 +113,8 @@ This file was written by an agent.
 Skills, Memory, Hooks and MCP ship as built-in modules. Welcome does not acquire
 or install companion repositories.
 
-Plugin storage paths are resolved before reading manifests, so a symlinked
-plugins directory works; manifest reads remain bounded and reject symlinks.
+Extension storage paths are resolved before reading manifests, so a symlinked
+registration directory works; manifest reads remain bounded and reject symlinks.
 
 The `generation` number is how a controller ignores stale answers. Change the
 root mid-search and the old results get dropped on arrival instead of
@@ -127,13 +123,14 @@ shell down with it: 1 MiB per line, 32 MiB per response, a default 15 s
 deadline (15 min max), configurable concurrency from 1 to 32 requests, and 512
 watched paths. The CLI defaults to 8 requests; the shell starts it with 16.
 Progress renews a request's deadline. Mutations are allowed to finish after
-their deadline and report `late`; read cancellation is cooperative. It sets a
-parent-death signal so it dies when the shell does.
+their deadline and report `late`; read cancellation is cooperative. Closing a
+view cancels its reads while accepted native operations remain with the
+authority. Maintenance drains that authority before replacing the runtime.
 
 All default opens cross `controllers/LaunchController.qml`. It sends files to
 their desktop default application, but routes directories back through the
 Files module's validated navigation path. The shared `openDefault` service
-therefore behaves the same for built-in panes, public IPC, and every plugin;
+therefore behaves the same for built-in panes, public IPC, and every extension;
 an omitted directory hint is resolved with a bounded `stat-batch` request.
 The Rust-side default-open helper follows the same rule for drop-wheel opens.
 
@@ -195,17 +192,6 @@ chosen once when entering window mode from the edge's invocation or lock
 target. Later compositor movement is retained, and focus reports use the
 native window's actual screen. Removing an output cancels its transient
 menus, wheels, drags and keyboard ownership; the saved lock is retained.
-
-### Popouts
-
-A module can also live under a bar icon. `blades/BladePopout.qml` builds a
-`BladeContext` with `popout` set, so the module sees `edge: "popout"`, keeps its
-state in memory for the shell session, and closes the popout instead of a blade.
-The widget belongs to the plugin that wants it; FileBlade only supplies the
-host, because a `bar-widget` kind on FileBlade itself would make Omarchy report
-it as disabled to every satellite's host guard unless a bar entry named it.
-`src/plugin_catalog.rs` reads `shell.json` for plugins that carry `bar-widget`
-beside another kind and treats a `plugins[]` or bar-layout entry as enabled.
 
 ## Focus and keybindings
 
@@ -304,11 +290,11 @@ data-goblin.fileblade:          read only: status, tree, searchResults, selectio
 data-goblin.fileblade.control:  mutating: everything else
 ```
 
-The `fileblade` CLI wraps both. Most commands go over IPC to the live plugin;
-a few (`list`, `preview`, `archive-list`, `extract`, `log`, `shell`,
-`extension template`) run the Rust code in-process and work with the shell
-down. `--output json` on
-anything gives you machine-readable output, which is what agents should use.
+The `fileblade` CLI wraps both. UI commands use IPC to the live application.
+In native mode, backend commands such as `list`, `preview`, `archive-list`
+and `extract` route through the resident authority and refuse when that owner
+is stopped. Scaffolding with `extension template` needs no live view. Agents
+can use `--output json` for machine-readable command results.
 
 The CLI dispatches live file operations directly to the control target.
 Irreversible Trash commands still require an explicit `--yes` argument.
@@ -402,7 +388,7 @@ pickerResult:   picker dialog flow, answer from the pick blade
 select:         single-path form of selectEntries, which fileblade select uses
 setWelcomeState: Welcome tab flow; VM section 29 resets the first-launch state
 setModeBadge:   Files settings row for the Neovim mode badge (header, footer, hidden); VM section 17 flips it and reads status.modeBadge
-welcomeInstall: Welcome tab flow; starts the detached four-extension installer
+welcomeInstall: Welcome tab flow; opens the selected built-in panes
 welcomeDismiss: Welcome tab flow; closes the tab and records the choice
 resetBladeLayout: applies the default blade layout, which seeds the Welcome tab while it is pending
 revertDefaults: the settings sheet's "Revert to default settings" link after its confirmation; resets the files settings to their config defaults and applies the default blade layout, leaving favorites, folder colours, navigation history, and key bindings alone
@@ -414,7 +400,7 @@ unpin:          single-path form of unpinMany, which fileblade unpin uses
 
 Modules don't talk to each other directly. `context.service("files")` returns
 the files controller, and its `selectedPath` and `rootPath` are what the
-properties module and the satellite plugins watch. The same selection is what
+properties module and the extension panes watch. The same selection is what
 `fileblade selection` prints, so an agent and a module see the same thing.
 
 Folder-scoped modules use `contextPath`: it is the selected folder, or the
@@ -423,10 +409,10 @@ opened `rootPath` when the primary selection is a file or empty. The persisted
 `projectRoot` remains available separately for consumers that are inherently
 repository-wide.
 
-Manifest-contributed modules also receive their owning plugin id as
-`context.providerId` and its singleton Omarchy service as
+Manifest-contributed modules also receive their provider id as
+`context.providerId` and its shared provider runtime as
 `context.providerService`. `context.service(id)` resolves FileBlade-owned
-services first and then delegates to the shell service registry. A provider
+services and registered providers. A provider
 service owns shared processes, watchers, caches, and mutations; slot QML owns
 only per-instance presentation and persisted `context.state`. This prevents a
 module shown on multiple screens from multiplying background work.
@@ -445,7 +431,7 @@ module shown on multiple screens from multiplying background work.
    snapshot; ordinary navigation reads that snapshot instead of running git again
 
 Trash goes to the Freedesktop Trash so Nautilus sees it too. Retention cleanup
-runs on the schedule in settings (7 days by default) and only removes entries
+runs only when enabled in settings (Never is the initial choice) and only removes entries
 whose recorded deletion time is old enough.
 
 ## Where things live on disk
@@ -473,10 +459,10 @@ limits of change detection and cancellation.
 
 ## Configuration
 
-Every key lives under the plugin's settings object in `shell.json`
-(`fileblade settings`, or edit the file). Saved
-state in `state.json` wins over these once it exists; the keys are the first-run
-defaults and the values for anything the state file does not carry.
+Native application settings live in `~/.config/omarchy/fileblade/settings.json`;
+`fileblade settings` opens their UI. Pane state, layout and saved choices use
+the files described above. Defaults fill settings that have not been chosen
+explicitly.
 
 ```yaml
 startOpen:                  false      open the left blade when the shell starts
@@ -623,16 +609,14 @@ The footer's Update available chip opens a notice naming the FileBlade version
 followed by a Companion updates heading and one version bullet per extension,
 ordered by name, without commit counts. Local work and ahead commits remain
 skipped; CLI history fields use existing objects only.
-The notice keeps Close and Check again, and explains that FileBlade checks only:
-stop the shell before running `omarchy plugin update`, then run
-`omarchy restart shell`. Disabling a pane does not stop the plugin watcher.
-The checkout contains the matching backend; users do not build it. A backend
+The notice keeps Close and Check again. It checks availability without applying
+an update. Native updates use the verified payload installer and drain protocol
+in [native installation](docs/agent-written/native-install.md). A backend
 version mismatch is reported by the footer, tree status and `fileblade doctor`.
 
-# Satellites
+## Built-in agent panes
 
-The agent-oriented blades from the README (skills, memory, hooks, MCP, git)
-aren't in this repo. Each is its own Omarchy plugin, `data-goblin.fileblade-<x>`,
-that plugs into the `data-goblin.fileblade/blade` socket. They're inert if
-FileBlade isn't installed and removable one at a time. EXTENSIONS.md explains
-the contract they use, and it's the same one you'd use for your own blade.
+Skills, Memory, Hooks and MCP live in `modules/` with their inventories and
+mutations in `src/core_modules/`. They require no additional installation.
+Branches and Notes are also built in. External panes use the same shared
+context and services described in [EXTENSIONS.md](EXTENSIONS.md).

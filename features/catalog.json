@@ -289,7 +289,7 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. cancellation discloses partial results."
       },
       "limitations": "The recording uses the private profile's theme files and does not change the working desktop."
     },
@@ -2009,7 +2009,7 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. cancellation discloses partial results."
       },
       "limitations": "The operation-result response is consumed when fetched; a later repeated query may report an unknown identifier."
     },
@@ -2298,7 +2298,7 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. cancellation discloses partial results."
       },
       "limitations": "This recording covers Bash. Use fileblade shell zsh for the Zsh integration."
     },
@@ -2357,7 +2357,7 @@
     {
       "id": "integrations/bindings",
       "title": "Install blade keybindings",
-      "summary": "Opt into the native bindings role to install FileBlade's Hyprland include. Super+B opens, closes and refocuses the left blade; Super+Shift+B controls the right. The shipped include also works with the plugin runtime.",
+      "summary": "Opt into the native bindings role to install FileBlade's Hyprland include. Super+B opens, closes and refocuses the left blade; Super+Shift+B controls the right.",
       "command": "fileblade native roles enable --role bindings\nfileblade native roles status --json",
       "proof": "Actual Super+B input opens, closes and reopens the installed native blade.",
       "expectations": [
@@ -2626,32 +2626,6 @@
       "limitations": "The recording does not replace the working desktop's installation."
     },
     {
-      "id": "delivery/plugin-install",
-      "title": "Install the Omarchy plugin",
-      "summary": "Install FileBlade through Omarchy, then enable it to load the real sidebar and its bar button. The native installation route is separate.",
-      "command": "omarchy plugin add https://github.com/data-goblin/fileblade.git\nomarchy plugin enable data-goblin.fileblade --section right",
-      "proof": "Enabling the installed plugin loads its Files blade and restores the saved folder.",
-      "expectations": [
-        "plugin_contract"
-      ],
-      "status": "verified",
-      "evidence": {
-        "source": "9f661d66dbe275e7710da436569deb06e2a5d194",
-        "duration_seconds": 5.966667,
-        "screenshot_sha256": "13e58aca92d8b45b7d4deb30e2bc62bda3b43a021cd8f4433c8cad214b94c055",
-        "video_sha256": "eb0f045b791f3abb5a6e7c4beca15bf78909b8b167877726ab606bb0597483f3",
-        "full_decode": true,
-        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
-        "resolution": [
-          2560,
-          1440
-        ],
-        "max_blade_fraction": 0.3333333333333333,
-        "review": "Reviewed actual production frames before and after the action, including the shortcut closed state. Wallpaper, full SVG wordmark, narrow blades and unchanged 32px watermark padding meet the evidence standard."
-      },
-      "limitations": "The clip focuses on activation of a local committed candidate. Add, update, disable, remove and a fresh shell restart were checked separately in the same disposable production host."
-    },
-    {
       "id": "delivery/package",
       "title": "Build the Arch package",
       "summary": "Build an Arch package from an already verified native payload. The build validates the extracted package against its payload inventory.",
@@ -2887,32 +2861,6 @@
       "limitations": "The recording uses disposable synthetic activity; forgetting real usage is a deliberate data-removal action."
     },
     {
-      "id": "integrations/popout",
-      "title": "Open an extension bar popout",
-      "summary": "FileBlade's Omarchy bar button opens a registered module in a popout. Choose the module in the bar widget settings; Escape or an outside click closes and unloads it.",
-      "command": "fileblade popout publisher.name/module\nfileblade popout",
-      "proof": "Clicking the actual FileBlade bar button opens the generated Sample extension in the production Omarchy shell.",
-      "expectations": [
-        "E-37"
-      ],
-      "status": "verified",
-      "evidence": {
-        "source": "9f661d66dbe275e7710da436569deb06e2a5d194",
-        "duration_seconds": 5.733333,
-        "screenshot_sha256": "aa34d17a432d66434ea1dad87d3085f75ce2cf84b1b8a7eee738c5249166dd2d",
-        "video_sha256": "8e3643ee245d522f5d3267b354128b024d96ba81d69ca136252c1144d11f4600",
-        "full_decode": true,
-        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
-        "resolution": [
-          2560,
-          1440
-        ],
-        "max_blade_fraction": 0.3333333333333333,
-        "review": "Reviewed actual production frames before and after the action, including the shortcut closed state. Wallpaper, full SVG wordmark, narrow blades and unchanged 32px watermark padding meet the evidence standard."
-      },
-      "limitations": "Requires the Omarchy plugin runtime. Native extensions use blades. The generated extension is an explicit fixture; the host and registry are the real installed components."
-    },
-    {
       "id": "integrations/scaffolding",
       "title": "Scaffold an extension",
       "summary": "Generate an extension from the bundled template, then run the generated project's checks before customizing it.",
@@ -2992,8 +2940,8 @@
     }
   ],
   "coverage": {
-    "documented": 112,
-    "verified": 112,
+    "documented": 111,
+    "verified": 111,
     "pending": []
   }
 }

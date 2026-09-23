@@ -10,11 +10,12 @@ is maintained separately.
 - [Feature documentation](../../features/index.md): observable workflows,
   logically grouped by workspace, pane, operation, integration and delivery,
   with screenshot and short video coverage tracked for each feature
+- [Release notes](../../features/release/release-notes.md): illustrated native release summary, installation, download verification and earlier release history.
 - [v0.2.0 readiness](../../features/release/readiness.md): reviewed fixes, local validation and remaining release gates.
 - [Release classification decisions](../../features/release/decisions.md): Jev context and probability distributions.
 - [Feature evidence standard](../../features/evidence.md): capture geometry, SVG branding, visual review, and provenance
-- [Plugin-system design](design.md): why FileBlade extensions work the way
-  they do, what Omarchy owns, what FileBlade owns, and what is still planned
+- [Extension-system design](design.md): native discovery, provider ownership,
+  shared services and trust boundaries
 - [Architecture](../../ARCHITECTURE.md): how the whole application is split up
   and how data moves through it
 - [Keybindings](keybindings.md): user configuration for pane navigation,
@@ -30,7 +31,7 @@ is maintained separately.
 - [Hooks module](hooks/README.md): what the Hooks blade reads and changes; nothing is counted
 - [Memory module](memory/README.md): what the Memory blade reads; nothing is counted
 - [Extensions](../../EXTENSIONS.md): the public contract for blade modules and
-  other FileBlade extension points, including image galleries and bar popouts
+  other FileBlade extension points, including image galleries and file-menu actions
 - [Security](../../SECURITY.md): trust boundaries, filesystem protections,
   command execution, previews, IPC, and known limits
 - [Build provenance](build-provenance.md): manual GitHub delivery builds,
@@ -41,7 +42,7 @@ is maintained separately.
   licenses and source links accompanying the bundled backend
 - [UI expectations](../../tests/EXPECTATIONS.md): behavior checked in the
   headless desktop test
-- [Agent guidelines](../AGENTS.md): rules coding agents must follow in
+- [Agent guidelines](../../AGENTS.md): rules coding agents must follow in
   this repository
 
 ## Filename convention

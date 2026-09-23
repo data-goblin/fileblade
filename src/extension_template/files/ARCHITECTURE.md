@@ -1,26 +1,22 @@
-# {{PLUGIN_NAME}} architecture
-
-FileBlade (`data-goblin.fileblade`) hosts this extension. The Omarchy shell
-loads `Service.qml` once per enabled plugin; FileBlade instantiates
-`blades/Module.qml` once per slot, and potentially once per screen, that shows
-it. Nothing here runs unless FileBlade is installed and enabled.
-
 This file was written by an agent.
 
-Host detection checks the installed native FileBlade launcher and its view before
-falling back to legacy Omarchy plugin detection. A healthy native installation
-does not require the old host plugin to appear in the Omarchy catalogue.
-The Enable action is reserved for an explicitly disabled legacy host plugin.
+# {{PLUGIN_NAME}} architecture
+
+The native FileBlade app hosts this extension. Registration under
+`~/.config/fileblade/extensions/{{PLUGIN_ID}}` makes its manifest discoverable.
+FileBlade owns one `Provider.qml` runtime and loads `blades/Module.qml` for each
+slot and screen that displays it.
 
 ## Ownership
 
 ```yaml
-Service.qml:         the singleton provider. Shared scanners, caches, watchers and mutations belong here, with one teardown when the plugin is disabled or the shell reloads
-blades/Module.qml:   visual and lightweight. Binds to context.providerService, renders plain text, routes keys, keeps per-tab presentation state in context.state
-HostGuard.qml, .js:  shown while FileBlade is missing or disabled; explains manual installation without downloading anything, or enables an installed host and restarts the shell
-manifest.json:       the module definition (id, entry, hostContract, settings schema); FileBlade reads it from the plugin registry
-tests/:              tests/run is the local gate (fileblade extension check, qmltestrunner, qmllint); tests/imports stubs qs.Commons so the module loads offline
-assets/:             fileblade-extension-logo.svg from `fileblade extension image`, and fileblade-logo.png for the host guard
+Provider.qml:       shared scanners, caches, watchers and mutations; attachment starts work and shutdown releases it
+blades/Module.qml:  presentation, plain-text rendering, shared focus commands and per-tab context.state
+manifest.json:      module identity, entry, provider, hostContract and settings schema
+HostGuard.qml, .js: host availability checks; no automatic download
+Service.qml:        compatibility wrapper; native discovery uses Provider.qml directly
+tests/:             generated local gate and offline Commons fixtures
+assets/:            generated extension wordmark and host icon
 ```
 
 ## Where state lives

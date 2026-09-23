@@ -11,9 +11,9 @@ permissions, symbolic links and multiple links are refused.
 
 The native launcher sets `FILEBLADE_NATIVE_STATE_ROOT` to the selected
 `XDG_STATE_HOME/omarchy/fileblade` namespace and `FILEBLADE_APP_ROOT` to the
-runtime payload. This spike still isolates all three XDG roots. It does not
-perform core's migration or prevent an old unmodified plugin from reopening
-its separate legacy namespace.
+runtime payload. Startup binds the config, state and recovery roots, then
+prepares migration before opening its persistence session. Migration refuses
+writes when an earlier writer is active or its status cannot be established.
 
 `fileblade serve --native-authority` acquires before recovery, then exposes
 `authority.sock` with mode 0600. `serve --native-probe` checks readiness.
@@ -92,9 +92,9 @@ terminal response, it sends no fetch and the result stays available.
 The live `40-native-authority.sh` case drives QML selection and admission for
 a two-file move across filesystems, observes it running, quits the real native
 view, verifies completion and both mappings, relaunches the view, and fetches
-the retained result. It requires the staged spike and harness A.
+the retained result. Run it in an isolated guest with the staged native runtime.
 
-## Batch 2 root-binding foundation
+## Bound storage roots
 
 `Authority::acquire_bound(state, config, recovery)` takes an OFD lock in
 each distinct canonical directory and records all three identities in the
@@ -108,19 +108,17 @@ make the same authority valid again.
 
 The native extension root supplied to core is `native_extension_root()`:
 `XDG_CONFIG_HOME/fileblade/extensions`. FileBlade settings remain at
-`native_config_root()/settings.json`. Neither root supplies Omarchy plugin
-activation. Discovery, enabled entries and first-discovery receipts remain
-core's R28 implementation.
+`native_config_root()/settings.json`. Discovery, enabled entries and
+first-discovery receipts use the native registration directory.
 
-The persistence and migration APIs below are a consumer handoff, not a
-completed R16/R17 persistence fix. Existing secure writers do not yet consume
-them. The current server's admission/recovery logic is unchanged, so the
-new write mode is not yet a protocol-wide barrier.
+The native server prepares migration and selects the write mode before
+registering persistence or running recovery. Secure writers use the bound
+storage descriptors and consult the authority before changing managed state.
 
 `set_write_mode(WriteMode)` succeeds once; the unset mode is ReadOnly with
 reason `migration has not been prepared`. Core's Ready outcome must set Full;
-ReadOnly and Refused must preserve their reason in ReadOnly. Runtime will
-wire this outcome and request refusal when the migration module is present.
+ReadOnly and Refused preserve their reason in ReadOnly. The server includes
+the migration receipt path in that reason and refuses managed writes.
 
 `storage_anchor(path)` returns a duplicate of the original root descriptor
 and a relative path, or None for an unrelated path. Consumers must traverse
@@ -134,8 +132,8 @@ bound to the original directory; it never redirects into the replacement.
 process registration, with `storage_anchor`, `check_write` and `write_mode`
 functions for the existing persistence consumers. Native callers without a
 registered authority fail owner-unavailable; legacy callers retain their
-existing route. This session is not installed yet: it belongs after core's
-preparation result and mode selection, before recovery, and must outlive all
-workers. Operations owns the secure traversal and write integration. The
-in-flight backend replacement test and E40 extension remain required after
-that integration; descriptor-level tests alone are not that gate.
+existing route. The server installs this session after migration and write-mode selection,
+before recovery, and retains it for the lifetime of the authority and workers.
+`src/secure/` consumes the bound descriptors for traversal and persistence.
+`tests/native_authority.rs` exercises real authority processes and root
+replacement rather than only descriptor-level behavior.
