@@ -824,6 +824,252 @@
           "output_tokens": 165
         }
       }
+    },
+    {
+      "id": "socket",
+      "context": {
+        "task": "Classify a real final native-install smoke-check failure before FileBlade 0.2.0 release",
+        "facts": [
+          "A fresh installation under a 112-byte canonical authority socket path installs and prints its version, but native roles disable and owned removal fail with the actual error path must be shorter than SUN_LEN. No live authority exists in that profile.",
+          "The shared authority transport connects to canonical_root/authority.sock and the native server binds that same pathname. Both use the Unix pathname address field, which cannot contain this otherwise valid XDG state path.",
+          "All consumers already share transport::connect. Linux can resolve /proc/self/fd/<open-directory-fd>/authority.sock within the same owned directory; its short address preserves the same physical socket, permissions, kernel lock and state namespace. The open descriptor is retained for the bind/connect call. Existing authority ownership and identity checks remain.",
+          "A real integration test already starts the actual native authority, sends public CLI reads/writes and checks refusal after stop. Giving it a long home directory and checking offline role reversal covers server bind, shared client routing and cleanup without mocks.",
+          "The final public source identity is not published. The user asked to fix every found issue immediately. Updating the shared transport/server and rebuilding the final artifact can close this concrete regression before handoff."
+        ]
+      },
+      "questions": {
+        "defect": {
+          "instructions": "Which class describes this observed failure?",
+          "criteria": {
+            "unix_address_length_defect": "Valid state paths are incorrectly constrained by the socket address field and block cleanup",
+            "invalid_fixture": "The user state path itself violates a FileBlade or filesystem contract",
+            "none": "Expected safe removal behavior needs no correction",
+            "need_more_context": "The cause is not established"
+          }
+        },
+        "repair": {
+          "instructions": "Which repair class matches the existing ownership design?",
+          "criteria": {
+            "directory_descriptor_path": "Use short descriptor-relative Linux socket addressing in the shared connect/bind paths while retaining ownership checks",
+            "separate_socket_registry": "Introduce an additional socket-root registry and migration layer",
+            "none": "Leave existing paths unchanged",
+            "need_more_context": "Insufficient evidence"
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "defect": {
+            "type": "choice",
+            "choice": "unix_address_length_defect",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "invalid_fixture": 0.0,
+              "unix_address_length_defect": 1.0
+            }
+          },
+          "repair": {
+            "type": "choice",
+            "choice": "directory_descriptor_path",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "separate_socket_registry": 0.0,
+              "none": 0.0,
+              "directory_descriptor_path": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 764,
+          "output_tokens": 109
+        }
+      }
+    },
+    {
+      "id": "media-sort",
+      "context": {
+        "task": "Classify FileBlade media-sort UX and feature documentation during 0.2.0 preparation",
+        "facts": [
+          "Kurt explicitly requests hiding the Git indicator and overflow ellipsis in media mode, replacing them with an ascending/descending image-order control, newest first by default.",
+          "MediaContent currently inherits controller.treeSort; the shared MediaView already sorts by modified time when supplied [{key:modified,desc:true}]. TreePane already persists media mode, size and timeline options per pane.",
+          "PaneHeader shares navigation and metadata controls. Adding one showColumns flag can hide the metadata controls and overflow while preserving navigation and a dedicated media sort control. Ordinary tree sorting should retain its current independent value.",
+          "Existing guides cover media-grid, media-size, media-calendar and media-hours under features/panes/files. None demonstrates reversing media order. Each feature requires its own focused 4\u20138 second proof and SVG-branded screenshot.",
+          "Existing slot state and public pane state CLI can carry a mediaSortDescending boolean; media newest-first preference can persist alongside other media settings. User forbids desktop disruption and VM; live proof uses own isolated nested compositor on workspace9."
+        ],
+        "preferences": [
+          "Reuse existing sorting and state infrastructure. Keep keyboard and mouse equally supported. Classifier advises, does not authorize."
+        ]
+      },
+      "questions": {
+        "state_scope": {
+          "instructions": "Which state ownership best matches this explicitly media-specific control and existing implementation?",
+          "criteria": {
+            "media_pane_preference": "Persist media direction separately using existing pane state and shared modified-date comparator",
+            "shared_tree_order": "Continue tying media direction to ordinary file tree columns and sorting",
+            "none": "Current ordering already meets the request",
+            "need_more_context": "Insufficient facts"
+          }
+        },
+        "documentation": {
+          "instructions": "Which feature classification matches reversing the media ordering?",
+          "criteria": {
+            "files_media_sort": "A focused features/panes/files/media-sort guide next to other media workflows",
+            "delivery": "A native installation or packaging feature",
+            "none": "Already covered with its own complete evidence",
+            "need_more_context": "Insufficient facts"
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "state_scope": {
+            "type": "choice",
+            "choice": "media_pane_preference",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "shared_tree_order": 0.0,
+              "media_pane_preference": 1.0
+            }
+          },
+          "documentation": {
+            "type": "choice",
+            "choice": "files_media_sort",
+            "confidence": 0.99,
+            "probabilities": {
+              "files_media_sort": 1.0,
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "delivery": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 770,
+          "output_tokens": 108
+        }
+      }
+    },
+    {
+      "id": "main-merge",
+      "context": {
+        "task": "Classify main-history merge conflicts before final FileBlade 0.2.0 commit",
+        "facts": [
+          "Main ends at the 0.1.3 release merge; the 0.2.0 branch contains separately cherry-picked 0.1.3 fixes, so histories diverge although source changes were carried over.",
+          "The merge has 32 conflicted files and no additional nonconflicting staged changes. Conflicts were inspected: release versions/binary differ, newer font zoom/density and Quick Nav controls expand the same typography/visibility fixes, the Welcome pane is rewritten around built-in modules, native roles and media paths are added, the Rust core replaces prior Python contracts, and the version hook adds stricter SemVer release checks.",
+          "Candidate commit 9d3c4cf carries hide-internal-caches/Quick-Nav changes; 554d7f1 carries typed font size. Candidate history explicitly records 997d4fc rebuilding the bundle for changes carried from 0.1.3. Hidden Git entries intentionally remain visible through feature commit 1602be6, and Quick Nav has separate hidden/case controls in d224028.",
+          "The complete candidate tree just passed 761 Rust and 832 QML checks, real native/plugin integration, and all 112 feature artifacts. Resolving these duplicate older conflicts to the reviewed current files produces a merge with the exact same tree while retaining main as a parent. No new runtime behavior is needed."
+        ]
+      },
+      "questions": {
+        "conflict_class": {
+          "instructions": "Which class describes the inspected merge conflicts?",
+          "criteria": {
+            "already_ported_older_history": "Older main changes are already carried and evolved in the tested candidate; retain the reviewed current tree and merge the history",
+            "missing_main_behavior": "The inspected conflicts show unique main functionality absent from the candidate that must be ported",
+            "none": "No merge or conflict resolution is necessary",
+            "need_more_context": "Insufficient evidence to classify"
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "conflict_class": {
+            "type": "choice",
+            "choice": "already_ported_older_history",
+            "confidence": 1.0,
+            "probabilities": {
+              "missing_main_behavior": 0.0,
+              "need_more_context": 0.0,
+              "already_ported_older_history": 1.0,
+              "none": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 722,
+          "output_tokens": 63
+        }
+      }
+    },
+    {
+      "id": "final-readiness",
+      "context": {
+        "task": "Classify FileBlade 0.2.0 release readiness after actual fixes, full gates and visual evidence",
+        "facts": [
+          "The clean main candidate contains all reviewed code, a rebuilt static backend, aligned version 0.2.0, installation docs and preserved older main ancestry. No public push/tag/release has been made.",
+          "The complete tests/run gate passed: 761 Rust checks and 832 QML checks, generated-extension checks, native-theme reload, formatting, Clippy, lint and a byte-identical bundled-backend rebuild. The installed Omarchy plugin validator passed on the clean candidate worktree.",
+          "Real disposable local production integration passed: plugin add/enable/update/disable/remove and fresh shell restart; own FileBlade bar popout loads a registered Sample extension; keyboard Escape and outside click unload it; invalid module refusal and repeat passed.",
+          "Real native installed tests passed actual Super+B in plugin and native mode, cold GIO launch of installed autostart entry, folder handoff, automatically activated FileManager1 Reveal and real portal frontend/backend response0. All five roles restored owned entries. Full logout/login was not performed.",
+          "Real Omen tailnet discovery and SSH/SFTP connect-refresh-list-disconnect passed; remote browse showed 230 entries from authorized /usr/share/doc. No user data was mutated.",
+          "A final native-install smoke exposed valid long state-path cleanup failure. Actual authority/CLI regression reproduced before fix; directory-descriptor socket addressing fixed both bind/connect and offline cleanup. Full native authority and roles integration suites now pass.",
+          "Newest media first is now independent persisted pane state; actual installed UI mouse, Space and restart tests passed. A continuous 6.5 second video visibly reverses oldest/newest order. Git and column overflow controls are hidden in media mode.",
+          "All 113 feature guides now have verified PNG/MP4 pairs. Native2560x1440,4\u20138seconds,real wallpaper,full SVG artwork,equal32pxvisiblepadding,650pxblade meet explicit requirements. Independent artifacts gate113/113 passed.",
+          "Final exact-SHA payload/package/archive are being rebuilt after documentation is committed; their installation/removal smoke and hash receipt must pass before handoff. Earlier artifacts and exact runtime payload already passed installation/removal checks apart from the now-fixed long-path case.",
+          "User explicitly forbids VM and working-desktop disruption. All real UI was isolated local nested Hyprland on silent workspace9; personal shell/install untouched. Repository AGENTS explicitly reserves marketplace posts for Kurt; draft must name final main SHA and public repository must match it before submission."
+        ],
+        "preferences": [
+          "Classify facts; do not authorize publication. Probabilities are classifier label distributions, not measured release-success probabilities."
+        ]
+      },
+      "questions": {
+        "engineering": {
+          "instructions": "Which engineering state matches the measured gates and known limitations?",
+          "criteria": {
+            "local_candidate_passes": "Code, actual production integrations and feature evidence pass; final exact-SHA artifact assembly is the remaining local deliverable",
+            "known_product_blocker": "A known unrepaired behavior still blocks this release",
+            "none": "Current evidence is not sufficient to change an earlier incomplete state",
+            "need_more_context": "Facts cannot separate the states"
+          }
+        },
+        "publication": {
+          "instructions": "Which publication state matches the actual external evidence?",
+          "criteria": {
+            "owner_publication_pending": "No publication yet; exact public commit and owner marketplace verification remain",
+            "released_verified": "Current candidate is publicly released and verified",
+            "none": "No publication workflow applies",
+            "need_more_context": "Insufficient facts"
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "engineering": {
+            "type": "choice",
+            "choice": "local_candidate_passes",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "known_product_blocker": 0.0,
+              "none": 0.0,
+              "local_candidate_passes": 1.0
+            }
+          },
+          "publication": {
+            "type": "choice",
+            "choice": "owner_publication_pending",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "owner_publication_pending": 1.0,
+              "none": 0.0,
+              "released_verified": 0.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 1097,
+          "output_tokens": 112
+        }
+      }
     }
   ]
 }

@@ -152,3 +152,25 @@ component-only popout, registration-only desktop-role and installation-only
 plugin classifications. Native cross-process bar integration and a full login
 transition are not claimed. Exact public-commit verification and publication
 remain owner-controlled steps.
+
+## Final integration corrections
+
+A valid long XDG state path blocked native socket binding and offline cleanup.
+Jev classified it as `unix_address_length_defect` (1.00) and the existing Linux
+directory-descriptor approach as `directory_descriptor_path` (1.00). The actual
+authority regression failed before the fix and passed afterward.
+
+The requested media arrow is a `media_pane_preference` (1.00), documented as
+`files_media_sort` (1.00) beside the other Files media workflows. Mouse, Space
+and restart persistence were exercised in the installed isolated application.
+
+The divergent older main history was `already_ported_older_history` (1.00).
+Resolving its already-ported files preserved the reviewed candidate tree.
+
+## Readiness after final corrections
+
+Jev classified the measured engineering state as `local_candidate_passes`
+(1.00) and publication as `owner_publication_pending` (1.00). This separates
+passing local engineering evidence from a publicly published and verified
+commit. Final artifact identities and the installation/removal result are
+bound in `target/release-review/final-artifacts.json`.

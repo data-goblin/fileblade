@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # FileBlade features
 
-Focused guides to each observable workflow, grouped by workspace, pane, file operation, integration and delivery. Each completed page includes a native-resolution screenshot and a short original-speed MP4. Coverage: all 112 workflows have reviewed screenshot/MP4 pairs, including real read-only SFTP browsing on Omen.
+Focused guides to each observable workflow, grouped by workspace, pane, file operation, integration and delivery. Each completed page includes a native-resolution screenshot and a short original-speed MP4. Coverage: all 113 workflows have reviewed screenshot/MP4 pairs, including real read-only SFTP browsing on Omen.
 
 [Evidence standard](evidence.md) · [Coverage](catalog.json) · [v0.2.0 readiness](release/readiness.md) · [Jev decisions](release/decisions.md)
 
@@ -45,6 +45,7 @@ Focused guides to each observable workflow, grouped by workspace, pane, file ope
 - [See drive capacity](panes/files/drive-space.md)
 - [Browse mounted drives](panes/files/drives.md)
 - [Browse images and video posters](panes/files/media-grid.md)
+- [Sort media newest or oldest first](panes/files/media-sort.md)
 - [Resize media thumbnails](panes/files/media-size.md)
 - [Navigate the media calendar](panes/files/media-calendar.md)
 - [Inspect hourly media activity](panes/files/media-hours.md)

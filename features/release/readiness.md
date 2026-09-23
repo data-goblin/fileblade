@@ -4,7 +4,7 @@ This file was written by an agent.
 
 **The release candidate passes the local engineering gates.** Publication still
 requires the owner's exact-commit marketplace verification and release publication.
-There are **112 feature guides with 112 reviewed screenshot/MP4 pairs**.
+There are **113 feature guides with 113 reviewed screenshot/MP4 pairs**.
 
 ## Confirmed checks
 
@@ -22,14 +22,15 @@ There are **112 feature guides with 112 reviewed screenshot/MP4 pairs**.
 | File chooser | Real portal frontend/backend activation; completed response 0 with the selected file URI |
 | Desktop-role reversal | All five roles restored their owned entries without leftovers |
 | Real Omen SFTP | Connect, refresh, list 230 entries and disconnect passed; separate live regression passed |
-| Feature artifacts | 112/112 pass; 2560×1440, 4–8 seconds, original speed |
+| Feature artifacts | 113/113 pass; 2560×1440, 4–8 seconds, original speed |
 | Branding and framing | Wallpaper, original full SVG artwork, equal visible 32px padding; each blade below one-third |
 | Isolation | Separate local Hyprland desktop on workspace 9 with private HOME, XDG paths and D-Bus |
 | VM qualification | Skipped at the owner's explicit instruction |
 
 The complete code-gate log is retained locally at
-`target/release-review/ready-full-gate.log`. Production integration receipts and
-new recordings are in `target/feature-evidence/release/`. The final release
+`target/release-review/media-sort-full-gate.log`. Production integration receipts and
+new recordings are in `target/feature-evidence/release/`; media ordering proof is
+in `target/feature-evidence/media-sort/`. The final release
 artifact receipt, `target/release-review/final-artifacts.json`, binds the clean
 main commit to the staged payload, archive and package. Older recording source
 identities remain in the [coverage manifest](../catalog.json); they are not
@@ -56,6 +57,8 @@ are retained locally.
 | Extension popouts relied on an unavailable foreign service lookup | FileBlade owns its bar entry and uses Omarchy's self-scoped service API; real registered extension passed |
 | A loaded popout did not receive keyboard focus | Shared focus transfer and Escape dismissal; installed-session regression passed |
 | Shipped bindings always targeted the native shell | Shared public CLI routing; actual plugin and native shortcuts passed |
+| Valid long state paths blocked native startup and removal | Descriptor-relative socket addressing preserves the owned directory; real long-path CLI regression passed |
+| Media inherited tree order and displayed irrelevant metadata controls | Saved newest/oldest arrow replaces Git and column controls; real mouse, Space and restart proof passed |
 
 The tmux regression covers separate and joined `-L` arguments, explicit and relative `-S` paths, and a custom `TMUX_TMPDIR`. The source-contract assertion was updated to recognize the corrected picker expression; the final complete gate passed afterward.
 

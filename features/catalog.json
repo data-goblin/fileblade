@@ -894,6 +894,32 @@
       "limitations": ""
     },
     {
+      "id": "panes/files/media-sort",
+      "title": "Sort media newest or oldest first",
+      "summary": "Media opens newest first, using file modification time. The toolbar arrow switches between descending (newest first) and ascending (oldest first), replacing the Git and column controls while Media is active.",
+      "command": "",
+      "proof": "The real grid starts with 23 September, reverses to 18 September, then returns to newest first.",
+      "expectations": [
+        "media-date-order"
+      ],
+      "status": "verified",
+      "evidence": {
+        "source": "5627c0bff1c1c8fe03e5bcd734d905f0c86723ec",
+        "duration_seconds": 6.5,
+        "screenshot_sha256": "92c0bccb5e8fb260e3af243210f48109fd4c7434d403a4dccab93d9caa46f1d2",
+        "video_sha256": "9916283eaca3c2bc758286f1f61e24cced619224206b4d9d754ba419c32060d2",
+        "full_decode": true,
+        "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
+        "resolution": [
+          2560,
+          1440
+        ],
+        "max_blade_fraction": 0.3333333333333333,
+        "review": "Reviewed actual frames at 0.8, 2.4, 4.0 and 4.8 seconds: image order reverses twice, selection stays on the same file, and Git/column controls are absent. Wallpaper, full original SVG artwork, equal 32px visible padding and a 650px blade meet the evidence standard. Actual mouse, Space and restart persistence checks passed separately."
+      },
+      "limitations": "Generated image fixtures have deliberately assigned modification dates. The chosen direction is saved per Files pane; ordinary file-tree sorting stays independent."
+    },
+    {
       "id": "panes/files/media-size",
       "title": "Resize media thumbnails",
       "summary": "Use the media-size control in the footer to change thumbnail dimensions. The current media folder stays open.",
