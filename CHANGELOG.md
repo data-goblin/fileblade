@@ -4,6 +4,8 @@ This file was written by an agent.
 
 ## 0.2.0 (unreleased)
 
+- CLI control refusals such as invalid modules, slots and tabs now exit unsuccessfully instead of reporting success.
+
 This file was written by an agent.
 
 - Native installation now supports verified runtime payloads, explicit desktop

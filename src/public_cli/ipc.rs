@@ -68,7 +68,15 @@ impl PublicResult {
 }
 
 pub(super) fn ipc(method: &str, arguments: &[String]) -> AppResult<String> {
-    ipc_on(ipc_target(method), method, arguments)
+    let target = ipc_target(method);
+    let response = ipc_on(target, method, arguments)?;
+    if target == CONTROL_TARGET
+        && (response.starts_with("invalid-")
+            || matches!(response.as_str(), "no-screen" | "unknown-monitor"))
+    {
+        return Err(AppError::command(format!("{method}: {response}")));
+    }
+    Ok(response)
 }
 
 pub(super) fn ipc_target(method: &str) -> &'static str {

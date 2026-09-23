@@ -1902,3 +1902,7 @@ This file was written by an agent.
   a previous keybinding error automatically.
 - **E-07-09** Hovering the repository summary above the file tree shows branch,
   upstream comparison and file-change details without selecting the root folder.
+
+This file was written by an agent.
+
+The public CLI exits unsuccessfully for invalid module, slot and tab control replies or an unavailable target screen. A rejected blade action preserves the existing layout.
