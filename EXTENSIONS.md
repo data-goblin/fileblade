@@ -4,16 +4,46 @@ This file was written by an agent.
 
 ![How FileBlade finds and talks to its extensions](assets/docs/omarchy-fileblade-extensions.svg)
 
-To avoid confusing FileBlade extensions with Omarchy's plugin system, this guide uses four names:
+FileBlade supports native extensions and legacy Omarchy plugins. This guide uses four names:
 
 - **Omarchy plugin:** the package a person installs, updates, enables, or removes
-- **FileBlade extension:** the part of an Omarchy plugin that plugs into FileBlade
+- **FileBlade extension:** a package contribution that plugs into FileBlade, discovered by the native app or the legacy plugin host
 - **blade module:** the actual panel that appears in a FileBlade slot
 - **script action:** a safe-shaped menu row that runs a plugin's bundled program
 
-In one sentence: install an Omarchy plugin, and its FileBlade extension can add
-blade modules, script actions, or both. There is no second registration step
-inside FileBlade.
+An extension can add blade modules, script actions, or both. Install it in the
+location used by your FileBlade runtime; the native app does not discover
+extensions from Omarchy's enabled-plugin list.
+
+## Native installation
+
+Place a trusted extension directory, containing `manifest.json`, under
+`${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions/<publisher.name>`.
+A symlink to a local checkout also works. Then refresh discovery:
+
+```sh
+fileblade rescan-modules
+fileblade modules
+fileblade blade add left publisher.name/module
+```
+
+The native authority validates the manifest and records activation in its
+installation receipt. Newly discovered valid providers are activated by default.
+Removing the directory and rescanning removes its contributions. Do not enable
+an obsolete Omarchy companion service merely to load a native extension: its
+legacy host guard can misidentify the native host as missing.
+
+Goblins is an external gallery extension; Skills, Memory, Hooks and MCP are
+built in. The Goblins bar popout has a separate host integration contract.
+The native qualification harness can exercise its actual widget with a bar
+facade, but that does not establish ordinary production Omarchy bar integration.
+See [native runtime evidence limits](app/ADAPTER.md#evidence-limits).
+
+## Legacy Omarchy installation
+
+The Omarchy plugin runtime discovers contributions from enabled Omarchy plugins.
+Its install, update, enable and remove commands manage those packages. The
+Omarchy sequences below describe this legacy runtime.
 
 FileBlade is the host. Its built-in modules use the same blade context and
 view contract as extensions.
@@ -104,12 +134,11 @@ sequenceDiagram
 ```
 
 FileBlade discovers enabled Omarchy plugins and exposes the FileBlade
-contributions they advertise. Skills, Memory, Hooks and MCP are built in; the Welcome pane opens them directly. External extensions are installed through Omarchy; updates and removal also use Omarchy's commands.
+contributions they advertise. Skills, Memory, Hooks and MCP are built in; the Welcome pane opens them directly. In the legacy plugin runtime, external extensions are installed through Omarchy; updates and removal also use Omarchy's commands.
 
 This file was written by an agent.
 
-The four example extensions (skills, memory, hooks, mcp) and generated extension
-templates carry a small host guard. When FileBlade is missing or disabled, the
+Historical companion extensions and generated extension templates carry a small host guard for the legacy Omarchy runtime. When FileBlade is missing or disabled, the
 first enabled extension shows one pop-up naming every waiting extension. A
 missing host shows an explanation and the repository URL with no install action;
 the guard never downloads FileBlade. An installed but disabled host offers Enable,
@@ -168,12 +197,14 @@ sequenceDiagram
 
 FileBlade owns the small contract between the extension and the host. Omarchy
 owns publishing, trust checks, installation, updates, enabling, disabling, and
-removal. An extension therefore needs no FileBlade-specific store or installer.
+removal for its plugin runtime. Native extension discovery uses the directory
+and activation receipt described above.
 
 ## Where modules come from
 
 ```yaml
-builtin:  modules/<id>/blade.json inside the FileBlade plugin dir
+builtin:  modules/<id>/blade.json inside the FileBlade payload
+native:   ~/.config/fileblade/extensions/<publisher.name>/manifest.json
 user:     ~/.config/omarchy/fileblade/modules/<id>/blade.json (quickest way to hack)
 plugin:   any enabled Omarchy plugin whose manifest.json declares
           extensions["data-goblin.fileblade/blade"] (the right way to ship)
