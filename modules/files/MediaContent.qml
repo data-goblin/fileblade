@@ -9,7 +9,11 @@ PluginUi.MediaView {
   readonly property var matches: MediaModel.matching(mediaProvider.rows, pane.mediaQuery,
     { caseSensitive: controller.searchCaseSensitive, regex: controller.searchRegex }, controller.treeFilter)
   items: matches.rows
-  sorts: controller.treeSort
+  sorts: [{ key: "modified", desc: pane.mediaSortDescending }]
+  onSortsChanged: {
+    anchorPath = ""
+    Qt.callLater(function() { content.positionViewAtIndex(0, GridView.Beginning) })
+  }
   busy: mediaProvider.busy
   message: mediaProvider.error || (matches.invalid ? "Invalid pattern" : (pane.mediaQuery !== "" && !busy ? "No matching media" : ""))
   sizeStep: pane.mediaSizeStep

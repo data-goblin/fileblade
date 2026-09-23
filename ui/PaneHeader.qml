@@ -19,6 +19,7 @@ Rectangle {
   property int preferredHeight: Style.space(32)
   property bool showIdentity: true
   property bool showNavigation: true
+  property bool showColumns: true
   property bool extendAddGuide: true
   property var widthFor: function(key) { return -1 }
   property var titleActions: []
@@ -39,7 +40,7 @@ Rectangle {
     ? extensionRow.implicitWidth + extrasRow.spacing
     : 0
   readonly property real columnSpace: Math.max(0, extrasRight - leadingRight - Style.space(8) - nonColumnExtrasWidth)
-  readonly property bool columnsCollapsed: metricPicker.implicitWidth > 0
+  readonly property bool columnsCollapsed: showColumns && metricPicker.implicitWidth > 0
     && metricPicker.implicitWidth > columnSpace
   readonly property bool addGuideVisible: metricPicker.addGuideVisible
   readonly property real addGuideX: extrasRow.x + metricPicker.x + metricPicker.addGuideX
@@ -181,7 +182,7 @@ Rectangle {
       id: metricPicker
       view: header.view
       widthFor: header.widthFor
-      visible: !header.columnsCollapsed
+      visible: header.showColumns && !header.columnsCollapsed
     }
 
     Text {

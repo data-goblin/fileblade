@@ -2,6 +2,7 @@ use super::*;
 use crate::lease::Authority;
 use std::io::Read;
 use std::net::Shutdown;
+use std::os::fd::AsRawFd;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 
@@ -23,7 +24,11 @@ pub(super) fn run(options: ServeArgs, authority: Arc<Authority>) -> AppResult<()
     } else {
         crate::recovery::sweep()
     };
-    let listener = UnixListener::bind(&socket)?;
+    let (directory, relative) = authority
+        .storage_anchor(&socket)?
+        .ok_or_else(|| AppError::command("native authority socket has no owned directory"))?;
+    let address = PathBuf::from(format!("/proc/self/fd/{}", directory.as_raw_fd())).join(relative);
+    let listener = UnixListener::bind(address)?;
     std::fs::set_permissions(&socket, std::fs::Permissions::from_mode(0o600))?;
     listener.set_nonblocking(true)?;
     let operations = Arc::new(Operations::new(

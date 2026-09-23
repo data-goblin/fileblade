@@ -1,6 +1,7 @@
 use serde::Serialize;
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::net::Shutdown;
+use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -56,8 +57,11 @@ impl Output {
 }
 
 pub fn connect(root: &Path) -> io::Result<UnixStream> {
-    let root = std::fs::canonicalize(root)?;
-    UnixStream::connect(root.join("authority.sock"))
+    let directory = std::fs::File::open(std::fs::canonicalize(root)?)?;
+    UnixStream::connect(format!(
+        "/proc/self/fd/{}/authority.sock",
+        directory.as_raw_fd()
+    ))
 }
 
 pub fn probe(root: &Path) -> io::Result<()> {

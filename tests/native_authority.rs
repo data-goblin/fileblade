@@ -194,7 +194,10 @@ impl Resident {
     }
 
     fn with_mode(isolated: bool) -> Self {
-        let temporary = tempdir().unwrap();
+        Self::in_directory(tempdir().unwrap(), isolated)
+    }
+
+    fn in_directory(temporary: TempDir, isolated: bool) -> Self {
         let root = temporary.path().join("state/omarchy/fileblade");
         let mut command = isolated_command(temporary.path(), &root);
         command.env("FILEBLADE_APP_ROOT", env!("CARGO_MANIFEST_DIR"));
@@ -500,7 +503,11 @@ fn doctor_reports_blocked_native_recovery_as_unhealthy() {
 #[test]
 fn public_backend_commands_use_the_native_owner_for_reads_and_writes() {
     let _serial = TEST_LOCK.lock().unwrap_or_else(|error| error.into_inner());
-    let mut resident = Resident::start();
+    let temporary = tempfile::Builder::new()
+        .prefix(&"native-long-".repeat(12))
+        .tempdir()
+        .unwrap();
+    let mut resident = Resident::in_directory(temporary, true);
     let home = resident.temporary.path();
     let source = home.join("project");
     fs::create_dir(&source).unwrap();
@@ -556,6 +563,11 @@ fn public_backend_commands_use_the_native_owner_for_reads_and_writes() {
         .unwrap();
     assert!(!stopped.status.success());
     assert!(String::from_utf8_lossy(&stopped.stderr).contains("owner-unavailable"));
+    let disabled = isolated_command(home, &resident.root)
+        .args(["native", "roles", "disable", "--all", "--json"])
+        .output()
+        .unwrap();
+    assert!(disabled.status.success(), "{disabled:?}");
 }
 
 impl Drop for Resident {

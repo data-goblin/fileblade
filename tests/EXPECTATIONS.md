@@ -1962,3 +1962,26 @@ This file was written by an agent.
 - Autostart launches the installed stable entry. Folder and Reveal handoffs reach
   the existing native view; D-Bus activation starts the registered Reveal and
   chooser services when they are not already running.
+
+This file was written by an agent.
+
+### Media date order
+
+In Files media mode, the toolbar replaces the Git indicator and metadata
+column controls (including their overflow ellipsis) with a date-order arrow.
+The default is newest modified time first. Clicking the arrow switches to
+oldest first and back, returning the grid to its beginning while preserving
+selection. The focused arrow also responds to Space. Its tooltip names the
+current and next order. The choice survives closing and restarting FileBlade,
+and ordinary file-tree sorting keeps its own setting.
+
+Run `python3 tests/media_sort_live.py --help` for the real isolated-session
+regression. The screenshot and clip are in `features/panes/files/media-sort.md`.
+
+### Long native state paths
+
+A native installation works when its configured state directory makes the
+physical authority socket path longer than a Unix socket address. Public reads,
+archive extraction, offline role reversal and owned removal remain usable.
+`tests/native_authority.rs` exercises the real authority and CLI with a long
+home directory; the final packaged-install smoke also checks owned removal.

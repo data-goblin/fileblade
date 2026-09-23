@@ -38,6 +38,7 @@ FocusScope {
   property string mediaQuery: ""
   property bool mediaQueryReady: false
   property int mediaSizeStep: 2
+  property bool mediaSortDescending: true
   property bool mediaShowEmptyPeriods: false
   property var densityAnchor: null
   property bool treeOrderUpdating: false
@@ -86,6 +87,7 @@ FocusScope {
     context.state.set("mediaQuery", mediaQuery)
     context.state.set("mediaQueryReady", mediaQueryReady)
     context.state.set("mediaSizeStep", mediaSizeStep)
+    context.state.set("mediaSortDescending", mediaSortDescending)
     context.state.set("mediaShowEmptyPeriods", mediaShowEmptyPeriods)
     context.state.set("ordinaryDensityPercent", Math.round(ordinaryDensityValue * 100))
     context.state.set("rootRowInTree", summaryInTree)
@@ -224,6 +226,7 @@ FocusScope {
   onMediaRecursiveChanged: persistMedia()
   onMediaQueryChanged: { persistMedia(); if (mediaProvider && !mediaProvider.busy) reconcileMediaSelection() }
   onMediaSizeStepChanged: persistMedia()
+  onMediaSortDescendingChanged: persistMedia()
   onMediaShowEmptyPeriodsChanged: persistMedia()
   onOrdinaryDensityStepChanged: persistMedia()
   onToolbarButtonsChanged: persistMedia()
@@ -234,6 +237,7 @@ FocusScope {
     if (!context || !context.state) return
     mediaQuery = String(context.state.get("mediaQuery", ""))
     mediaSizeStep = Math.max(0, Math.min(4, Number(context.state.get("mediaSizeStep", 2))))
+    mediaSortDescending = context.state.get("mediaSortDescending", true) !== false
     mediaShowEmptyPeriods = context.state.get("mediaShowEmptyPeriods", false) === true
     ordinaryDensityValue = root.restoredDensity(context.state.get("ordinaryDensityPercent", 100))
     toolbarButtons = ToolbarFields.normalizeFields(context.state.get("toolbarButtons", undefined))
@@ -1058,13 +1062,14 @@ FocusScope {
       anchors.fill: parent
       visible: !root.locationEditing
       showIdentity: false
+      showColumns: !root.mediaActive
       extendAddGuide: false
       preferredHeight: navigationBar.height
       view: filesView
       widthFor: function(key) { return root.priorityColumnWidth(root.width, key) }
 
       PluginUi.MetricPicker {
-        visible: controller.gitEnabled
+        visible: controller.gitEnabled && !root.mediaActive
         view: filesView
         pinnedKey: "git"
         pinnedGlyph: "󰊢"
@@ -1072,6 +1077,27 @@ FocusScope {
         detailValues: controller.gitStatusDetails
         triggerWidth: root.gitColumnWidth
         onDetailToggled: function(key, enabled) { root.setGitStatusDetail(key, enabled) }
+      }
+      ToolButton {
+        id: mediaSortButton
+        visible: root.mediaActive
+        focusPolicy: Qt.StrongFocus
+        implicitWidth: Style.space(28)
+        implicitHeight: Style.space(24)
+        text: root.mediaSortDescending ? "↓" : "↑"
+        Accessible.name: root.mediaSortDescending ? "Newest first; switch to oldest first" : "Oldest first; switch to newest first"
+        contentItem: Text {
+          textFormat: Text.PlainText
+          text: mediaSortButton.text
+          color: Color.accent
+          font.family: Style.font.family
+          font.pixelSize: Typography.body
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+        }
+        background: Rectangle { color: mediaSortButton.hovered || mediaSortButton.activeFocus ? Color.menu.selectedBackground : "transparent" }
+        onClicked: root.mediaSortDescending = !root.mediaSortDescending
+        PanelToolTip { visible: mediaSortButton.hovered; text: mediaSortButton.Accessible.name }
       }
       PluginUi.PaneCorner { visible: controller.trashMode; enabled: controller.trashCount > 0 && !controller.trashOperationBusy; opacity: enabled ? 1 : 0.32; glyph: "󰩹"; tip: "Empty Trash"; tipActions: [{ button: "left", text: "Empty the trash" }, { shortcut: "Shift+E" }]; onActivated: trashView.confirmEmpty() }
     }
