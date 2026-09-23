@@ -76,7 +76,10 @@ Util, Border and BorderGeometry. Supported companion QML also consumes this
 theme surface. The live importer gate loads all eight built-in modules and the unchanged
 Goblins bar widget and KeyboardPanel popout. Its opt-in fixture supplies the
 bar host and provider descriptor; production extension discovery and helper
-activation remain separate qualification.
+activation remain separate qualification. The release review separately exercised
+FileBlade's own bar widget in the real Omarchy plugin host, including registered
+extension content, update, shell restart, and keyboard/mouse dismissal. This
+plugin-mode proof does not add native bar integration.
 
 Changes from upstream:
 

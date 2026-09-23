@@ -2,7 +2,12 @@ This file was written by an agent.
 
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0
+
+- FileBlade's Omarchy bar widget opens registered modules through its own service. Popouts focus their content and close with Escape or an outside click.
+- Shipped Hyprland bindings route through the public CLI in both plugin and native mode.
+- SFTP refresh retains a connection opened through a validated SSH alias, including tailnet hostnames.
+- Every documented feature has a focused screenshot and short video under `features/`.
 
 - File pickers keep text files visible after media browsing, and desktop Reveal preserves the requested selection while the tree loads.
 - Copy collisions show the existing decision dialog, including Keep both.
@@ -31,7 +36,7 @@ This file was written by an agent.
 
 - The Branches module opens as a tab beside Properties. Branches come first and a linked worktree nests under the branch it has checked out, with its path as summary; Enter on it opens that folder. The main checkout is no longer listed as a worktree. The Status column uses the same `↑3 ↓1 M4 A1 ?2` layout and colours as the repository summary on the tree's root row.
 - The Skills heatmap tooltip shows the date, the day's total in blue, the unit, and a stacked bar of agent, you and scheduled shares. Left click or Enter on a day shows only the skills used that day; Esc clears. The header sits under the heatmap. A transcript write refreshes the counts and the heatmap without rescanning skill directories, so "Scanning" only shows for real rescans. `docs/agent-written/skills/usage-counting.md` records the counting audit.
-- The native app's Settings gain a Desktop integration section with five independent switches: open folders with FileBlade, reveal in FileBlade, file chooser, Hyprland bindings and start at login. All are off after install, update and first launch; turning one off restores the previous handler when it has not changed since and keeps a newer choice otherwise, and the row says which. `fileblade native roles status|enable|disable` drives the same switches, and removal reverses every owned entry.
+- The native app's Settings gain a Desktop integration section with five independent switches: open folders with FileBlade, reveal in FileBlade, file chooser, Hyprland bindings and start at login. These roles are opt-in; turning one off restores the previous handler when it has not changed since and keeps a newer choice otherwise, and the row says which. `fileblade native roles status|enable|disable` drives the same switches, and removal reverses every owned entry.
 - The Delete dialog on a Skills, Memory, Hooks or MCP row now reads Cancel, Delete <thing>, Deactivate, and adds Delete symlink when the row is a link, so a linked skill can lose its link without losing the files it points at. A deactivated symlink says Delete symlink forever.
 - Every blade tab puts its search field first and the tab header under it: Files, Skills, Memory, Hooks, MCP and Branches share the order. The header's Search button is gone; `/` reveals the field as before.
 - Dragging a blade edge no longer throws the pointer to the middle of the screen or leaves the blade at its maximum width. While a resize drag is in progress the pointer watch that hands focus back to the workspace stays quiet, so no Hyprland focus dispatch and no cursor warp happens mid-drag.

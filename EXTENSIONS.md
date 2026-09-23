@@ -34,10 +34,9 @@ an obsolete Omarchy companion service merely to load a native extension: its
 legacy host guard can misidentify the native host as missing.
 
 Goblins is an external gallery extension; Skills, Memory, Hooks and MCP are
-built in. The Goblins bar popout has a separate host integration contract.
-The native qualification harness can exercise its actual widget with a bar
-facade, but that does not establish ordinary production Omarchy bar integration.
-See [native runtime evidence limits](app/ADAPTER.md#evidence-limits).
+built in. Bar popouts use FileBlade's own Omarchy bar widget and require the
+plugin runtime. Native extensions open in blades; native mode does not provide
+this in-process bar widget. See [the popout guide](features/integrations/popout.md).
 
 ## Legacy Omarchy installation
 
@@ -546,30 +545,24 @@ Choose `edge: "right"` for an anchor in the right half of the screen and
 `edge: "left"` otherwise, using screen-local coordinates (the menu's Y anchor
 excludes the top bar inset).
 
-A plugin that wants its module under a bar icon declares `bar-widget` beside
-`service`, resolves FileBlade through `bar.shell.serviceFor("data-goblin.fileblade")`,
-and loads the popout from the host's plugin directory into a `KeyboardPanel`:
+FileBlade's own `bar-widget` entry hosts registered modules through the current
+Omarchy API. An extension must not request FileBlade's service through a foreign
+`bar.shell.serviceFor` call: Omarchy scopes that lookup to the calling plugin.
 
-```qml
-Loader {
-  source: host ? host.componentUrl("blades/BladePopout.qml") : ""
-  onLoaded: {
-    item.host = Qt.binding(function() { return host })
-    item.services = Qt.binding(function() { return service.services })
-    item.moduleId = "kurt.goblin-images/goblin-images"
-    item.opened = Qt.binding(function() { return panel.open })
-    item.closeRequested.connect(function() { panel.open = false })
-  }
-}
+Enable FileBlade's bar entry, then choose the module in its widget settings:
+
+```sh
+omarchy plugin enable data-goblin.fileblade --section right
+omarchy-shell shell setBarWidget data-goblin.fileblade module '"publisher.name/module"' '{}'
+fileblade popout publisher.name/module
+fileblade popout
 ```
 
-FileBlade does not carry the widget itself. Omarchy reports every plugin with a
-`bar-widget` kind as enabled only while a bar layout entry names it, which would
-make the satellites' host guards see FileBlade as disabled. A companion that
-adds the kind runs into the same report, so FileBlade's catalog treats such a
-plugin as enabled when `shell.json` lists it under `plugins[]` or in a bar
-section and not under `disabledPlugins[]`; the module keeps working with or
-without the bar entry.
+The last two commands open and close the same popout. Clicking the bar icon opens
+its configured module; Escape or an outside click closes it and unloads the
+content. Opening gives the module keyboard focus. Width and height use the
+ordinary bar-widget settings. This integration requires the Omarchy plugin
+runtime; native standalone extensions use blades.
 
 ## Settings without QML
 

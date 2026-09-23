@@ -2305,18 +2305,18 @@
     {
       "id": "integrations/autostart",
       "title": "Register native autostart",
-      "summary": "Opt into the native autostart role to install an owned desktop entry for login. Disable the role to reverse its owned registration.",
+      "summary": "Opt into the native autostart role to install the login desktop entry. Its stable launcher starts FileBlade and restores the saved blade layout. Disable the role to reverse its owned registration.",
       "command": "fileblade native roles enable --role autostart\nfileblade native roles status --json",
-      "proof": "The disposable profile gains an owned autostart entry pointing at the stable launcher.",
+      "proof": "After the runtime is drained, GIO launches the installed autostart desktop entry and the real native Files blade returns.",
       "expectations": [
         "native_roles"
       ],
       "status": "verified",
       "evidence": {
-        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "source": "79930588b9957a17a316747b0df0c66ed42b3c6b",
         "duration_seconds": 5.966667,
-        "screenshot_sha256": "53228ed589c03b512e9f0b4afe29b85dd55dacd861e8d21ef56d7d6d8b9992b3",
-        "video_sha256": "6b6dc70c2e56c006312b1c10e4233fcec89473d916c3464c2b80d99edacc97d0",
+        "screenshot_sha256": "f10afefb2ba7b69b93084b9833e95a0eea0c2acf3b7d534995a5d702909b1761",
+        "video_sha256": "03fa711be12460c600a686000a0be8ea49de446a1301caf6e4e1eab3351f4f50",
         "full_decode": true,
         "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
         "resolution": [
@@ -2324,25 +2324,25 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Reviewed real frames at 0.8 and 4.8 seconds: visible UI and command results match the bounded feature proof and successful action assertion. Wallpaper, full wordmark and narrow blade are intact."
+        "review": "Reviewed actual production frames before and after the action, including the shortcut closed state. Wallpaper, full SVG wordmark, narrow blades and unchanged 32px watermark padding meet the evidence standard."
       },
-      "limitations": "The clip proves registration; it does not log out or restart the user's desktop."
+      "limitations": "Proves registration and a cold desktop-entry launch. A full logout/login transition was not performed; the user's active desktop remains untouched."
     },
     {
       "id": "integrations/bindings",
       "title": "Install blade keybindings",
-      "summary": "Opt into the native bindings role to install FileBlade's owned Hyprland include. Existing unrelated bindings are retained.",
+      "summary": "Opt into the native bindings role to install FileBlade's Hyprland include. Super+B opens, closes and refocuses the left blade; Super+Shift+B controls the right. The shipped include also works with the plugin runtime.",
       "command": "fileblade native roles enable --role bindings\nfileblade native roles status --json",
-      "proof": "The role reports its owned binding files and enabled state.",
+      "proof": "Actual Super+B input opens, closes and reopens the installed native blade.",
       "expectations": [
         "E-49-native-bindings"
       ],
       "status": "verified",
       "evidence": {
-        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
-        "duration_seconds": 5.966667,
-        "screenshot_sha256": "59246f588193f4dcb124eb507d93f5248568ed45feb9a28c2ab2f068680b9f21",
-        "video_sha256": "356af6dc84d1a2e79efb3599fe30c4de0976a2c5d31637a09837c959d5cd7f71",
+        "source": "79930588b9957a17a316747b0df0c66ed42b3c6b",
+        "duration_seconds": 5.333333,
+        "screenshot_sha256": "3e064cb5bd6fc4d8e24cc5fdad373bace1c0a36c9926d024428957ad8e2b37a3",
+        "video_sha256": "996ad781c12022d3f8ad2452605ddef800786d9e6ee3b98506b19749d4fb2574",
         "full_decode": true,
         "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
         "resolution": [
@@ -2350,9 +2350,9 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Reviewed real frames at 0.8 and 4.8 seconds: the visible registration, handoff, inventory, package or diagnostic result agrees with the page scope and real action assertion. Branding, wallpaper and blade proportions pass."
+        "review": "Reviewed actual production frames before and after the action, including the shortcut closed state. Wallpaper, full SVG wordmark, narrow blades and unchanged 32px watermark padding meet the evidence standard."
       },
-      "limitations": "The recording proves registration in a disposable profile, not activation in the working desktop's configuration."
+      "limitations": "Recorded in a separate local compositor using a virtual keyboard. The user's active desktop was not modified."
     },
     {
       "id": "integrations/folder-default",
@@ -2602,18 +2602,18 @@
     {
       "id": "delivery/plugin-install",
       "title": "Install the Omarchy plugin",
-      "summary": "The Omarchy plugin route remains available separately from native installation. Add the plugin, then explicitly enable it in the host.",
-      "command": "omarchy plugin add /path/to/fileblade --yes\nomarchy plugin enable data-goblin.fileblade",
-      "proof": "The local plugin candidate is added to the disposable host profile.",
+      "summary": "Install FileBlade through Omarchy, then enable it to load the real sidebar and its bar button. The native installation route is separate.",
+      "command": "omarchy plugin add https://github.com/data-goblin/fileblade.git\nomarchy plugin enable data-goblin.fileblade --section right",
+      "proof": "Enabling the installed plugin loads its Files blade and restores the saved folder.",
       "expectations": [
         "plugin_contract"
       ],
       "status": "verified",
       "evidence": {
-        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "source": "9f661d66dbe275e7710da436569deb06e2a5d194",
         "duration_seconds": 5.966667,
-        "screenshot_sha256": "9bc68d0be693f31337169c8eb637cdd7bbec4c7e86db488f8565afff6595fe79",
-        "video_sha256": "ae897ab99938fb739b810e0e8b1075b31b5ed57bdff8eb168fca60198f444b52",
+        "screenshot_sha256": "13e58aca92d8b45b7d4deb30e2bc62bda3b43a021cd8f4433c8cad214b94c055",
+        "video_sha256": "eb0f045b791f3abb5a6e7c4beca15bf78909b8b167877726ab606bb0597483f3",
         "full_decode": true,
         "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
         "resolution": [
@@ -2621,9 +2621,9 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Reviewed real frames at 0.8 and 4.8 seconds: action and result agree with the bounded proof. Wallpaper, full wordmark and blade geometry pass."
+        "review": "Reviewed actual production frames before and after the action, including the shortcut closed state. Wallpaper, full SVG wordmark, narrow blades and unchanged 32px watermark padding meet the evidence standard."
       },
-      "limitations": "The clip stops at installation and explicitly reports that enabling is still required. It does not prove plugin runtime loading."
+      "limitations": "The clip focuses on activation of a local committed candidate. Add, update, disable, remove and a fresh shell restart were checked separately in the same disposable production host."
     },
     {
       "id": "delivery/package",
@@ -2863,18 +2863,18 @@
     {
       "id": "integrations/popout",
       "title": "Open an extension bar popout",
-      "summary": "An extension bar button can open a FileBlade popout using the host component. The extension owns the content while FileBlade provides the popout surface.",
-      "command": "",
-      "proof": "The real Goblins bar widget opens its gallery popout.",
+      "summary": "FileBlade's Omarchy bar button opens a registered module in a popout. Choose the module in the bar widget settings; Escape or an outside click closes and unloads it.",
+      "command": "fileblade popout publisher.name/module\nfileblade popout",
+      "proof": "Clicking the actual FileBlade bar button opens the generated Sample extension in the production Omarchy shell.",
       "expectations": [
         "E-37"
       ],
       "status": "verified",
       "evidence": {
-        "source": "c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833",
+        "source": "9f661d66dbe275e7710da436569deb06e2a5d194",
         "duration_seconds": 5.733333,
-        "screenshot_sha256": "2e8a19be2f3962502ca0dce3001330d9d50e84f2fa2be137d690dbfc7806072f",
-        "video_sha256": "8137f6eb73bd32fdc5f00e74e341d91c7cfe3a752ad93a1d43cfd3f17b2ffed0",
+        "screenshot_sha256": "aa34d17a432d66434ea1dad87d3085f75ce2cf84b1b8a7eee738c5249166dd2d",
+        "video_sha256": "8e3643ee245d522f5d3267b354128b024d96ba81d69ca136252c1144d11f4600",
         "full_decode": true,
         "watermark": "full FileBlade SVG artwork, bottom-right, 32px visible padding",
         "resolution": [
@@ -2882,9 +2882,9 @@
           1440
         ],
         "max_blade_fraction": 0.3333333333333333,
-        "review": "Inspected the real capture at 0.8 and 4.8 seconds with successful behavior postconditions. Wallpaper, full SVG wordmark and blade width meet the standard. Popout is explicitly scoped to the qualification host; cancellation discloses partial results."
+        "review": "Reviewed actual production frames before and after the action, including the shortcut closed state. Wallpaper, full SVG wordmark, narrow blades and unchanged 32px watermark padding meet the evidence standard."
       },
-      "limitations": "This is component qualification through FileBlade's explicit harness. It does not establish ordinary native bar integration as release-ready."
+      "limitations": "Requires the Omarchy plugin runtime. Native extensions use blades. The generated extension is an explicit fixture; the host and registry are the real installed components."
     },
     {
       "id": "integrations/scaffolding",

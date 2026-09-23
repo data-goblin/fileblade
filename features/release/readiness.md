@@ -2,28 +2,39 @@ This file was written by an agent.
 
 # v0.2.0 release readiness
 
-**Not ready to publish.** Local code, the x86_64 package and native archive pass their checks. There are **112 feature guides with 112 reviewed screenshot/MP4 pairs**. The final release identity and qualification gates remain open.
-
-The latest complete gate, staged payload and packages identify review snapshot `298244cd58b89977411a35822bbf333c44c610de`. This candidate includes the SSH-alias retention fix found during real Omen testing. Its application code and backend match the working checkout. The earlier recordings retain their original source identities in the coverage manifest; Omen’s new capture identifies this corrected candidate. This is not a released main commit. Concurrent inventory changes were included and preserved.
+**The release candidate passes the local engineering gates.** Publication still
+requires the owner's exact-commit marketplace verification and release publication.
+There are **112 feature guides with 112 reviewed screenshot/MP4 pairs**.
 
 ## Confirmed checks
 
 | Check | Result |
 | --- | --- |
 | Complete local `tests/run` | Passed: 761 Rust checks and 832 QML checks |
-| Generated extension scaffolds | Passed |
-| Native theme replacement and return | Passed |
+| Generated extensions and native theme reload | Passed |
 | Bundled backend | Source, checksum, static linkage and byte-identical rebuild passed |
-| Corrected native payload | Staged, verified and installed in the disposable capture profile |
-| Arch package | Built; extracted payload identity verified |
-| Native archive and `latest.json` | Built; checksum, version and extracted payload verified |
-| Feature artifact gate | 112/112 pass |
+| Native install and removal | Verified payload installed; owned roles restored; runtime removed |
+| Real Omarchy plugin lifecycle | Add, activate, disable, update, remove and fresh shell restart passed |
+| Bar popout | Registered extension loaded through FileBlade's own production bar widget; clicks, Escape, repeat, refusal and teardown passed |
+| Shipped Hyprland bindings | Actual Super+B opened and closed blades in both native and plugin mode |
+| Native autostart | Installed desktop entry cold-launched through GIO and restored the real tree |
+| Folder and Reveal | GIO folder handoff and automatically activated FileManager1 selected the requested file |
+| File chooser | Real portal frontend/backend activation; completed response 0 with the selected file URI |
+| Desktop-role reversal | All five roles restored their owned entries without leftovers |
 | Real Omen SFTP | Connect, refresh, list 230 entries and disconnect passed; separate live regression passed |
-| Visual evidence | 2560×1440, 5.47–7.93 seconds, wallpaper visible, full SVG artwork, equal 32px padding, each blade below one-third |
-| Desktop isolation | Separate local Hyprland compositor on workspace 9; owned processes stopped and fixture removed |
-| VM qualification | Not run, at the owner's explicit instruction |
+| Feature artifacts | 112/112 pass; 2560×1440, 4–8 seconds, original speed |
+| Branding and framing | Wallpaper, original full SVG artwork, equal visible 32px padding; each blade below one-third |
+| Isolation | Separate local Hyprland desktop on workspace 9 with private HOME, XDG paths and D-Bus |
+| VM qualification | Skipped at the owner's explicit instruction |
 
-The complete gate log is retained locally at `target/release-review/omen/full-gate.log`. The candidate is `target/release-review/omen-payload`; package and release-archive outputs are in `target/release-review/omen-package` and `target/release-review/omen-release-assets`. `target/release-review/final-artifacts.json` records their identities. These are local artifacts, not published release assets. Raw recordings, prior exports and capture provenance are retained in `target/feature-evidence/`.
+The complete code-gate log is retained locally at
+`target/release-review/ready-full-gate.log`. Production integration receipts and
+new recordings are in `target/feature-evidence/release/`. The final release
+artifact receipt, `target/release-review/final-artifacts.json`, binds the clean
+main commit to the staged payload, archive and package. Older recording source
+identities remain in the [coverage manifest](../catalog.json); they are not
+silently relabelled as captures of the final commit. Raw takes and prior exports
+are retained locally.
 
 ## Defects fixed during review
 
@@ -42,19 +53,36 @@ The complete gate log is retained locally at `target/release-review/omen/full-ga
 | tmux pane actions lost named socket identity | Discovery retains client socket selection and native socket metadata; real PTY and compositor regressions passed |
 | Refresh discarded connections made through a validated tailnet SSH alias | Canonical hosts and currently validated aliases share retention rules; real Omen regression and native pane passed |
 | Deep snapshot roots confused an inventory regression | The regression supplies its explicit application root |
+| Extension popouts relied on an unavailable foreign service lookup | FileBlade owns its bar entry and uses Omarchy's self-scoped service API; real registered extension passed |
+| A loaded popout did not receive keyboard focus | Shared focus transfer and Escape dismissal; installed-session regression passed |
+| Shipped bindings always targeted the native shell | Shared public CLI routing; actual plugin and native shortcuts passed |
 
 The tmux regression covers separate and joined `-L` arguments, explicit and relative `-S` paths, and a custom `TMUX_TMPDIR`. The source-contract assertion was updated to recognize the corrected picker expression; the final complete gate passed afterward.
 
-## Remaining release gates
+## Evidence boundaries and publication
 
-- Qualify production integration where evidence is intentionally narrower: some desktop-role clips show registration; the popout uses its qualification host; the legacy plugin clip shows installation without activation. The portal and Reveal clips do include real completed handoffs. Recovery and migration use disclosed fixtures.
-- Review the prepared root README patch. The repository explicitly reserves that file for the owner; it remains unapplied pending authorization.
-- Schedule replacement of the working installation and shell restart. Installation drains the active runtime, so these remain pending under the later instruction not to interrupt the session. The corrected candidate was installed only in the disposable profile.
-- Select the final main commit and bind release verification to that exact SHA. Recheck changes made after this snapshot. No release, tag, push or marketplace post was made during this review.
-- Qualify and publish the intended distribution assets. The x86_64 candidates are local and must identify the final release commit.
+- The bar popout is a plugin-mode integration. Native extensions open in blades.
+- Autostart proves the installed desktop entry starts the real runtime. It does
+  not claim a complete logout/login transition.
+- Recovery and migration use disclosed fixtures. Short clips prove their named
+  workflows, not every possible input or failure condition.
+- Omen evidence is read-only and specific to the authorized peer and directory.
+- The working desktop was not restarted or reinstalled during background
+  qualification. The isolated desktop used real installed components.
+- The root installation guide is updated under the owner's instruction to
+  complete these release tasks.
+- Publishing, tagging and marketplace verification remain separate from local
+  readiness. Release from `main`, name its full SHA in the Plugin verification
+  issue, and keep that commit fixed throughout review. No marketplace post was
+  made by the agent; repository instructions reserve that step for the owner.
 
-The [coverage manifest](../catalog.json) is authoritative about each recording's source, hashes, review and limits. `python3 tests/feature_evidence.py` passes for all 112 workflows. [Omen’s SFTP proof](../integrations/sftp.md) is read-only; connection, refresh and disconnect were checked separately from the 5.97-second browsing clip.
+The marketplace's [submission requirements](https://github.com/omacom/omarchy-plugin-marketplace/blob/main/SUBMISSION.md)
+require commit-specific verification. The earlier
+[verification issue](https://github.com/omacom/omarchy-plugin-marketplace/issues/7339)
+does not verify this candidate.
 
-The marketplace requires commit-specific verification; the existing [verification issue](https://github.com/omacom/omarchy-plugin-marketplace/issues/7339) concerns the older release. See the [submission requirements](https://github.com/omacom/omarchy-plugin-marketplace/blob/main/SUBMISSION.md), [v0.1.3 assets](https://github.com/data-goblin/fileblade/releases/tag/v0.1.3).
-
-Jev classified the updated facts as `locally_validated_release_blocked` (1.00), the bounded catalogue evidence as complete (1.00), and SFTP’s placement beside tailnet discovery under integrations as appropriate (1.00). These classify supplied evidence; they are not measured probabilities of release success. The [decision record](decisions.md) preserves the distributions and limitations.
+Jev classified the new runtime checks as `production_paths_exercised` (1.00),
+autostart as `desktop_entry_launch` (0.98), and the popout as a
+`plugin_integration` (1.00). These classify the supplied facts; they are not
+measured probabilities of release success. The [decision record](decisions.md)
+retains all distributions and the earlier, superseded limitations.

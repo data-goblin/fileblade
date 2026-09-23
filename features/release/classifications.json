@@ -754,6 +754,76 @@
           "output_tokens": 185
         }
       }
+    },
+    {
+      "id": "popout-production-update",
+      "context": "Current Omarchy service lookup is self-scoped. FileBlade owns the service and existing BladePopout. A FileBlade-owned plugin bar entry reuses those components; native extensions remain in blades.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "repair_scope": {
+            "type": "choice",
+            "choice": "own_plugin_bar_entry",
+            "confidence": 1.0,
+            "probabilities": {
+              "need_more_context": 0.0,
+              "new_cross_process_protocol_required": 0.0,
+              "none": 0.0,
+              "own_plugin_bar_entry": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 681,
+          "output_tokens": 58
+        }
+      }
+    },
+    {
+      "id": "production-production-update",
+      "context": "Real isolated installed-plugin lifecycle, registered extension popout, keyboard and mouse dismissal, both runtime shortcuts, GIO autostart/folder, automatically activated Reveal and chooser, and role reversal passed. Autostart did not perform a logout/login transition.",
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "production_scope": {
+            "type": "choice",
+            "choice": "production_paths_exercised",
+            "confidence": 1.0,
+            "probabilities": {
+              "production_paths_exercised": 1.0,
+              "need_more_context": 0.0,
+              "none": 0.0,
+              "registration_only": 0.0
+            }
+          },
+          "autostart_claim": {
+            "type": "choice",
+            "choice": "desktop_entry_launch",
+            "confidence": 0.97,
+            "probabilities": {
+              "none": 0.02,
+              "need_more_context": 0.0,
+              "desktop_entry_launch": 0.98,
+              "complete_login_transition": 0.0
+            }
+          },
+          "popout_group": {
+            "type": "choice",
+            "choice": "plugin_integration",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "native_integration": 0.0,
+              "plugin_integration": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 992,
+          "output_tokens": 165
+        }
+      }
     }
   ]
 }

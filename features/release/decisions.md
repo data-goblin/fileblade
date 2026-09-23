@@ -124,3 +124,31 @@ The corrected candidate passed the complete gate: 761 Rust and 832 QML checks, s
 | grouping | `integrations_with_tailnet` | 1.00 | 1.00 |
 
 All alternatives for these three questions, including `none` and `need_more_context`, received 0.00. This closes the catalogue’s final missing media pair: 112/112 workflows now have reviewed evidence. Remaining release identity, production qualification and desktop-installation gates still apply. The clip proves opening an already authorized read-only SFTP connection; other remote operations and other peers are outside its claim.
+
+## Production integration update
+
+The real installed Omarchy plugin now loads an extension through FileBlade's
+own bar widget and the self-scoped host API. Add, activate, disable, update,
+remove and a fresh shell restart passed. The shared popout now focuses its
+module; actual bar click, Escape, outside click, repetition, invalid-module
+refusal and unloading passed. Native and plugin shortcuts both work.
+
+GIO cold-launched the installed autostart entry and opened a folder in the
+native view. D-Bus automatically activated FileManager1 for Reveal and the
+actual desktop portal/backend for the chooser; the chooser returned response
+0 and the chosen file URI. All desktop roles reversed cleanly.
+
+| Question | Chosen class | Probability | Confidence |
+| --- | --- | ---: | ---: |
+| repair_scope | `own_plugin_bar_entry` | 1.00 | 1.00 |
+| production_scope | `production_paths_exercised` | 1.00 | 1.00 |
+| autostart_claim | `desktop_entry_launch` | 0.98 | 0.97 |
+| popout_group | `plugin_integration` | 1.00 | 1.00 |
+
+Autostart's registration-only alternative received 0.02; full-login and
+insufficient-context alternatives received 0.00. Every alternative to the
+other chosen labels received 0.00. These results supersede the earlier
+component-only popout, registration-only desktop-role and installation-only
+plugin classifications. Native cross-process bar integration and a full login
+transition are not claimed. Exact public-commit verification and publication
+remain owner-controlled steps.

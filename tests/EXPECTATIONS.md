@@ -1140,7 +1140,7 @@ is maintained separately.
   labels stay hidden. Clicking a nonempty hourly bar seeks its photos without
   changing the selection; going up restores daily counts. Dates without a
   known time never count as midnight photos.
-- **E-37-06** A bar widget that names the module opens the whole module in a
+- **E-37-06** FileBlade's plugin-mode bar widget configured with the module opens it in a
   dropdown under its icon, with the same header, search, chips, grid and
   timeline; Escape or an outside click closes it, and the blade copy of the
   module is unaffected.
@@ -1260,9 +1260,10 @@ This file was written by an agent.
 1. **E-41-01** In the native app I can open Files, Properties, Notes, Welcome,
    Skills, Memory, Hooks and MCP as blade tabs. Each draws its content without
    an import error or an unavailable-module notice.
-2. **E-41-02** With the Goblins companion available, clicking its bar widget
-   opens the image module in a popout. Its content loads without an error
-   notice, and Escape closes the popout.
+2. **E-41-02** The historical native component harness can load a Goblins
+   popout through its fixture bar. Production bar popouts are qualified in the
+   Omarchy plugin runtime by `tests/plugin_popout_live.py`; native mode does not
+   expose a cross-process bar widget.
 
 ## 42. Native section and tab placement
 
@@ -1945,3 +1946,19 @@ This file was written by an agent.
 ## Tailnet SSH aliases
 
 After connecting to a discovered tailnet peer through its configured SSH alias, refreshing Drives or opening the connected SFTP directory preserves the connection and lists the remote entries. The connection remains limited to the currently discovered peer and its validated SSH alias. Disconnect invalidates the old session.
+
+This file was written by an agent.
+
+## Release desktop integration
+
+- The real Omarchy plugin installs, activates, updates and survives a shell restart.
+  Disabling it removes its UI; re-enabling restores its saved folder and layout.
+- FileBlade's own bar button opens a registered module. The popout receives keyboard
+  focus; Escape and outside clicks close it and release the module instance.
+  An unknown module fails without replacing the current content. This bar widget
+  belongs to the plugin runtime.
+- The shipped Hyprland bindings control both plugin and native blades. Desktop
+  roles preserve unrelated configuration and reverse only their own entries.
+- Autostart launches the installed stable entry. Folder and Reveal handoffs reach
+  the existing native view; D-Bus activation starts the registered Reveal and
+  chooser services when they are not already running.

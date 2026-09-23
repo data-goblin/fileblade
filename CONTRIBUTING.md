@@ -188,3 +188,14 @@ Read [SECURITY.md](SECURITY.md) before changing `src/filesystem/`, `src/operatio
 `src/trash/`, `src/secure/`, or the IPC handlers in
 `controllers/FileTreeIpc.qml`. Report vulnerabilities privately as described
 there, not in a public issue.
+
+This file was written by an agent.
+
+### Installed popout regression
+
+With a registered module and FileBlade's bar entry enabled in a disposable
+Omarchy session, run `python3 tests/plugin_popout_live.py publisher.name/module
+--confirm-isolated-session`. It exercises the actual plugin, repeated loading,
+invalid-module refusal, keyboard focus, Escape, and content teardown. The command
+sends input to the current Wayland session; provide the isolated session's
+`HOME`, XDG paths, `WAYLAND_DISPLAY`, D-Bus address and Hyprland instance.

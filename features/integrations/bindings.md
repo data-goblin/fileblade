@@ -2,21 +2,21 @@ This file was written by an agent.
 
 # Install blade keybindings
 
-Opt into the native bindings role to install FileBlade's owned Hyprland include. Existing unrelated bindings are retained.
+Opt into the native bindings role to install FileBlade's Hyprland include. Super+B opens, closes and refocuses the left blade; Super+Shift+B controls the right. The shipped include also works with the plugin runtime.
 
 ```sh
 fileblade native roles enable --role bindings
 fileblade native roles status --json
 ```
 
-Demonstration: The role reports its owned binding files and enabled state.
+Demonstration: Actual Super+B input opens, closes and reopens the installed native blade.
 
-The recording proves registration in a disposable profile, not activation in the working desktop's configuration.
+Recorded in a separate local compositor using a virtual keyboard. The user's active desktop was not modified.
 
 Evidence reviewed.
 
 ![Install blade keybindings](bindings.png)
 
-[Watch the focused demonstration](bindings.mp4) (5.97 seconds; muted, original speed).
+[Watch the focused demonstration](bindings.mp4) (5.33 seconds; muted, original speed).
 
-Capture source: `c3e48bbee4f8e6c5adf0e12a3b1781ed6f6af833`. See the [evidence standard](../evidence.md) and [coverage](../catalog.json).
+Capture source: `79930588b9957a17a316747b0df0c66ed42b3c6b`. See the [evidence standard](../evidence.md) and [coverage](../catalog.json).

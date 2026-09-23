@@ -41,13 +41,13 @@ and the dependencies in [the runtime contract](packaging/runtime.json).
 
 Pick one of three routes.
 
-**As an Omarchy plugin**, which is what most people want:
+**As an Omarchy plugin:**
 
 ```bash
 OMARCHY_SHELL_IPC_TIMEOUT=10s omarchy plugin add https://github.com/data-goblin/fileblade.git --enable
 ```
 
-**As a native app, from the terminal**, the same shape as `herdr`:
+**As a native app:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/data-goblin/fileblade/main/install.sh | sh
@@ -59,29 +59,29 @@ advertised version, verifies the payload inventory, and installs to
 See [build provenance](docs/agent-written/build-provenance.md) for independent
 artifact verification. Set `FILEBLADE_INSTALL_MANIFEST` to use a mirror or a local file.
 
-**From a package**, once FileBlade is published to a repository you have
-enabled:
+**From a release package:** download the x86-64 package from
+[Releases](https://github.com/data-goblin/fileblade/releases), then install it:
 
 ```bash
-pacman -S fileblade-native
+sudo pacman -U ./fileblade-native-0.2.0-1-x86_64.pkg.tar.zst
 ```
 
-Then, whichever route you took:
+For the **plugin**, restart the shell after installation with `omarchy restart
+shell`. Its bar button opens a Notes popout. Add the contents of
+[`examples/fileblade-bindings.lua`](examples/fileblade-bindings.lua) to your
+existing `~/.config/hypr/bindings.lua`, then run `hyprctl reload`.
 
-1. Restart the shell after installation finishes:
+For the **native app**, run `fileblade` to open it. Desktop roles start disabled;
+enable only the ones you want in Settings → Desktop integration, or through the CLI:
 
-   ```bash
-   omarchy restart shell
-   ```
+```bash
+fileblade native roles enable --role bindings
+fileblade native roles enable --role autostart
+```
 
-2. Add the contents of [`examples/fileblade-bindings.lua`](examples/fileblade-bindings.lua)
-   to your existing `~/.config/hypr/bindings.lua`, then run `hyprctl reload`.
-
-3. Press `Super+B` or `Super+Shift+B` to open a sidebar.
-
-4. Hold `Super` and drag with the right mouse button over a docked blade to
-   resize it, the same gesture that resizes a window. Over anything else the
-   gesture still resizes the window underneath.
+With the bindings installed, `Super+B` and `Super+Shift+B` open the left and right
+blade. Hold `Super` and drag with the right mouse button over a docked blade to
+resize it. The same gesture over a window resizes that window.
 
 To remove the Omarchy plugin, remove its extensions first, then run:
 
@@ -100,8 +100,8 @@ For a package installation, use `pacman -R fileblade-native`. Your layout,
 settings, history and recoverable bins are retained. Native removal reverses
 owned desktop roles; remove any manually added bindings separately.
 
-FileBlade has a plugin system via [extensions](EXTENSIONS.md), which are
-separate Omarchy plugins. Skills, Memory, Hooks and MCP used to be example
+FileBlade loads [extensions](EXTENSIONS.md) from native extension directories
+or enabled Omarchy plugins, depending on the runtime. Skills, Memory, Hooks and MCP used to be example
 extensions; they are built into core since 0.2.0 and need no separate install.
 
 ![Omarchy, FileBlade and FileBlade extensions](assets/docs/fileblade-extensions-simple.svg)
