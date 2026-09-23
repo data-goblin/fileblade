@@ -2,8 +2,8 @@ This file was written by an agent.
 
 # v0.2.0 release readiness
 
-**The release candidate passes the local engineering gates.** Publication still
-requires the owner's exact-commit marketplace verification and release publication.
+**FileBlade 0.2.0 is ready to release as a native Omarchy application.**
+The native engineering and artifact checks pass. Publication has not been performed.
 There are **113 feature guides with 113 reviewed screenshot/MP4 pairs**.
 
 ## Confirmed checks
@@ -31,8 +31,9 @@ The complete code-gate log is retained locally at
 `target/release-review/media-sort-full-gate.log`. Production integration receipts and
 new recordings are in `target/feature-evidence/release/`; media ordering proof is
 in `target/feature-evidence/media-sort/`. The final release
-artifact receipt, `target/release-review/final-artifacts.json`, binds the clean
-main commit to the staged payload, archive and package. Older recording source
+artifact receipt, `target/release-review/final-artifacts.json`, binds the recorded
+runtime source commit to the staged payload, archive and package. Later readiness
+documentation corrections do not change those verified artifacts. Older recording source
 identities remain in the [coverage manifest](../catalog.json); they are not
 silently relabelled as captures of the final commit. Raw takes and prior exports
 are retained locally.
@@ -74,15 +75,15 @@ The tmux regression covers separate and joined `-L` arguments, explicit and rela
   qualification. The isolated desktop used real installed components.
 - The root installation guide is updated under the owner's instruction to
   complete these release tasks.
-- Publishing, tagging and marketplace verification remain separate from local
-  readiness. Release from `main`, name its full SHA in the Plugin verification
-  issue, and keep that commit fixed throughout review. No marketplace post was
-  made by the agent; repository instructions reserve that step for the owner.
+- This release distributes the native application. Plugin marketplace verification
+  is not a release requirement. Optional plugin compatibility checks do not change
+  the native distribution's release gates.
+- Publishing the native package, archive and version tag remains the release action.
+  The prepared artifacts retain their verified source identities and hashes.
 
-The marketplace's [submission requirements](https://github.com/omacom/omarchy-plugin-marketplace/blob/main/SUBMISSION.md)
-require commit-specific verification. The earlier
-[verification issue](https://github.com/omacom/omarchy-plugin-marketplace/issues/7339)
-does not verify this candidate.
+The earlier assessment incorrectly applied the plugin marketplace workflow to
+the native application. That assessment is superseded by the owner's explicit
+native release scope. There are no known unresolved product blockers from this review.
 
 Jev classified the new runtime checks as `production_paths_exercised` (1.00),
 autostart as `desktop_entry_launch` (0.98), and the popout as a

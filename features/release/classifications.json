@@ -1070,6 +1070,75 @@
           "output_tokens": 112
         }
       }
+    },
+    {
+      "id": "native-release-scope-correction",
+      "supersedes": "final-readiness",
+      "context": {
+        "task": "Correct FileBlade 0.2.0 release readiness after the owner clarified native application scope",
+        "facts": [
+          "Kurt explicitly states that 0.2.0 is a full native Omarchy application and does not require plugin marketplace verification.",
+          "The actual native runtime has its own launcher, process authority, XDG desktop roles, versioned payload installer, package and downloadable archive. These were built and verified locally.",
+          "The complete gate passed 761 Rust checks and 832 QML checks, reproducible backend verification and all 113 feature evidence pairs. Real installed native integration, Omen SFTP and final archive installation/removal including the long-state-path regression passed. No known unrepaired product blocker remains.",
+          "Optional legacy plugin compatibility was also checked, but this release is not a plugin marketplace publication. AGENTS places its verification-issue rule under Omarchy plugin marketplace; Kurt's explicit current scope takes precedence.",
+          "The assistant incorrectly described a marketplace verification issue as a mandatory remaining native release gate and wrote that incorrect requirement into readiness docs and a local owner handoff. No public issue, push, tag or release was created.",
+          "Only readiness prose and historical decision records need correction. Runtime code, binaries, package contents and recorded test evidence remain unchanged. Prepared native artifacts identify runtime source 7a2f39cfadffbd43fef40526f0898b6c2a3f3bbb."
+        ],
+        "preferences": [
+          "Use the owner's explicit native release scope. Classify the reasoning error and current measured state; do not request permission or authorize publication."
+        ]
+      },
+      "questions": {
+        "gate_error": {
+          "instructions": "Which category describes applying the marketplace issue requirement to this release?",
+          "criteria": {
+            "misapplied_plugin_gate": "A plugin distribution requirement was incorrectly applied to the native application release",
+            "native_product_blocker": "A real unresolved native application defect requires marketplace verification",
+            "none": "The earlier gate already correctly matches the owner's native scope",
+            "need_more_context": "Insufficient evidence"
+          }
+        },
+        "readiness": {
+          "instructions": "Which readiness state matches the native release evidence?",
+          "criteria": {
+            "ready_to_publish_native": "Native release engineering gates pass; publishing remains an action, not an unpassed engineering gate",
+            "native_checks_incomplete": "Required native checks remain incomplete",
+            "none": "No change to the earlier blocked classification is warranted",
+            "need_more_context": "Insufficient evidence"
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.13.0",
+        "answers": {
+          "gate_error": {
+            "type": "choice",
+            "choice": "misapplied_plugin_gate",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "native_product_blocker": 0.0,
+              "misapplied_plugin_gate": 1.0
+            }
+          },
+          "readiness": {
+            "type": "choice",
+            "choice": "ready_to_publish_native",
+            "confidence": 1.0,
+            "probabilities": {
+              "none": 0.0,
+              "need_more_context": 0.0,
+              "native_checks_incomplete": 0.0,
+              "ready_to_publish_native": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 840,
+          "output_tokens": 117
+        }
+      }
     }
   ]
 }

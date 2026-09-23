@@ -150,8 +150,8 @@ insufficient-context alternatives received 0.00. Every alternative to the
 other chosen labels received 0.00. These results supersede the earlier
 component-only popout, registration-only desktop-role and installation-only
 plugin classifications. Native cross-process bar integration and a full login
-transition are not claimed. Exact public-commit verification and publication
-remain owner-controlled steps.
+transition are not claimed. This assessment originally included a marketplace
+step; the native release scope correction below supersedes that requirement.
 
 ## Final integration corrections
 
@@ -170,7 +170,20 @@ Resolving its already-ported files preserved the reviewed candidate tree.
 ## Readiness after final corrections
 
 Jev classified the measured engineering state as `local_candidate_passes`
-(1.00) and publication as `owner_publication_pending` (1.00). This separates
-passing local engineering evidence from a publicly published and verified
-commit. Final artifact identities and the installation/removal result are
+(1.00) and publication as `owner_publication_pending` (1.00). That classification
+used an incorrect marketplace prerequisite, corrected below. Final artifact
+identities and the installation/removal result are
 bound in `target/release-review/final-artifacts.json`.
+
+## Native release scope correction
+
+The owner clarified that FileBlade 0.2.0 is a native Omarchy application and
+does not require plugin marketplace verification. The earlier release assessment
+applied the wrong distribution workflow. Native code, installed integration,
+all 113 feature proofs, and final archive/package checks have passed.
+
+With that corrected context, Jev classified the mistake as
+`misapplied_plugin_gate` (1.00) and readiness as `ready_to_publish_native` (1.00).
+The native release is ready to publish. Publication is the remaining action;
+there is no pending marketplace gate. The historical classifier responses are
+retained with this explicit correction rather than treated as current requirements.
