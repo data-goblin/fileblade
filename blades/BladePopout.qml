@@ -33,6 +33,12 @@ FocusScope {
 
   signal closeRequested()
 
+  Keys.onEscapePressed: function(event) {
+    closeRequested()
+    event.accepted = true
+  }
+  onActiveFocusChanged: if (activeFocus && loader.item) focusModule("")
+
   function setState(key, value) {
     var next = ({})
     var keys = Object.keys(popoutState)
@@ -107,6 +113,7 @@ FocusScope {
     id: loader
     anchors.fill: parent
     focus: true
+    onLoaded: if (popoutHost.opened) Qt.callLater(popoutHost.focusModule, "")
   }
 
   Text {
