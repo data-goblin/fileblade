@@ -2,6 +2,8 @@ This file was written by an agent.
 
 # FileBlade release notes
 
+## 0.3.0 (unreleased)
+
 ## 0.2.0
 
 **Prepared; not published.** The installation URLs below become available after publication.
