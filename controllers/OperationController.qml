@@ -117,6 +117,20 @@ Item {
     return true
   }
 
+  function copyText(text) {
+    var value = String(text === undefined || text === null ? "" : text)
+    if (!value) return false
+    if (value.length > 65536) {
+      controller.error = "That text is too long to copy"
+      return false
+    }
+    service.backendRequest("clipboard-plain", [], Date.now(), function(response) {
+      if (response && response.ok) controller.notice = "Copied"
+      else controller.error = String(response && response.error || "Unable to copy the text")
+    }, null, undefined, { input: value })
+    return true
+  }
+
   function clearClipboard() {
     var pendingId = pendingExternalOperationId
     if (externalRequestId) {

@@ -16,9 +16,13 @@ FocusScope {
   required property var controller
   required property var hostWindow
   property var context: null
+  property var properties: null
   property bool focusEnabled: true
+  readonly property var subject: properties && properties.active ? properties.subject : null
+  readonly property bool subjectActive: subject !== null
+  readonly property var subjectPaneActions: ["help", "location", "search", "focus-next", "focus-previous", "dismiss", "tree", "close"]
   PluginUi.ActionKeyGuard { id: actionKeys; active: root.activeFocus; shared: root.hostWindow ? root.hostWindow.actionKeys : null }
-  PluginUi.TreeKeys { id: treeKeys; active: scroller.activeFocus; scope: "properties"; plan: controller.keybindings.plan }
+  PluginUi.TreeKeys { id: treeKeys; active: scroller.activeFocus || subjectView.activeFocus; scope: "properties"; plan: controller.keybindings.plan }
   Keys.onReleased: function(event) { actionKeys.release(event) }
 
   function targetScreen() {
@@ -26,7 +30,28 @@ FocusScope {
   }
 
   function forcePaneFocus() {
-    if (focusEnabled) scroller.forceActiveFocus()
+    if (!focusEnabled) return
+    if (subjectActive) subjectView.takeFocus()
+    else scroller.forceActiveFocus()
+  }
+
+  onSubjectActiveChanged: if (root.activeFocus) Qt.callLater(forcePaneFocus)
+
+  function handleSubjectKey(event) {
+    var repeated = actionKeys.isRepeat(event)
+    event.accepted = true
+    if (event.key === Qt.Key_Y && event.modifiers === Qt.NoModifier) {
+      if (!repeated) subjectView.copyCurrent()
+      return
+    }
+    var idle = { actionable: false, count: 0, deleted: false, directory: false }
+    var file = { actionable: true, count: 1, deleted: false, directory: false }
+    var action = treeKeys.action(event, repeated, KeyRouter.propertyAction(event, idle) || KeyRouter.propertyAction(event, file))
+    if (action === "") { event.accepted = false; return }
+    if (action.indexOf("key-") === 0) return
+    if (KeyRouter.ignoresAutoRepeat(action, event.key) && repeated) return
+    if (subjectView.runAction(action)) return
+    if (subjectPaneActions.indexOf(action) >= 0) runKeyAction(action)
   }
 
   function returnToTree() {
@@ -105,6 +130,7 @@ FocusScope {
   }
 
   function handleKey(event) {
+    if (subjectActive) return handleSubjectKey(event)
     var state = {
       actionable: actionableEntry,
       count: controller.selectedCount,
@@ -438,7 +464,7 @@ FocusScope {
     reservedLeft: root.context ? root.context.cornerReserveLeft : 0
     reservedRight: root.context ? root.context.cornerReserveRight : 0
     highlighted: root.activeFocus
-    status: controller.metadataBusy ? "Reading…" : ""
+    status: root.subjectActive ? root.properties.ownerName : (controller.metadataBusy ? "Reading…" : "")
   }
 
   Image {
@@ -456,7 +482,7 @@ FocusScope {
   MultiEffect {
     source: emptyLogo
     anchors.fill: emptyLogo
-    visible: !root.hasSelection && emptyLogo.status === Image.Ready
+    visible: !root.hasSelection && !root.subjectActive && emptyLogo.status === Image.Ready
     colorization: 1
     colorizationColor: Color.muted
   }
@@ -470,6 +496,7 @@ FocusScope {
     contentWidth: width
     contentHeight: content.implicitHeight + Style.space(18)
     clip: true
+    visible: !root.subjectActive
     boundsBehavior: Flickable.StopAtBounds
     interactive: !filePreview.hovered
     Keys.onPressed: function(event) { root.handleKey(event) }
@@ -643,6 +670,25 @@ FocusScope {
           }
         }
       }
+    }
+  }
+
+  PropertiesSubject {
+    id: subjectView
+    anchors.top: header.bottom
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    visible: root.subjectActive
+    subject: root.subject
+    properties: root.properties
+    files: root.controller
+    targetScreen: root.targetScreen()
+    surfaceColor: root.paneBackground
+    onKeyPressed: function(event) { root.handleKey(event) }
+    onFocusRequested: {
+      if (root.context) root.context.requestFocus("")
+      else root.forcePaneFocus()
     }
   }
 

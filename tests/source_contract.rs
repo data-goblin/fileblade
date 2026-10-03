@@ -2072,7 +2072,9 @@ fn script_action_rows_render_plain_text_and_reach_the_controller_through_the_ser
     assert!(controller.contains("import \"../lib/ActionRows.js\" as ActionRows"));
     assert!(!controller.contains("Process"));
     let service = text(&root.join("Service.qml"));
-    assert!(service.contains("var map = ({ files: service, actions: actionController })"));
+    assert!(service.contains(
+        "var map = ({ files: service, actions: actionController, properties: propertiesController })"
+    ));
     assert!(
         service.contains(
             "for (var i = 0; i < ids.length; i++) if (!map[ids[i]]) map[ids[i]] = supplied[ids[i]]"
@@ -2499,4 +2501,37 @@ fn no_test_mutates_files_in_process_where_the_journal_is_the_developers_own() {
         offenders.is_empty(),
         "a mutating operation called in the test process records into the real journal and lands in the developer's undo history; run it through the isolated backend instead: {offenders:?}"
     );
+}
+
+#[test]
+fn module_subjects_in_properties_are_bounded_plain_text_and_owned_by_their_view() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let controller = text(&root.join("controllers/PropertiesController.qml"));
+    assert!(controller.contains("signal actionTriggered(string ownerModuleId, string actionId)"));
+    assert!(controller.contains("var normalized = PropertiesSubject.normalize(value)"));
+    assert!(controller.contains("property QtObject owner: null"));
+    assert!(controller.contains("function onRetiredChanged()"));
+    assert!(controller.contains("function onChosen()"));
+    let view = text(&root.join("panes/PropertiesSubject.qml"));
+    assert!(
+        !view.contains("Text.RichText") && !view.contains("Text.StyledText"),
+        "module subjects never render markup"
+    );
+    let texts = view.matches("Text {").count();
+    let plain = view.matches("textFormat: Text.PlainText").count();
+    assert_eq!(texts, plain, "every subject Text is plain text");
+    for forbidden in [
+        "Qt.openUrlExternally",
+        "Process",
+        "execDetached",
+        "clipboardText",
+    ] {
+        assert!(!view.contains(forbidden), "{forbidden}");
+    }
+    assert!(view.contains("files.openUrl(openedLink, targetScreen)"));
+    assert!(view.contains("files.copyText(field.text)"));
+    let pane = text(&root.join("panes/PropertiesPane.qml"));
+    assert!(pane.contains("if (subjectActive) return handleSubjectKey(event)"));
+    let launch = text(&root.join("src/hyprland/launch.rs"));
+    assert!(launch.contains("matches!(parsed.scheme(), \"http\" | \"https\")"));
 }

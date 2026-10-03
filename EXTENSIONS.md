@@ -177,7 +177,9 @@ settings (from the definition's schema):
   context.category:                       the normalized definition's category
 shared services:
   context.service("files"):               the files controller: selectedPath, rootPath, contextPath, projectRoot, openInEditor(path),
-                                          openDefault(path, targetScreen?, isDir?), revealInFileManager(path, isDir, targetScreen?)
+                                          openDefault(path, targetScreen?, isDir?), revealInFileManager(path, isDir, targetScreen?),
+                                          openUrl(url, targetScreen?), copyText(text)
+  context.service("properties"):          show your own selected item in the Properties pane; see "Showing an item in Properties"
   context.providerService:                your contributing extension's singleton service, or null
   context.service(providerId):            a registered provider runtime, or null
 focus:
@@ -324,6 +326,112 @@ module that uses those matches the current Omarchy theme for free. Have a
 look at `modules/notes/Module.qml` for a small real one and
 `modules/files/Module.qml` for the full-fat version with settings and
 shortcuts.
+
+## Showing an item in Properties
+
+This file was written by an agent.
+
+A module whose rows are not files (a Fabric item, a Unity Catalog table, a job)
+can still use the Properties pane. Feature-detect the service and keep a small
+detail block of your own for hosts without it:
+
+```qml
+readonly property var properties: context.service("properties")
+
+function publish(item) {
+  if (!properties) return false
+  return properties.inspect(context, {
+    title: item.name,
+    subtitle: item.type + " in " + item.workspace,
+    glyph: item.glyph,
+    glyphFamily: "FabricSymbols NF",
+    color: "#e8a33d",
+    fields: [
+      { label: "Workspace", value: item.workspace, kind: "text" },
+      { label: "Description", value: item.description, kind: "multiline" },
+      { label: "Tags", value: item.tags, kind: "tags" },
+      { label: "Portal", value: item.url, kind: "link" },
+      { label: "Path", value: item.path, kind: "code" }
+    ],
+    actions: [{ id: "rename", text: "Rename" }, { id: "refresh", text: "Refresh" }]
+  })
+}
+
+Connections {
+  target: module.properties
+  ignoreUnknownSignals: true
+  function onActionTriggered(ownerModuleId, actionId) {
+    if (ownerModuleId === module.context.moduleId) module.runAction(actionId)
+  }
+}
+
+Component.onDestruction: if (properties) properties.release(context)
+```
+
+```yaml
+inspect(owner, subject):  owner is your module's own context; returns true when shown, false when refused
+                          (no owner, an owner whose view was unloaded, or a subject without a title)
+release(owner):           clears the pane only when owner is the context currently shown; returns whether it did
+actionTriggered(ownerModuleId, actionId):
+                          emitted when a person presses one of the subject's actions; ownerModuleId is
+                          context.moduleId of the module that published it (`<providerId>/<moduleId>` for an
+                          extension). Use Connections so the handler goes away with the view
+read only:                version (1), active, owner, ownerModuleId, ownerName, subject (the normalized copy),
+                          limits, kinds
+```
+
+The subject is copied and normalized when `inspect` is called; later changes to
+your object do nothing until you call `inspect` again. Call it again whenever the
+item changes, for example after a rename, and the pane keeps its cursor and
+scroll position while the title and subtitle stay the same.
+
+```yaml
+title:        required; one line, at most 160 characters
+subtitle:     one line, at most 240
+glyph:        at most 8 UTF-16 units, drawn in glyphFamily, otherwise dropped
+glyphFamily:  a font family name of letters, digits, space, dot, underscore or hyphen, at most 64
+              (for example "FabricSymbols NF", "DatabricksSymbols NF"); empty uses the shell font
+color:        #rgb, #rrggbb or #aarrggbb, or one of accent, muted, urgent, text; anything else uses accent
+fields:       up to 48 of { label, value, kind }; label is one line of at most 48. A field without a label or
+              without a value is skipped
+  text:       one line, at most 1024; newlines become spaces
+  multiline:  keeps line breaks, at most 8192
+  tags:       value is an array of strings, each one line of at most 64, at most 32 chips, duplicates dropped
+  link:       an http or https URL of at most 2048 without spaces; opened with files.openUrl. Any other
+              value is shown as plain text and opens nothing
+  code:       monospace, keeps line breaks, at most 8192; Enter or a click copies it through files.copyText
+  unknown kinds are shown as text
+budget:       all field values together are capped at 32768 characters
+actions:      up to 8 of { id, text }; id is [A-Za-z0-9][A-Za-z0-9._-]*, at most 64, unique;
+              text is one line of at most 40 and defaults to the id
+```
+
+Control characters are removed and an over-long value is cut with an ellipsis.
+When fields, chips or actions are dropped for these limits the pane says that
+some properties were left out. Everything renders as plain text.
+
+The pane shows whichever is newer: a file selection or the last subject. A new
+selection in Files, search or the media grid replaces your subject, even when it
+is the same file again; refreshes that keep the same selected paths do not.
+`release` returns the pane to the current file selection. When the view that
+published a subject is unloaded (its slot switches to another tab, its tab
+changes module, its slot is removed, the extension is removed or disabled) the
+subject is cleared, so a stale item never stays on screen. Publish again when
+your view loads if its selection should come back.
+
+The action buttons sit under the subtitle, above the fields. In the pane,
+`j`/`k` move a cursor over the buttons and then the fields, starting on the
+first field; `g`/`G` jump to the first and last, Enter or `o` opens a link, copies code or runs the
+action, `y` or Ctrl+C copies the field, and Escape closes the blade. File
+shortcuts such as Delete, F2 or `e` do nothing while a subject is shown.
+`actionTriggered` reaches every view that listens, so a module with
+`singleton: false` should also check `properties.owner === context`.
+
+`files.openUrl(url, targetScreen?)` and `files.copyText(text)` are the same
+primitives the pane uses. `openUrl` accepts http and https only and hands the
+link to the desktop's default handler through the backend (`gio open`), after
+releasing the blade's keyboard focus. `copyText` sends at most 64 KiB to the
+clipboard as private request input, never as a command argument.
 
 ## Image galleries
 

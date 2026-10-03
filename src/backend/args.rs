@@ -248,6 +248,12 @@ pub struct ClipboardWriteArgs {
 }
 
 #[derive(Clone, Debug, Args)]
+pub struct PlainTextArgs {
+    #[arg(skip)]
+    pub input: Option<String>,
+}
+
+#[derive(Clone, Debug, Args)]
 pub struct DocumentArgs {
     #[arg(long)]
     pub document: String,

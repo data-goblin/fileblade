@@ -169,6 +169,7 @@ pub enum LaunchMode {
     Editor,
     Reveal,
     Application,
+    Url,
 }
 
 pub(crate) fn value_name(value: impl ValueEnum) -> String {

@@ -55,6 +55,7 @@ pub enum BackendCommand {
     Clipboard(ClipboardArgs),
     ClipboardWrite(ClipboardWriteArgs),
     ClipboardText(PathsArgs),
+    ClipboardPlain(PlainTextArgs),
     KeybindingsPrepare,
     PreferencesRead,
     PreferencesSet(crate::preferences::Changes),
@@ -363,6 +364,9 @@ fn dispatch_command(
             clipboard_write(&options.path, options.cut, cancelled)
         }
         BackendCommand::ClipboardText(options) => clipboard_text(&options.path, cancelled),
+        BackendCommand::ClipboardPlain(options) => {
+            clipboard_plain(options.input.as_deref(), cancelled)
+        }
         BackendCommand::KeybindingsPrepare => {
             let mut document = crate::preferences::keybindings()?;
             document["ok"] = json!(true);

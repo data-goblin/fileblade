@@ -131,7 +131,7 @@ Item {
 
   function moduleDirs(id, callback) { return bladeHost.dirs.ensure(id, callback) }
   readonly property var services: {
-    var map = ({ files: service, actions: actionController })
+    var map = ({ files: service, actions: actionController, properties: propertiesController })
     var supplied = extensionProviders.services
     var ids = supplied ? Object.keys(supplied) : []
     for (var i = 0; i < ids.length; i++) if (!map[ids[i]]) map[ids[i]] = supplied[ids[i]]
@@ -604,6 +604,11 @@ Item {
   SelectionController {
     id: selectionController
     service: service
+  }
+
+  PropertiesController {
+    id: propertiesController
+    selection: selectionController
   }
 
   PluginWatcherController {
@@ -1159,6 +1164,14 @@ Item {
 
   function openDefault(path, targetScreen, directoryHint) {
     return enqueueLaunch(path, "default", "", defaultOpenScreen(targetScreen), directoryHint)
+  }
+
+  function openUrl(url, targetScreen) {
+    return launchController.openUrl(url, defaultOpenScreen(targetScreen))
+  }
+
+  function copyText(text) {
+    return operationController.copyText(text)
   }
 
   function openAtLine(path, line) {

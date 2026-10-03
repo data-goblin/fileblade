@@ -403,6 +403,18 @@ the files controller, and its `selectedPath` and `rootPath` are what the
 properties module and the extension panes watch. The same selection is what
 `fileblade selection` prints, so an agent and a module see the same thing.
 
+A module whose items are not files publishes its selected item through
+`context.service("properties")`, `controllers/PropertiesController.qml`. It
+copies the subject through `lib/PropertiesSubject.js`, which applies the size
+limits once, and holds it with the publishing view's context. The Properties
+pane renders it with `panes/PropertiesSubject.qml` while it is newer than the
+file selection: the `SelectionController`'s `chosen` signal and any change of
+the selected path list clear it, and so does the publishing context being
+retired or destroyed. Links open through the backend `launch --mode url`
+(`gio open`, http and https only) and copied values travel as private input of
+the `clipboard-plain` request to the resident `wl-copy` owner. `fileblade
+status` reports the shown subject as `propertiesOwner` and `propertiesTitle`.
+
 Folder-scoped modules use `contextPath`: it is the selected folder, or the
 opened `rootPath` when the primary selection is a file or empty. The persisted
 `projectContext` setting can instead make it the nearest Git project root.

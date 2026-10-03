@@ -128,6 +128,27 @@ pub(super) fn clipboard_text(paths: &[String], cancelled: &AtomicBool) -> Value 
     })
 }
 
+pub(super) fn clipboard_plain(input: Option<&str>, cancelled: &AtomicBool) -> Value {
+    let Some(text) = input.filter(|text| !text.is_empty()) else {
+        return json!({"ok": false, "error": "no text to copy"});
+    };
+    if text.len() > crate::module_helpers::INPUT_LIMIT {
+        return json!({"ok": false, "error": "clipboard text exceeds 64 KiB"});
+    }
+    if let Err(error) = wl_copy(
+        "text/plain;charset=utf-8",
+        text.as_bytes().to_vec(),
+        cancelled,
+    ) {
+        return error;
+    }
+    json!({
+        "ok": true,
+        "bytes": text.len(),
+        "mime": "text/plain;charset=utf-8",
+    })
+}
+
 pub(super) fn wl_copy(mime: &str, input: Vec<u8>, cancelled: &AtomicBool) -> Result<(), Value> {
     crate::clipboard::write(mime, input, cancelled)
         .map_err(|error| json!({"ok": false, "error": error.to_string()}))
