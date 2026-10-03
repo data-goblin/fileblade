@@ -433,6 +433,54 @@ link to the desktop's default handler through the backend (`gio open`), after
 releasing the blade's keyboard focus. `copyText` sends at most 64 KiB to the
 clipboard as private request input, never as a command argument.
 
+## Drop wheel actions for your items
+
+This file was written by an agent.
+
+Rows that are files get the standard drop wheel. A module whose rows are not
+files (a Fabric item, a Unity Catalog volume file, a cluster) can still put
+its own actions on the wheel and receive a drop on a Files folder. Drive the
+shared wheel through the files service; do not draw your own:
+
+```yaml
+files.dropWheel.beginDrag(paths, entries, screen, docked, x, y, spec, source):  start; false when paths is empty
+files.dropWheel.updateDrag(x, y, outside, modifiers):                          every pointer move
+files.dropWheel.endDrag():                                                     on release, after source.Drag.drop()
+files.dropWheel.cancelDrag():                                                  when the drag is cancelled
+files.dropWheel.handleDragKey(event) / handleDragKeyRelease(event):            call first from your key handlers; true means handled
+```
+
+`x` and `y` are `context.surfaceOriginX/Y` plus the scene position, and
+`outside` is `!context.hostWindow.containsScenePoint(scene.x, scene.y)`, as in
+`ui/ArtifactTree.qml`. `entries` feeds the ghost: `{ name, isDir, glyph }`,
+with the glyph drawn in the shell font. Give the dragged row
+`Drag.keys: ["fileblade-entry"]` and keep `Drag.active` true for the length of
+the drag so a Files folder can receive it.
+
+`spec` describes your actions:
+
+```yaml
+local:            false when paths are your own identities, not filesystem paths
+title:            caption shown while nothing is highlighted
+actions:          [ { id, label, glyph, key, description, run(paths, details), placements: [ same shape ] } ], at most 12
+includeDefaults:  local drags only: also show the standard actions after yours
+drop(paths, details):  local false only: called with { directory, copy } when the item is dropped on a Files folder
+```
+
+`run` receives the carried paths and `{ placement, target, files, screen, x, y }`.
+Returning nothing or `true` closes the wheel; returning `false` or a non-empty
+string keeps it open and shows that string as the reason. An action with
+`placements` opens a second ring, and a placement without its own `run` calls
+the parent's `run` with `details.placement` set to its `id`. `drop` returns the
+same way; a string becomes a short notice near the pointer.
+
+With `local: false` the wheel never asks the backend about the paths or the
+window under the pointer, shows only your actions, never pastes a path on a
+Shift or Ctrl release, and a drop on a Files folder goes to `drop` instead of
+moving or copying anything. The wheel opens the usual way: hold the drop-wheel
+key (Space by default) once the pointer is outside the blade. `ArtifactTree`
+modules return the same `spec` from `dropSpec(item)`.
+
 ## Image galleries
 
 This file was written by an agent.

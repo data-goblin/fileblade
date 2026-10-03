@@ -69,7 +69,7 @@ Rectangle {
   readonly property string displayName: homeEntry ? FileIcons.homeName() : name
   readonly property bool favoriteAvailable: favoriteMode || (!moreRow && !customInteraction)
   readonly property var draggedPaths: controller.dropWheel.dragPaths
-  readonly property bool dropAllowed: !customInteraction && row.isDir && DragPlan.canDrop(draggedPaths, row.path)
+  readonly property bool dropAllowed: !customInteraction && row.isDir && (!controller.dropWheel.dragLocal || DragPlan.canDrop(draggedPaths, row.path))
   readonly property bool dropHovered: dropTarget.containsDrag && dropAllowed
   property real dragScrollStep: 0
   property bool dragCanceled: false

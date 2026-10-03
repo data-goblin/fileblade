@@ -316,6 +316,83 @@ TestCase {
     compare(wheel.subItems.length, 0)
     compare(wheel.subHighlighted, -1)
   }
+  function moduleSpec(log) {
+    return { local: false, title: "Sales.Report", glyph: "R", actions: [
+      { id: "open", label: "Open in Fabric", key: "o", run: function(paths, details) { log.push(["open", paths, details.placement]) } },
+      { id: "copy", label: "Copy", key: "c", placements: [
+        { id: "id", label: "ID", key: "i", run: function(paths, details) { log.push(["id", paths, details.placement]) } }
+      ] },
+      { id: "download", label: "Download", key: "d", run: function() { return "Choose a folder first" } }
+    ], drop: function(paths, details) {
+      log.push(["drop", paths, details.directory])
+      return details.directory === "/refused" ? "Fabric refused the download" : true
+    } }
+  }
+
+  function test_module_item_drag_opens_only_its_own_actions_without_a_window_lookup() {
+    var log = []
+    verify(wheel.beginDrag(["WS00.Workspace/Sales.Report"], [{ name: "Sales.Report", isDir: false, glyph: "R" }], null, true, 200, 200, moduleSpec(log)))
+    verify(!wheel.dragLocal)
+    wheel.handleDragKey({ key: Qt.Key_Space, text: " ", isAutoRepeat: false })
+    wheel.updateDrag(500, 200, true, 0)
+    verify(wheel.wheelOpen)
+    compare(callbacks.length, 0)
+    verify(!wheel.loading)
+    compare(wheel.error, "")
+    compare(wheel.ringItems.map(function(item) { return item.label }), ["Open in Fabric", "Copy", "Download"])
+    compare(wheel.ringTitle, "Sales.Report")
+    compare(wheel.count, 1)
+    verify(wheel.activateKey("c", false))
+    verify(wheel.outerFocus)
+    verify(wheel.activateKey("i", false))
+    compare(log, [["id", ["WS00.Workspace/Sales.Report"], "id"]])
+    verify(!wheel.wheelOpen)
+    verify(wheel.endDrag(500, 200, true))
+    compare(launches.length, 0)
+  }
+
+  function test_module_item_action_that_refuses_keeps_the_wheel_open_with_its_reason() {
+    var log = []
+    verify(wheel.beginDrag(["WS00.Workspace/Sales.Report"], [], null, true, 200, 200, moduleSpec(log)))
+    wheel.handleDragKey({ key: Qt.Key_Space, text: " ", isAutoRepeat: false })
+    wheel.updateDrag(500, 200, true, 0)
+    verify(wheel.activateKey("d", false))
+    verify(wheel.wheelOpen)
+    compare(wheel.error, "Choose a folder first")
+    wheel.cancelDrag()
+    verify(!wheel.wheelOpen)
+    compare(launches.length, 0)
+  }
+
+  function test_module_item_release_with_shift_or_ctrl_never_pastes_paths() {
+    var log = []
+    verify(wheel.beginDrag(["WS00.Workspace/Sales.Report"], [], null, true, 200, 200, moduleSpec(log)))
+    wheel.updateDrag(500, 200, true, Qt.ShiftModifier)
+    compare(wheel.pathForm, "")
+    verify(!wheel.wheelOpen)
+    verify(!wheel.endDrag(500, 200, true))
+    compare(launches.length, 0)
+    compare(log.length, 0)
+  }
+
+  function test_dropping_a_module_item_on_a_folder_hands_it_to_the_module() {
+    var log = []
+    verify(wheel.beginDrag(["WS00.Workspace/Sales.Report"], [], null, true, 200, 200, moduleSpec(log)))
+    verify(wheel.dropInto("/home/someone/exports", false))
+    compare(log, [["drop", ["WS00.Workspace/Sales.Report"], "/home/someone/exports"]])
+    compare(wheel.toast, "")
+    verify(wheel.endDrag(200, 200, false))
+    verify(wheel.beginDrag(["WS00.Workspace/Sales.Report"], [], null, true, 200, 200, moduleSpec(log)))
+    verify(wheel.dropInto("/refused", false))
+    compare(wheel.toast, "Fabric refused the download")
+    verify(wheel.toastError)
+    verify(wheel.endDrag(200, 200, false))
+    verify(wheel.beginDrag(["/tmp/a.txt"], [], null, true, 200, 200, null))
+    verify(!wheel.dropInto("/home/someone/exports", false))
+    wheel.cancelDrag()
+    compare(launches.length, 0)
+  }
+
   function test_explicit_hub_choice_discards_queued_release() {
     begin()
     wheel.endDrag(500, 440, true)

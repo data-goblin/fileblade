@@ -36,7 +36,8 @@ Item {
   property real pointerY: 0
   property int dragModifiers: 0
   property bool modifierHeld: false
-  readonly property string pathForm: (dragModifiers & Qt.ShiftModifier) ? "absolute" : (dragModifiers & Qt.ControlModifier) ? "relative" : ""
+  readonly property bool dragLocal: !dragSpec || dragSpec.local !== false
+  readonly property string pathForm: !dragLocal ? "" : (dragModifiers & Qt.ShiftModifier) ? "absolute" : (dragModifiers & Qt.ControlModifier) ? "relative" : ""
   property string toast: ""
   property bool toastError: false
 
@@ -71,7 +72,7 @@ Item {
 
   readonly property int count: dragActive ? dragPaths.length : (context && context.files ? Number(context.files.count) || 0 : 0)
   readonly property string targetLabel: context && context.target ? String(context.target.label || "") : ""
-  readonly property string ringTitle: targetLabel
+  readonly property string ringTitle: !dragLocal && dragSpec.title ? String(dragSpec.title) : targetLabel
   readonly property var parentItem: parentIndex >= 0 ? ringItems[parentIndex] || null : null
   readonly property real hubRadius: 26
   readonly property real gapRadius: 5
@@ -156,6 +157,7 @@ Item {
     dragSource = null
     var paths = dragPaths
     var wasOutside = dragOutside
+    var local = dragLocal
     dragActive = false
     service.bladeHost.pressActive = false
     if (dragConsumed) {
@@ -173,7 +175,7 @@ Item {
       else if (!activateAt(pointerX, pointerY)) close()
       return true
     }
-    if (!wasOutside || pathForm === "") return false
+    if (!local || !wasOutside || pathForm === "") return false
     dragPaths = paths
     pasteAt(dragScreen, pointerX, pointerY, pathForm)
     return true
@@ -208,6 +210,25 @@ Item {
     toastError = !!failed
     toastTimer.interval = failed ? 4000 : 1800
     toastTimer.restart()
+  }
+
+  function dropInto(directory, copyInstead) {
+    if (!dragActive || dragLocal) return false
+    dragConsumed = true
+    var handler = dragSpec.drop
+    var outcome
+    if (typeof handler !== "function") outcome = "This item cannot be dropped into a folder"
+    else {
+      try { outcome = handler(dragPaths.slice(), { directory: String(directory || ""), copy: !!copyInstead }) }
+      catch (exception) { outcome = String(exception) }
+    }
+    if (outcome === false || (typeof outcome === "string" && outcome !== "")) {
+      wheelScreen = dragScreen || wheelScreen
+      wheelX = pointerX
+      wheelY = pointerY
+      showToast(outcome === false ? "The drop did not run" : outcome, true)
+    }
+    return true
   }
 
   function cancelDrag() {
@@ -285,6 +306,10 @@ Item {
       service.cancelBackendRequest(contextRequestId, contextGeneration)
       contextGeneration++
       contextRequestId = ""
+    }
+    if (!dragLocal) {
+      applyContext({ ok: true, target: { kind: "module", label: "" }, files: { count: dragPaths.length, paths: dragPaths.slice(), files: [], directories: [] }, actions: [] })
+      return
     }
     loading = true
     var arguments = []

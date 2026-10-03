@@ -13,7 +13,8 @@ DropArea {
   onExited: hoverExpand.stop()
   onDropped: function(drop) {
     hoverExpand.stop()
-    controller.moveSelectionTo(rowItem.path, drop.proposedAction === Qt.CopyAction, rowItem.draggedPaths.slice())
+    var copyInstead = drop.proposedAction === Qt.CopyAction
+    if (!controller.dropWheel.dropInto(rowItem.path, copyInstead)) controller.moveSelectionTo(rowItem.path, copyInstead, rowItem.draggedPaths.slice())
     drop.acceptProposedAction()
   }
 

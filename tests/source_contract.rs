@@ -1280,7 +1280,8 @@ fn drop_drag_leaves_the_blade_at_the_sheet_edge_not_the_layer_edge() {
     assert!(drop_target.contains("keys: [\"fileblade-entry\"]"));
     assert!(drop_target.contains("interval: 500"));
     assert!(drop_target.contains("controller.setDirectoryExpanded(rowItem.path, true)"));
-    assert!(drop_target.contains("controller.moveSelectionTo(rowItem.path, drop.proposedAction === Qt.CopyAction, rowItem.draggedPaths.slice())"));
+    assert!(drop_target.contains("var copyInstead = drop.proposedAction === Qt.CopyAction"));
+    assert!(drop_target.contains("if (!controller.dropWheel.dropInto(rowItem.path, copyInstead)) controller.moveSelectionTo(rowItem.path, copyInstead, rowItem.draggedPaths.slice())"));
     assert!(row.contains("ownerView.contentY = Math.max"));
     assert!(
         row.contains(

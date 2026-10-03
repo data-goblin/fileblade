@@ -865,6 +865,20 @@ focused pane and tab, even when other tabs contain nvim or an older shell.
 terminal, including named (`-L`) and explicit (`-S`) sockets and a custom
 `TMUX_TMPDIR`. It never falls back to another server when discovery fails.
 
+**E-26-15** When I drag an item from an extension blade that is not a file on
+my computer (a Fabric item, a Databricks notebook or cluster) and hold Space
+once the pointer leaves the blade, the wheel shows only that extension's
+actions for the item, titled with the item's name, with no wait for the window
+under the pointer. Letters, arrows and Enter pick as usual, an action with
+choices opens its second ring, and an action that cannot run keeps the wheel
+open and says why. Holding Shift or Ctrl while I release such an item never
+pastes a path, and releasing it without the wheel does nothing.
+
+**E-26-16** When I drop such an item on a folder in Files, the extension
+receives that folder (for Fabric and Databricks, the item downloads into it).
+No local file is moved or copied, and if the extension refuses, a short notice
+near the pointer says why.
+
 ## 27. Updates and recovery
 
 `tests/vm/expectations/27-updates-recovery.sh`
