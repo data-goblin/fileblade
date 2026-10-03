@@ -33,7 +33,7 @@ trap cleanup EXIT
 
 fixture
 goto_root "$ROOT_DIR"
-ctl select "$ROOT_DIR/alpha.txt"
+ctl select "$ROOT_DIR/deep"
 
 code=$(base64 -w0 <<'PY'
 import json,pathlib,sys
@@ -63,7 +63,7 @@ FocusScope {
         { label: "Notes", value: "first line\\nsecond line", kind: "multiline" },
         { label: "Tags", value: ["alpha", "beta"], kind: "tags" },
         { label: "Portal", value: "https://example.org/item/40", kind: "link" },
-        { label: "Path", value: "Workspace/Item40", kind: "code" }
+        { label: "Path", value: "Item40Path", kind: "code" }
       ],
       actions: [{ id: "refresh", text: "Refresh" }]
     })
@@ -92,7 +92,7 @@ sleep 3
 ctl openBlade left
 listed() { "$OVM" ipc "$PLUGIN.control" bladeModules | jq -e --arg id "$module" 'any(.modules[]; .id == $id)' >/dev/null; }
 wait_for listed 10 || { fail harness fixture 'fixture module is not listed'; summary; }
-expect E-50-04 'a file is selected before the module publishes' selectedPath "$ROOT_DIR/alpha.txt"
+expect E-50-04 'a file is selected before the module publishes' selectedPath "$ROOT_DIR/deep"
 
 slots left "[{\"module\":\"files\"},{\"module\":\"$module\"},{\"module\":\"properties\"}]"
 ctl openBlade left
@@ -102,7 +102,7 @@ if wait_for "[[ \$(owner) == '$module' ]]" 12; then pass E-50-01 'the module ite
 expect E-50-01 'status names the shown item' propertiesTitle 'Fixture item 40'
 sleep 1
 shot=$("$OVM" shot properties40-subject | tail -1)
-text=$(screen_text)
+text=$(ocr_crop properties40-pane "$(field sidebarWidth)x360+0+720" 300% 6)
 for word in 'Fixture item 40' 'Published' 'alpha' 'Refresh'; do
   expect_contains E-50-01 "pane shows $word" "$text" "$word"
 done
@@ -117,15 +117,15 @@ click_word Refreshed
 guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
 "$OVM" key ret
 sleep 1
-expect_out E-50-03 'Enter on code copies it' 'timeout 3 wl-paste -n' 'Workspace/Item40'
+expect_out E-50-03 'Enter on code copies it' 'timeout 3 wl-paste -n' 'Item40Path'
 "$OVM" key delete
 "$OVM" key f2
 sleep 1
-expect_out E-50-03 'file shortcuts leave the selected file alone' "test -f '$ROOT_DIR/alpha.txt' && echo kept" kept
+expect_out E-50-03 'file shortcuts leave the selected file alone' "test -d '$ROOT_DIR/deep' && echo kept" kept
 expect E-50-03 'file shortcuts keep the item shown' propertiesOwner "$module"
 guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
-click_word Workspace/Item40
-expect_out E-50-02 'a click on code copies it' 'timeout 3 wl-paste -n' 'Workspace/Item40'
+click_word Item40Path
+expect_out E-50-02 'a click on code copies it' 'timeout 3 wl-paste -n' 'Item40Path'
 "$OVM" key g
 "$OVM" key ret
 if wait_for "[[ \$(title) == 'Refreshed 40 x2' ]]" 8; then pass E-50-03 'Enter on an action runs it'; else fail E-50-03 'Enter on an action runs it' "title $(title)"; fi
@@ -133,13 +133,13 @@ if wait_for "[[ \$(title) == 'Refreshed 40 x2' ]]" 8; then pass E-50-03 'Enter o
 sleep 1
 
 ensure_left_open
-row=$(visible_row_y alpha.txt)
+row=$(visible_row_y deep)
 if [[ $row =~ ^[0-9]+$ ]]; then
   "$OVM" mouse click "$ROW_X" "$row"
   if wait_for "[[ -z \$(owner) ]]" 8; then pass E-50-04 'selecting the same file again brings the file back'; else fail E-50-04 'selecting the same file again brings the file back' "owner $(owner)"; fi
-  expect E-50-04 'the file selection is unchanged' selectedPath "$ROOT_DIR/alpha.txt"
+  expect E-50-04 'the file selection is unchanged' selectedPath "$ROOT_DIR/deep"
 else
-  fail E-50-04 'selecting the same file again brings the file back' 'alpha.txt row not found'
+  fail E-50-04 'selecting the same file again brings the file back' 'deep row not found'
 fi
 click_word PUBLISH
 if wait_for "[[ \$(owner) == '$module' ]]" 8; then pass E-50-04 'selecting in the module shows its item again'; else fail E-50-04 'selecting in the module shows its item again' "owner $(owner)"; fi

@@ -45,7 +45,8 @@ FocusScope {
       return
     }
     var idle = { actionable: false, count: 0, deleted: false, directory: false }
-    var action = treeKeys.action(event, repeated, KeyRouter.propertyAction(event, idle))
+    var file = { actionable: true, count: 1, deleted: false, directory: false }
+    var action = treeKeys.action(event, repeated, KeyRouter.propertyAction(event, idle) || KeyRouter.propertyAction(event, file))
     if (action === "") { event.accepted = false; return }
     if (action.indexOf("key-") === 0) return
     if (KeyRouter.ignoresAutoRepeat(action, event.key) && repeated) return

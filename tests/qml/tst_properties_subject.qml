@@ -87,7 +87,13 @@ TestCase {
     function closeBlade() {}
   }
 
-  Properties.Module { id: view; width: test.width; height: test.height; context: context }
+  property var leaked: []
+
+  Item {
+    anchors.fill: parent
+    Keys.onPressed: function(event) { if ([Qt.Key_Control, Qt.Key_Shift].indexOf(event.key) < 0) test.leaked = test.leaked.concat([event.key]) }
+    Properties.Module { id: view; width: test.width; height: test.height; context: context }
+  }
 
   Component {
     id: ownerComponent
@@ -214,9 +220,14 @@ TestCase {
     compare(test.triggered, ["data-goblin.fileblade-fabric/fabric:refresh"])
     press(Qt.Key_C, Qt.ControlModifier)
     compare(test.copied.length, 2)
+    test.leaked = []
     press(Qt.Key_Delete)
     press(Qt.Key_E)
+    press(Qt.Key_F2)
+    press(Qt.Key_N, Qt.ControlModifier)
+    press(Qt.Key_V, Qt.ControlModifier)
     compare(test.trashRequests, 0)
+    compare(test.leaked, [])
     press(Qt.Key_K)
     compare(subject.cursor, 0)
     compare(view.shortcuts[0].items[0].text, "Move between fields and actions")
