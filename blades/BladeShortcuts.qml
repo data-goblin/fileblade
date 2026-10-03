@@ -75,12 +75,26 @@ Item {
     font.letterSpacing: 0.3
   }
 
+  function scrollBy(delta) {
+    var bottom = Math.max(0, scroller.contentHeight - scroller.height)
+    scroller.contentY = Math.max(0, Math.min(bottom, scroller.contentY + delta))
+  }
+
   focus: visible
   Keys.onPressed: function(event) {
+    var ctrl = (event.modifiers & Qt.ControlModifier) !== 0
+    var line = Style.space(24)
+    var page = Math.max(line, scroller.height - line)
     if (event.key === Qt.Key_Escape || event.text === "?" || event.key === Qt.Key_Q) {
       if (!surface.actionKeys || !surface.actionKeys.isRepeat(event)) root.close()
-      event.accepted = true
-    }
+    } else if (event.key === Qt.Key_Down || event.text === "j") root.scrollBy(line)
+    else if (event.key === Qt.Key_Up || event.text === "k") root.scrollBy(-line)
+    else if (event.key === Qt.Key_PageDown || event.key === Qt.Key_Space || (ctrl && event.key === Qt.Key_D)) root.scrollBy(page)
+    else if (event.key === Qt.Key_PageUp || (ctrl && event.key === Qt.Key_U)) root.scrollBy(-page)
+    else if (event.key === Qt.Key_Home || event.text === "g") root.scrollBy(-scroller.contentHeight)
+    else if (event.key === Qt.Key_End || event.text === "G") root.scrollBy(scroller.contentHeight)
+    else return
+    event.accepted = true
   }
 
   Rectangle {
@@ -110,6 +124,7 @@ Item {
     }
 
     Flickable {
+      id: scroller
       anchors.fill: parent
       anchors.margins: Style.space(12)
       contentWidth: width

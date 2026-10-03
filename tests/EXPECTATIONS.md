@@ -114,6 +114,9 @@ Ids never get reused. When behaviour changes, edit the entry in place.
     blade closes.
 27. **E-03-07** If I press `?`, the shortcut guide opens; pressing `Escape`
     closes the guide while leaving the blade open.
+27. **E-03-08** When the shortcut guide is longer than the screen, `j`/`k`,
+    the arrows, `PageDown`/`PageUp`, `Space` and `g`/`G` scroll it, so I can
+    reach a module's shortcuts below FileBlade's without a mouse.
 
 ## 4. Expanding and collapsing
 
