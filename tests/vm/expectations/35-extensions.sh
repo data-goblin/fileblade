@@ -63,7 +63,7 @@ marker=json.dumps(case+'/'+identity)
 PY
 )
   guest "printf %s '$code' | base64 -d > '$case_dir/create.py'; python3 '$case_dir/create.py' '$extensions' '$case_dir' '$1' '${2:-owned}'"
-  [[ $native == native ]] || guest "omarchy plugin enable '$1'" >/dev/null
+  [[ $native == native ]] || guest "omarchy-shell shell rescanPlugins >/dev/null; for try in \$(seq 20); do omarchy plugin enable '$1' 2>/dev/null && break; sleep 0.5; done" >/dev/null
 }
 activation() {
   if [[ $native != native ]]; then

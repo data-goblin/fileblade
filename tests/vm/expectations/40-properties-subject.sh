@@ -91,7 +91,7 @@ FocusScope {
 PY
 )
 guest "mkdir -p '$extensions'; printf %s '$code' | base64 -d > /tmp/properties40.py; python3 /tmp/properties40.py '$extensions' '$id'; rm -f /tmp/properties40.py"
-[[ $native == native ]] || guest "omarchy plugin enable '$id'" >/dev/null
+[[ $native == native ]] || guest "omarchy-shell shell rescanPlugins >/dev/null; for try in \$(seq 20); do omarchy plugin enable '$id' 2>/dev/null && break; sleep 0.5; done" >/dev/null
 ctl closeBlade left
 sleep 3
 ctl openBlade left
