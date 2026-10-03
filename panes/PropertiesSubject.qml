@@ -33,7 +33,7 @@ FocusScope {
       scroller.contentY = 0
       copiedIndex = -1
       openedLink = ""
-      cursor = total > 0 ? 0 : -1
+      cursor = subject && subject.fields.length > 0 ? subject.actions.length : (total > 0 ? 0 : -1)
     } else {
       cursor = Math.min(cursor, total - 1)
       if (cursor < 0 && total > 0) cursor = 0
@@ -54,8 +54,8 @@ FocusScope {
 
   function itemAt(index) {
     if (index < 0) return null
-    if (index < fields.length) return fieldRepeater.itemAt(index)
-    return actionRepeater.itemAt(index - fields.length)
+    if (index < actions.length) return actionRepeater.itemAt(index)
+    return fieldRepeater.itemAt(index - actions.length)
   }
 
   function reveal(index) {
@@ -104,21 +104,21 @@ FocusScope {
   }
 
   function trigger(index) {
-    var action = actions[index - fields.length]
+    var action = actions[index]
     return !!action && !!properties && properties.trigger(action.id)
   }
 
   function activate(index) {
     if (index < 0 || index >= count) return false
-    if (index >= fields.length) return trigger(index)
-    var field = fields[index]
+    if (index < actions.length) return trigger(index)
+    var field = fields[index - actions.length]
     if (field.kind === "link") return openLink(field.value)
-    if (field.kind === "code") return copyField(index)
+    if (field.kind === "code") return copyField(index - actions.length)
     return false
   }
 
   function copyCurrent() {
-    return cursor >= 0 && cursor < fields.length ? copyField(cursor) : false
+    return cursor >= actions.length && cursor < count ? copyField(cursor - actions.length) : false
   }
 
   function runAction(action) {
@@ -208,7 +208,7 @@ FocusScope {
         enabled: valueItem.field.kind === "link"
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: { view.press(valueItem.index); view.openLink(valueItem.field.value) }
+        onClicked: { view.press(view.actions.length + valueItem.index); view.openLink(valueItem.field.value) }
       }
 
       PluginUi.HintTip {
@@ -258,7 +258,7 @@ FocusScope {
         enabled: valueItem.field.kind === "code"
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: { view.press(valueItem.index); view.copyField(valueItem.index) }
+        onClicked: { view.press(view.actions.length + valueItem.index); view.copyField(valueItem.index) }
       }
 
       PluginUi.HintTip {
@@ -366,6 +366,24 @@ FocusScope {
       }
 
       Flow {
+        width: parent.width
+        visible: view.actions.length > 0
+        spacing: Style.space(6)
+
+        Repeater {
+          id: actionRepeater
+          model: view.actions
+          delegate: ActionButton {
+            required property var modelData
+            required property int index
+            label: String(modelData.text)
+            current: view.cursorShown && view.cursor === index
+            onClicked: { view.press(index); view.trigger(index) }
+          }
+        }
+      }
+
+      Flow {
         id: fieldGrid
         width: parent.width
         spacing: Style.space(9)
@@ -387,7 +405,7 @@ FocusScope {
             id: fieldRow
             required property var modelData
             required property int index
-            readonly property bool current: view.cursorShown && view.cursor === index
+            readonly property bool current: view.cursorShown && view.cursor === view.actions.length + index
             readonly property string glyph: view.files && view.files.propertyIcons ? String(view.kindGlyphs[modelData.kind] || "󰋽") : ""
             width: fieldGrid.columns > 1 && modelData.kind === "text" && String(modelData.value).length <= 40 ? fieldGrid.cell : fieldGrid.width
             height: fieldColumn.implicitHeight + Style.space(4)
@@ -395,7 +413,7 @@ FocusScope {
 
             MouseArea {
               anchors.fill: parent
-              onPressed: view.press(fieldRow.index)
+              onPressed: view.press(view.actions.length + fieldRow.index)
             }
 
             Column {
@@ -449,24 +467,6 @@ FocusScope {
         wrapMode: Text.Wrap
         font.family: Style.font.family
         font.pixelSize: Typography.caption
-      }
-
-      Flow {
-        width: parent.width
-        visible: view.actions.length > 0
-        spacing: Style.space(6)
-
-        Repeater {
-          id: actionRepeater
-          model: view.actions
-          delegate: ActionButton {
-            required property var modelData
-            required property int index
-            label: String(modelData.text)
-            current: view.cursorShown && view.cursor === view.fields.length + index
-            onClicked: { view.press(view.fields.length + index); view.trigger(view.fields.length + index) }
-          }
-        }
       }
 
       PluginUi.ErrorNotice {

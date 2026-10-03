@@ -419,8 +419,9 @@ changes module, its slot is removed, the extension is removed or disabled) the
 subject is cleared, so a stale item never stays on screen. Publish again when
 your view loads if its selection should come back.
 
-In the pane, `j`/`k` move a cursor over the fields and then the actions, `g`/`G`
-jump to the first and last, Enter or `o` opens a link, copies code or runs the
+The action buttons sit under the subtitle, above the fields. In the pane,
+`j`/`k` move a cursor over the buttons and then the fields, starting on the
+first field; `g`/`G` jump to the first and last, Enter or `o` opens a link, copies code or runs the
 action, `y` or Ctrl+C copies the field, and Escape closes the blade. File
 shortcuts such as Delete, F2 or `e` do nothing while a subject is shown.
 `actionTriggered` reaches every view that listens, so a module with

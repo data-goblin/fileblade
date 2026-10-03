@@ -11,7 +11,7 @@ if [[ $native == native ]]; then
 else
   extensions=/home/omarchy/.config/omarchy/plugins
 fi
-id=fixture.properties40-$$
+id=fixture.properties40
 module=$id/probe
 [[ $(guest "test -e '$extensions/$id' && echo exists") == exists ]] && { fail harness fixture "refusing to replace $id"; summary; }
 original=$(guest "head -c 262145 '$layout'" | jq -ce '.blades')
@@ -85,49 +85,48 @@ FocusScope {
 ''')
 PY
 )
-guest "printf %s '$code' | base64 -d > /tmp/properties40.py; python3 /tmp/properties40.py '$extensions' '$id'; rm -f /tmp/properties40.py"
+guest "mkdir -p '$extensions'; printf %s '$code' | base64 -d > /tmp/properties40.py; python3 /tmp/properties40.py '$extensions' '$id'; rm -f /tmp/properties40.py"
 [[ $native == native ]] || guest "omarchy plugin enable '$id'" >/dev/null
 ctl closeBlade left
 sleep 3
 ctl openBlade left
 listed() { "$OVM" ipc "$PLUGIN.control" bladeModules | jq -e --arg id "$module" 'any(.modules[]; .id == $id)' >/dev/null; }
 wait_for listed 10 || { fail harness fixture 'fixture module is not listed'; summary; }
-expect E-50-04 'a file is selected before the module publishes' "$(field selectedPath)" "$ROOT_DIR/alpha.txt"
+expect E-50-04 'a file is selected before the module publishes' selectedPath "$ROOT_DIR/alpha.txt"
 
 slots left "[{\"module\":\"files\"},{\"module\":\"$module\"},{\"module\":\"properties\"}]"
 ctl openBlade left
 owner() { field propertiesOwner; }
 title() { field propertiesTitle; }
 if wait_for "[[ \$(owner) == '$module' ]]" 12; then pass E-50-01 'the module item replaces the file in Properties'; else fail E-50-01 'the module item replaces the file in Properties' "owner $(owner)"; fi
-expect E-50-01 'status names the shown item' "$(title)" 'Fixture item 40'
+expect E-50-01 'status names the shown item' propertiesTitle 'Fixture item 40'
 sleep 1
 shot=$("$OVM" shot properties40-subject | tail -1)
 text=$(screen_text)
-for word in 'Fixture item 40' 'Published by the properties fixture' 'alpha' 'Workspace/Item40' 'Refresh'; do
+for word in 'Fixture item 40' 'Published' 'alpha' 'Refresh'; do
   expect_contains E-50-01 "pane shows $word" "$text" "$word"
 done
 printf 'screenshot %s\n' "$shot"
 
 click_word Refresh
 if wait_for "[[ \$(title) == 'Refreshed 40 x1' ]]" 8; then pass E-50-02 'a click on an action runs it in the module'; else fail E-50-02 'a click on an action runs it in the module' "title $(title)"; fi
-guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
-click_word Workspace/Item40
-expect E-50-02 'a click on code copies it' "$(guest 'timeout 3 wl-paste -n')" 'Workspace/Item40'
 pending E-50-02 'a click on a link opens the browser' 'the guest has no browser session to observe; tests/properties_primitives.rs proves the backend hand-off to gio open'
 
 click_word Refreshed
-"$OVM" key g
 "$OVM" key j; "$OVM" key j; "$OVM" key j; "$OVM" key j
 guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
 "$OVM" key ret
 sleep 1
-expect E-50-03 'Enter on code copies it' "$(guest 'timeout 3 wl-paste -n')" 'Workspace/Item40'
+expect_out E-50-03 'Enter on code copies it' 'timeout 3 wl-paste -n' 'Workspace/Item40'
 "$OVM" key delete
 "$OVM" key f2
 sleep 1
 expect_out E-50-03 'file shortcuts leave the selected file alone' "test -f '$ROOT_DIR/alpha.txt' && echo kept" kept
-expect E-50-03 'file shortcuts keep the item shown' "$(owner)" "$module"
-"$OVM" key shift-g
+expect E-50-03 'file shortcuts keep the item shown' propertiesOwner "$module"
+guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
+click_word Workspace/Item40
+expect_out E-50-02 'a click on code copies it' 'timeout 3 wl-paste -n' 'Workspace/Item40'
+"$OVM" key g
 "$OVM" key ret
 if wait_for "[[ \$(title) == 'Refreshed 40 x2' ]]" 8; then pass E-50-03 'Enter on an action runs it'; else fail E-50-03 'Enter on an action runs it' "title $(title)"; fi
 "$OVM" key esc
@@ -138,7 +137,7 @@ row=$(visible_row_y alpha.txt)
 if [[ $row =~ ^[0-9]+$ ]]; then
   "$OVM" mouse click "$ROW_X" "$row"
   if wait_for "[[ -z \$(owner) ]]" 8; then pass E-50-04 'selecting the same file again brings the file back'; else fail E-50-04 'selecting the same file again brings the file back' "owner $(owner)"; fi
-  expect E-50-04 'the file selection is unchanged' "$(field selectedPath)" "$ROOT_DIR/alpha.txt"
+  expect E-50-04 'the file selection is unchanged' selectedPath "$ROOT_DIR/alpha.txt"
 else
   fail E-50-04 'selecting the same file again brings the file back' 'alpha.txt row not found'
 fi

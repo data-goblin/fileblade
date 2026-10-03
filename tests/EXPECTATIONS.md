@@ -1620,8 +1620,8 @@ the same behaviour, the limits and the keyboard on a fixture context, and
    value copies it and shows `Copied` beside it for a moment. Clicking one of
    the item's buttons runs that action in the extension, for example Refresh.
 3. **E-50-03** With Properties focused, `j`/`k` and the arrows move a
-   highlight over the fields and then the buttons; `g`/`G` jump to the first
-   and last. Enter or `o` opens the highlighted link, copies the highlighted
+   highlight over the item's buttons, shown under its subtitle, and then its
+   fields, starting on the first field; `g`/`G` jump to the first and last. Enter or `o` opens the highlighted link, copies the highlighted
    code or presses the highlighted button. `y` or Ctrl+C copies any
    highlighted field. Escape closes the blade and `h` returns to the tree.
    File shortcuts such as Delete, F2 or `e` do nothing to my selected file
