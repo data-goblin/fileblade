@@ -8,7 +8,23 @@ FocusScope {
 
   readonly property var controller: context.service("files")
   readonly property string title: "Properties"
-  readonly property var shortcuts: [
+  readonly property var properties: context.service("properties")
+  readonly property var subjectShortcuts: [
+    {
+      title: "Properties",
+      items: [
+        { shortcut: "j/k  ↓/↑", text: "Move between fields and actions" },
+        { shortcut: "g/G  Home/End", text: "First / last" },
+        { shortcut: "Ctrl+D/U", text: "Page down / up" },
+        { shortcut: "Enter/o", text: "Open link, copy code, run action" },
+        { shortcut: "y  Ctrl+C", text: "Copy the field" },
+        { shortcut: "h  ←", text: "Back to the tree" },
+        { shortcut: "Esc", text: "Close the blade" }
+      ]
+    }
+  ]
+  readonly property var shortcuts: pane.subjectActive ? subjectShortcuts : fileShortcuts
+  readonly property var fileShortcuts: [
     {
       title: "Properties",
       items: [
@@ -44,6 +60,7 @@ FocusScope {
     controller: module.controller
     hostWindow: module.context.hostWindow
     context: module.context
+    properties: module.properties
     focusEnabled: module.context.bladeOpen
   }
 }

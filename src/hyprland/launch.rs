@@ -2,6 +2,9 @@ use super::*;
 use std::ffi::OsString;
 
 pub fn launch_path(options: &LaunchOptions) -> Value {
+    if options.mode == "url" {
+        return launch_url(&options.path);
+    }
     let path = match parse_path(&options.path) {
         Ok(path) => path,
         Err(error) => return path_error(&options.path, &error),
@@ -76,6 +79,57 @@ pub fn launch_path(options: &LaunchOptions) -> Value {
             "error": error.to_string(),
         })
     })
+}
+
+const URL_LIMIT: usize = 2048;
+
+fn web_url(value: &str) -> AppResult<url::Url> {
+    if value.is_empty() || value.len() > URL_LIMIT {
+        return Err(AppError::invalid(format!(
+            "a link must be 1 to {URL_LIMIT} bytes"
+        )));
+    }
+    if value.chars().any(|c| c.is_control() || c.is_whitespace()) {
+        return Err(AppError::invalid(
+            "a link cannot contain spaces or control characters",
+        ));
+    }
+    let parsed = url::Url::parse(value).map_err(|_| AppError::invalid("not a valid link"))?;
+    if !matches!(parsed.scheme(), "http" | "https") || parsed.host_str().is_none_or(str::is_empty) {
+        return Err(AppError::invalid(
+            "only http and https links open from FileBlade",
+        ));
+    }
+    Ok(parsed)
+}
+
+fn launch_url(value: &str) -> Value {
+    let outcome = || -> AppResult<String> {
+        let parsed = web_url(value)?;
+        let program = which("gio").ok_or_else(|| AppError::command("gio is not installed"))?;
+        CommandSpec::new(program)
+            .args(["open", "--", parsed.as_str()])
+            .spawn_detached()?;
+        Ok(parsed.to_string())
+    };
+    match outcome() {
+        Ok(opened) => json!({
+            "ok": true,
+            "operation": "launch",
+            "path": opened,
+            "mode": "url",
+            "placed": false,
+            "address": "",
+        }),
+        Err(error) => json!({
+            "ok": false,
+            "operation": "launch",
+            "path": "",
+            "mode": "url",
+            "placed": false,
+            "error": error.to_string(),
+        }),
+    }
 }
 
 pub fn launch_command(

@@ -33,6 +33,15 @@ Item {
     return true
   }
 
+  function openUrl(url, targetScreen) {
+    var target = String(url || "")
+    if (target.length > 2048 || !/^https?:\/\/[^\/?#@\s]+([\/?#]\S*)?$/i.test(target)) {
+      error = "Only http and https links open from FileBlade"
+      return false
+    }
+    return enqueue(target, "url", "", 0, targetScreen, false)
+  }
+
   function startNext() {
     if (activeRequestId || queue.length === 0) return
     activeLaunch = queue[0]
@@ -83,7 +92,7 @@ Item {
   }
 
   function launchExternal() {
-    status = "Opening " + service.rootName(activeLaunch.path) + "…"
+    status = activeLaunch.mode === "url" ? "Opening link…" : "Opening " + service.rootName(activeLaunch.path) + "…"
     error = ""
     service.yieldFocusForExternalLaunch()
     var arguments = ["--path", activeLaunch.path, "--mode", activeLaunch.mode]
@@ -105,7 +114,7 @@ Item {
     if (result.ok) {
       status = result.placed ? "Opened on the far left" : "Opened"
       error = String(result.placement_error || "")
-      service.recordFrecencyVisit(["--path", lastPath])
+      if (result.mode !== "url") service.recordFrecencyVisit(["--path", lastPath])
     } else {
       status = ""
       error = String(result.error || "Unable to open path")

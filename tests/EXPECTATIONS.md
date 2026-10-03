@@ -1600,6 +1600,43 @@ isolated guest for rendering and keyboard/pointer checks.
    Escape closes the blade, `/` opens the filter, `f` the column filter and
    `s` cycles the sort, as in the other panes.
 
+## 50. Module items in Properties
+
+This file was written by an agent.
+
+`tests/vm/expectations/40-properties-subject.sh` publishes an item from a
+fixture extension in the guest. `tests/qml/tst_properties_subject.qml` covers
+the same behaviour, the limits and the keyboard on a fixture context, and
+`tests/properties_primitives.rs` the link and copy primitives in the backend.
+
+1. **E-50-01** When I select an item in an extension pane that publishes to
+   Properties, such as a Fabric item, Properties shows that item instead of
+   my file: its glyph in the extension's own symbol font and colour, its name,
+   a muted subtitle, and its fields. Plain values read as text, longer
+   descriptions keep their line breaks, tags appear as small square chips,
+   links are accent coloured, and code values sit in a monospace box. The
+   header names the extension.
+2. **E-50-02** Clicking a link opens it in my default browser; clicking a code
+   value copies it and shows `Copied` beside it for a moment. Clicking one of
+   the item's buttons runs that action in the extension, for example Refresh.
+3. **E-50-03** With Properties focused, `j`/`k` and the arrows move a
+   highlight over the fields and then the buttons; `g`/`G` jump to the first
+   and last. Enter or `o` opens the highlighted link, copies the highlighted
+   code or presses the highlighted button. `y` or Ctrl+C copies any
+   highlighted field. Escape closes the blade and `h` returns to the tree.
+   File shortcuts such as Delete, F2 or `e` do nothing to my selected file
+   while an extension item is shown, and `?` lists the item shortcuts.
+4. **E-50-04** Whichever I chose last wins. Selecting a file in Files, even
+   the file that was already selected, brings back the file properties;
+   selecting another item in the extension pane shows that item again. When
+   the extension lets go of its item, or its pane is switched to another tab,
+   removed or uninstalled, Properties returns to my file selection instead of
+   keeping an item that is no longer there.
+5. **E-50-05** An item with too much to show stays readable: long names and
+   values end with an ellipsis, at most 48 fields, 32 tags per field and 8
+   buttons appear, and a muted line says some properties were left out.
+   Links that are not web addresses show as plain text and open nothing.
+
 ## 90. Checking the native app before installation
 
 This file was written by an agent.

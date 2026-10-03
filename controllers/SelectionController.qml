@@ -11,6 +11,7 @@ Item {
   property var selectedEntries: []
   property string anchorPath: ""
   property string importError: ""
+  signal chosen()
   readonly property int selectedCount: selectedPaths.length
   readonly property string rootPath: service.rootPath
   readonly property var treeModel: service.treeModel
@@ -281,17 +282,10 @@ Item {
     var selectionMode = String(mode || "replace")
     if (pickerActive && !pickerMultiple) selectionMode = "replace"
 
-    if (selectionMode === "toggle") {
-      toggleSelectedEntry(current)
-      return
-    }
-
-    if (selectionMode === "range" || selectionMode === "add-range") {
-      selectModelRange(model, index, current, selectionMode === "add-range")
-      return
-    }
-
-    applySelection([current], current, current.path)
+    if (selectionMode === "toggle") toggleSelectedEntry(current)
+    else if (selectionMode === "range" || selectionMode === "add-range") selectModelRange(model, index, current, selectionMode === "add-range")
+    else applySelection([current], current, current.path)
+    chosen()
   }
 
   function clearSelection() {
@@ -385,6 +379,7 @@ Item {
       return false
     }
     applySelection(entries, entries[entries.length - 1], entries[0].path)
+    chosen()
     return true
   }
 
@@ -516,6 +511,7 @@ Item {
       mime: String(mime || (isDir ? "inode/directory" : "application/octet-stream"))
     }
     applySelection([entry], entry, entry.path)
+    chosen()
   }
 
 }

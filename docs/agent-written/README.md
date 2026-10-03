@@ -31,7 +31,8 @@ is maintained separately.
 - [Hooks module](hooks/README.md): what the Hooks blade reads and changes; nothing is counted
 - [Memory module](memory/README.md): what the Memory blade reads; nothing is counted
 - [Extensions](../../EXTENSIONS.md): the public contract for blade modules and
-  other FileBlade extension points, including image galleries and file-menu actions
+  other FileBlade extension points, including image galleries, file-menu actions
+  and showing a module's own item in Properties
 - [Security](../../SECURITY.md): trust boundaries, filesystem protections,
   command execution, previews, IPC, and known limits
 - [Build provenance](build-provenance.md): manual GitHub delivery builds,

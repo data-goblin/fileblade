@@ -477,6 +477,15 @@ request. FileBlade resolves optional programs through `PATH`, so the desktop
 session's `PATH` and installed executables are part of the trusted computing
 base. Do not run FileBlade with an untrusted `PATH`.
 
+Links in a module's Properties subject open only through `launch --mode url`.
+The backend accepts one `http` or `https` URL with a host, at most 2048 bytes,
+without whitespace or control characters, and passes it to `gio open --` as a
+single argument through the detached-child pool; any other scheme, including
+`file:` and `javascript:`, is refused before a process starts. Copied subject
+values reach `wl-copy` as private request input of at most 64 KiB through the
+resident clipboard owner, never as a command argument. Subject text is bounded
+and rendered as plain text; see the Properties section of EXTENSIONS.md.
+
 Script actions contributed by extensions run as argv vectors read from the
 manifest on disk, with `argv[0]` confined to the extension directory, the
 selection in the environment or a private file, bounded output, a deadline, a

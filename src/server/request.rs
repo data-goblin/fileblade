@@ -270,6 +270,7 @@ pub fn native_mutating(command: &backend::BackendCommand) -> bool {
                 | backend::BackendCommand::FrecencyVisit(_)
                 | backend::BackendCommand::ClipboardWrite(_)
                 | backend::BackendCommand::ClipboardText(_)
+                | backend::BackendCommand::ClipboardPlain(_)
                 | backend::BackendCommand::ModuleDirs(_)
                 | backend::BackendCommand::Visit(_)
                 | backend::BackendCommand::SetDefault(_)
@@ -316,6 +317,9 @@ pub(super) fn parse_request(object: &Map<String, Value>) -> AppResult<Request> {
         match &mut cli.command {
             backend::BackendCommand::HelperRead(options)
             | backend::BackendCommand::HelperWrite(options) => {
+                options.input = Some(input.to_string());
+            }
+            backend::BackendCommand::ClipboardPlain(options) => {
                 options.input = Some(input.to_string());
             }
             _ => {

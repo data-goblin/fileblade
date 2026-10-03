@@ -2,7 +2,7 @@
   "id": "properties",
   "name": "Properties",
   "glyph": "󰋽",
-  "description": "Metadata, image preview, and actions for the current file selection",
+  "description": "Metadata, image preview, and actions for the current file selection or a module item",
   "entry": "Module.qml",
   "hostContract": 1,
   "singleton": true,

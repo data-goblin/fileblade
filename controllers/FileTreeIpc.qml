@@ -289,6 +289,8 @@ QtObject {
       searchCancellationCount: service.searchCancellationCount,
       selectedPath: service.selectedPath,
       selectedPaths: service.selectedPaths,
+      propertiesOwner: service.services.properties.active ? service.services.properties.ownerModuleId : "",
+      propertiesTitle: service.services.properties.active ? service.services.properties.subject.title : "",
       selectedCount: service.selectedCount,
       selectedKind: service.selectedMetadata ? String(service.selectedMetadata.kind || "") : "",
       selectedFolderCount: service.selectedFolderCount,
