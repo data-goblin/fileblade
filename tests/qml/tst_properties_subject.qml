@@ -418,20 +418,80 @@ TestCase {
   function test_file_and_folder_actions_share_the_icon_grid() {
     var grid = grids(view)[0]
     verify(grid !== undefined)
-    compare(labels(grid), ["Open", "Edit", "Reveal", "Rename", "Trash", "More"])
+    compare(labels(grid), ["Open", "Edit", "Rename", "Trash", "More"])
     compare(grid.columns, 2)
     verify(grid.actions.every(function(action) { return String(action.glyph) !== "" }))
-    verify(grid.actions[4].urgent)
+    verify(grid.actions[3].urgent)
     waitForRendering(view)
     mouseClick(textItems(view, "Trash")[0])
     compare(test.trashRequests, 1)
-    mouseClick(textItems(view, "Reveal")[0])
-    compare(test.revealed, ["/work/report.pbip"])
+    compare(textItems(view, "Reveal").length, 0)
+    compare(test.revealed, [])
     files.selectedMetadata = ({ path: "/work/data", name: "data", kind: "Folder", is_dir: true })
-    tryCompare(grid.actions, "length", 5)
-    compare(labels(grid), ["Open folder", "Reveal", "Rename", "Trash", "More"])
+    tryCompare(grid.actions, "length", 4)
+    compare(labels(grid), ["Open folder", "Rename", "Trash", "More"])
     compare(String(grid.actions[0].glyph), "\u{F0770}")
     files.selectedCount = 3
     tryVerify(function() { return labels(grids(view)[0]).join(",") === "Trash,More" })
+  }
+
+  function cellOf(label) {
+    var node = label
+    while (node && node.modelData === undefined) node = node.parent
+    return node
+  }
+
+  function iconOf(cell) {
+    for (var i = 0; i < cell.children.length; i++)
+      if (cell.children[i].text !== undefined && String(cell.children[i].text) === String(cell.modelData.glyph)) return cell.children[i]
+    return null
+  }
+
+  function test_buttons_are_a_plain_icon_and_label_that_light_up_without_a_box() {
+    view.takeFocus("")
+    var subject = subjectView()
+    verify(properties.inspect(owner, {
+      title: "Cluster",
+      actions: [{ id: "open", text: "Open" }, { id: "refresh", text: "Refresh" }, { id: "delete", text: "Delete" }]
+    }))
+    tryVerify(function() { return subject.activeFocus })
+    waitForRendering(view)
+    var open = textItems(subject, "Open")[0]
+    var refresh = textItems(subject, "Refresh")[0]
+    var del = textItems(subject, "Delete")[0]
+    var openCell = cellOf(open)
+    var refreshCell = cellOf(refresh)
+    var deleteCell = cellOf(del)
+    for (var c = 0; c < 3; c++) {
+      var cell = [openCell, refreshCell, deleteCell][c]
+      verify(cell.border === undefined)
+      verify(cell.color === undefined)
+      for (var i = 0; i < cell.children.length; i++) verify(cell.children[i].border === undefined)
+    }
+    compare(String(open.color), "#7aa2f7")
+    compare(open.font.weight, Font.DemiBold)
+    compare(String(iconOf(openCell).color), "#7aa2f7")
+    compare(String(refresh.color), "#eeeeee")
+    compare(refresh.font.weight, Font.Normal)
+    compare(String(iconOf(refreshCell).color), "#777777")
+    compare(String(iconOf(deleteCell).color), "#ff6666")
+    compare(String(del.color), "#eeeeee")
+    mouseMove(refresh, refresh.width / 2, refresh.height / 2)
+    tryCompare(refreshCell, "hot", true)
+    compare(String(refresh.color), "#7aa2f7")
+    compare(String(iconOf(refreshCell).color), "#7aa2f7")
+    mousePress(refresh, refresh.width / 2, refresh.height / 2)
+    verify(refresh.color.a < 1)
+    verify(Math.abs(refresh.color.r - Qt.color("#7aa2f7").r) < 0.01)
+    mouseRelease(refresh, refresh.width / 2, refresh.height / 2)
+    compare(test.triggered, ["data-goblin.fileblade-fabric/fabric:refresh"])
+    mouseMove(del, del.width / 2, del.height / 2)
+    tryCompare(deleteCell, "hot", true)
+    compare(String(del.color), "#ff6666")
+    compare(String(iconOf(deleteCell).color), "#ff6666")
+    mouseMove(subject, 1, subject.height - 1)
+    tryCompare(deleteCell, "hot", false)
+    compare(String(iconOf(deleteCell).color), "#ff6666")
+    compare(String(del.color), "#eeeeee")
   }
 }

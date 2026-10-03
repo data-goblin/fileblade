@@ -438,9 +438,11 @@ actions:      up to 8 of { id, text, glyph, glyphFamily }; id is [A-Za-z0-9][A-Z
   glyphFamily: the glyph's font, bounded like the title glyphFamily; ignored without a glyph of your own
 ```
 
-Each button is a cell in a two-column grid: the icon in a tinted square on the
-left, the text on the right, cut with an ellipsis when it does not fit (hover
-shows the whole text). The pane drops to one column when it is too narrow for
+Each button is a cell in a two-column grid: a plain icon on the left and the
+text on the right, with no border or fill, the text cut with an ellipsis when it
+does not fit (hover shows the whole text). Icons are muted until the pointer or
+the keyboard highlight is on the button; then icon and text take the accent
+colour, the highlighted label turns bold, and a press dims them slightly. The pane drops to one column when it is too narrow for
 two cells of about 130 px. Pass a glyph from your own symbol set so the buttons
 match your tree; otherwise the id decides the default icon by its leading word,
 case-insensitively:
@@ -454,7 +456,7 @@ description, describe, comment, note:             edit text (nf-md-text_box_edit
 tag:                                              tag (nf-md-tag_outline)
 edit, modify, change, update, set:                pencil (nf-md-pencil_outline)
 refresh, reload, sync, rescan:                    refresh (nf-md-refresh)
-delete, remove, trash, drop, destroy, purge:      trash (nf-md-trash_can_outline), tinted with the urgent colour
+delete, remove, trash, drop, destroy, purge:      trash (nf-md-trash_can_outline), drawn in the urgent colour
 start, run, play, resume, restart, deploy:        play (nf-md-play_circle_outline)
 stop, terminate, cancel, kill, halt, pause, abort: stop (nf-md-stop_circle_outline)
 reveal, show, locate:                             folder (nf-md-folder_eye_outline)
@@ -464,7 +466,7 @@ anything else:                                    chevron (nf-md-chevron_right)
 ```
 
 The defaults are drawn in the shell font. A destructive id keeps the urgent
-tint even with a glyph of your own.
+colour, on its icon and on hover, even with a glyph of your own.
 
 Control characters are removed and an over-long value is cut with an ellipsis.
 When fields, chips or actions are dropped for these limits the pane says that

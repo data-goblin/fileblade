@@ -253,13 +253,16 @@ Ids never get reused. When behaviour changes, edit the entry in place.
     through a symbolic link, I see a clear explanation that it opens externally
     rather than a technical error code.
 66b. **E-08-12** Under the name of a selected file I see its actions as a
-    two-column grid of buttons, each with an icon on the left and a short label
-    on the right: Open, Edit, Reveal, Rename, Trash and More. A folder shows Open
-    folder instead of Open and has no Edit; several selected items show only
-    Trash and More. Trash has a red icon. Hovering a button names it in full with
-    its shortcut, and clicking it does the same as the shortcut. When an
-    operation can be stopped, a Stop button with a stop icon appears in the same
-    style. A very narrow pane stacks the buttons in one column.
+    two-column grid of buttons, each a plain icon on the left and a short label
+    on the right with no box around it: Open, Edit, Rename, Trash and More. There
+    is no Reveal button, since FileBlade is the file manager; `r` still reveals.
+    A folder shows Open folder instead of Open and has no Edit; several selected
+    items show only Trash and More. Trash has a red icon. Hovering a button turns
+    its icon and label the accent colour (red for Trash) and names it in full
+    with its shortcut; pressing it dims that colour for a moment, and clicking it
+    does the same as the shortcut. When an operation can be stopped, a Stop
+    button with a stop icon appears in the same style. A very narrow pane stacks
+    the buttons in one column.
 
 ## 9. Searching
 
@@ -1647,16 +1650,19 @@ the same behaviour, the limits and the keyboard on a fixture context, and
 2. **E-50-02** Clicking a link opens it in my default browser; clicking a code
    value copies it and shows `Copied` beside it for a moment. Clicking one of
    the item's buttons runs that action in the extension, for example Refresh.
-   The buttons sit in a two-column grid under the subtitle: each shows an
-   icon on the left and its label on the right, so I recognise Open, Copy,
-   Rename, Start, Stop or Refresh at a glance. The icon is the extension's own
-   when it sends one, otherwise one FileBlade picks from the action, and
-   delete actions are tinted red. In a narrow pane the grid becomes one
-   column and long labels end with an ellipsis; hovering shows the full label.
+   The buttons sit in a two-column grid under the subtitle: each is a plain
+   icon on the left and its label on the right, with no border or fill, so I
+   recognise Open, Copy, Rename, Start, Stop or Refresh at a glance. The icon
+   is the extension's own when it sends one, otherwise one FileBlade picks
+   from the action, and delete actions have a red icon. Hovering a button
+   turns its icon and label the accent colour. In a narrow pane the grid
+   becomes one column and long labels end with an ellipsis; hovering shows
+   the full label.
 3. **E-50-03** With Properties focused, `j`/`k` and the arrows move a
    highlight over the item's buttons, left to right and row by row through
    the grid under its subtitle, and then its fields, starting on the first
-   field. The highlighted button fills its icon square with the accent colour.
+   field. The highlighted button's icon and label turn the accent colour and
+   the label turns bold, without any box around it.
    `g`/`G` jump to the first and last. Enter or `o` opens the highlighted link, copies the highlighted
    code or presses the highlighted button. `y` or Ctrl+C copies any
    highlighted field. Escape closes the blade and `h` returns to the tree.

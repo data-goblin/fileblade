@@ -330,8 +330,6 @@ FocusScope {
                   tipActions: [{ button: "left", text: "Open" }, { shortcut: "Enter" }] })
       if (!folder) list.push({ id: "editor", text: "Edit", tip: "Open in editor", glyph: ActionGlyphs.named("editor"),
                                tipActions: [{ button: "left", text: "Edit" }, { shortcut: "e" }] })
-      list.push({ id: "reveal", text: "Reveal", tip: "Show in file manager", glyph: ActionGlyphs.named("reveal"),
-                  tipActions: [{ button: "left", text: "Reveal" }, { shortcut: "r" }] })
       list.push({ id: "rename", text: "Rename", glyph: ActionGlyphs.named("rename"),
                   tipActions: [{ button: "left", text: "Rename" }, { shortcut: "F2" }] })
     }
