@@ -38,3 +38,30 @@ fn preview_returns_lines_marks_binaries_and_colours_code_when_bat_exists() {
     assert_eq!(limited["truncated"], true);
     assert_eq!(limited["lines"].as_array().unwrap().len(), 1);
 }
+
+#[test]
+fn a_file_reached_through_a_link_explains_the_refusal_without_an_error_code() {
+    let temporary = tempdir().unwrap();
+    let root = temporary.path();
+    fs::create_dir(root.join("real")).unwrap();
+    fs::write(root.join("real/note.txt"), "hello\n").unwrap();
+    fs::write(root.join("real/picture.png"), b"\x89PNG\r\n\x1a\n").unwrap();
+    std::os::unix::fs::symlink("real", root.join("linked")).unwrap();
+    std::os::unix::fs::symlink(".", root.join("cycle")).unwrap();
+    let cancelled = AtomicBool::new(false);
+    for folder in ["linked", "cycle/real"] {
+        let text = root.join(folder).join("note.txt");
+        let image = root.join(folder).join("picture.png");
+        for response in [
+            preview::preview(text.to_str().unwrap(), 10, &cancelled),
+            fileblade::thumbnail::thumbnail(image.to_str().unwrap(), "key", 64, 64, &cancelled),
+        ] {
+            assert_eq!(response["ok"], false, "{response}");
+            let error = response["error"].as_str().unwrap();
+            assert!(error.contains("reached through a link"), "{error}");
+            assert!(!error.contains("os error"), "{error}");
+        }
+    }
+    let direct = preview::preview(root.join("real/note.txt").to_str().unwrap(), 10, &cancelled);
+    assert_eq!(direct["ok"], true, "{direct}");
+}

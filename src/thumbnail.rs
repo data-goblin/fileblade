@@ -60,7 +60,7 @@ pub fn thumbnail(
     let input = match read_bounded_nofollow(&path, INPUT_BYTES) {
         Ok(Some(bytes)) => bytes,
         Ok(None) => return failure(&text, &format!("{text} is missing")),
-        Err(error) => return failure(&text, &error.to_string()),
+        Err(error) => return failure(&text, &crate::preview::read_refusal(&error)),
     };
     match render_in_child(&path, &output, width, height, &version, input, cancelled) {
         Ok(value) if source_version(&path).is_ok_and(|current| current == version) => value,

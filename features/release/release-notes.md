@@ -4,6 +4,8 @@ This file was written by an agent.
 
 ## 0.3.0 (unreleased)
 
+- Explain why a file reached through a symbolic link has no preview instead of showing an error code.
+
 ## 0.2.0
 
 **Prepared; not published.** The installation URLs below become available after publication.

@@ -54,4 +54,15 @@ expect_missing E-08-10 "an svg shows no preview box" "$svgtext" "externally"
 expect_missing E-08-10 "and no preview placeholder" "$svgtext" "Preview"
 expect_contains E-08-10 "while its properties still show" "$svgtext" "logo.svg"
 
+guest "ln -sfn ../deep/inner $ROOT_DIR/dest/linked; cp $ROOT_DIR/small.png $ROOT_DIR/deep/inner/inner.png" >/dev/null
+ctl select "$ROOT_DIR/dest/linked/deep.txt"; sleep 4
+through=$(pane_text)
+expect_contains E-08-11 "a text file inside a linked folder explains the link" "$through" "reached"
+expect_missing E-08-11 "and shows no error code" "$through" "os error"
+ctl select "$ROOT_DIR/dest/linked/inner.png"; sleep 4
+through=$(pane_text)
+expect_contains E-08-11 "an image inside a linked folder explains the link" "$through" "reached"
+expect_missing E-08-11 "and shows no error code" "$through" "os error"
+guest "rm -f $ROOT_DIR/deep/inner/inner.png" >/dev/null
+
 summary

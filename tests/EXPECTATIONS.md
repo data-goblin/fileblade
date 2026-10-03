@@ -246,6 +246,9 @@ Ids never get reused. When behaviour changes, edit the entry in place.
 66. **E-08-10** When I select an image the shell does not decode, such as an SVG
     or a GIF, no preview box appears at all; the properties show without an empty
     card, and opening the file still uses the desktop default application.
+66a. **E-08-11** When I select a text file or an image inside a folder I reached
+    through a symbolic link, I see a clear explanation that it opens externally
+    rather than a technical error code.
 
 ## 9. Searching
 
