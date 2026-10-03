@@ -24,6 +24,12 @@ TestCase {
     verify(plan.message.indexOf("never installs it for you") > 0)
   }
 
+  function test_only_a_missing_host_names_the_command_that_removes_the_extension() {
+    compare(HostGuard.plan(snapshot("missing"), self.id).removal, "omarchy plugin remove " + self.id)
+    for (var state of ["disabled", "starting", "unknown", "ready"])
+      compare(HostGuard.plan(snapshot(state), self.id).removal, "")
+  }
+
   function test_a_disabled_host_offers_to_enable_it() {
     var plan = HostGuard.plan(snapshot("disabled"), self.id)
     verify(plan.show)

@@ -26,7 +26,7 @@ function enableCommand() {
 }
 
 function plan(snapshot, selfId) {
-  var hidden = { show: false, names: [], action: "", command: [], message: "" }
+  var hidden = { show: false, names: [], action: "", command: [], message: "", removal: "" }
   if (!snapshot || snapshot.schemaVersion !== 1 || snapshot.state === "ready") return hidden
   if (["missing", "disabled", "starting", "unknown"].indexOf(snapshot.state) < 0) return hidden
   var waiting = Array.isArray(snapshot.plugins) ? snapshot.plugins.filter(function(row) {
@@ -41,6 +41,7 @@ function plan(snapshot, selfId) {
     action: disabled ? "Enable" : "",
     command: disabled ? enableCommand() : [],
     message: disabled ? DISABLED_MESSAGE : snapshot.state === "missing" ? MISSING_MESSAGE
-      : snapshot.state === "starting" ? STARTING_MESSAGE : UNKNOWN_MESSAGE
+      : snapshot.state === "starting" ? STARTING_MESSAGE : UNKNOWN_MESSAGE,
+    removal: snapshot.state === "missing" ? waiting.map(function(row) { return "omarchy plugin remove " + row.id }).join("\n") : ""
   }
 }

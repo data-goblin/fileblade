@@ -1053,6 +1053,11 @@ They remain in the regression scripts and Git history, but do not qualify
 native registration. Native extension directories, providers and rescanning
 are described in [the extension contract](../EXTENSIONS.md).
 
+- **E-35-06** When an extension runs as an Omarchy plugin and FileBlade is not
+  installed, its panel tells me to install FileBlade myself and also shows the
+  command that removes the extension, so removing FileBlade never leaves me
+  with a panel I cannot get rid of.
+
 ## 36. Explicit cleanup and agent-file management
 
 This file was written by an agent.

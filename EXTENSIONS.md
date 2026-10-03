@@ -528,7 +528,7 @@ What it writes:
 ```yaml
 manifest.json:                         one blade module, hostContract 2, two declared settings
 Service.qml, Provider.qml:             the shared runtime and the legacy wrapper with the host guard loader
-HostGuard.qml, HostGuard.js:           the missing-host guard the satellites carry
+HostGuard.qml, HostGuard.js:           the missing-host guard the satellites carry; with no host it shows the `omarchy plugin remove` command for the extension
 blades/Module.qml:                     a FocusScope that shows the selection, routes Tab, Esc, Enter and e, and exposes shortcuts
 assets/fileblade-logo.png:             the logo the host guard tints
 README.md, ARCHITECTURE.md, docs/agent-guidelines.md, docs/agent-written/README.md, LICENSE, .gitignore
