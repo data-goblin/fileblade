@@ -53,7 +53,7 @@ artifact verification. Set `FILEBLADE_INSTALL_MANIFEST` to use a mirror or a loc
 [Releases](https://github.com/data-goblin/fileblade/releases), then install it:
 
 ```bash
-sudo pacman -U ./fileblade-native-0.2.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ./fileblade-native-0.3.0-1-x86_64.pkg.tar.zst
 ```
 
 For the **native app**, run `fileblade` to open it. Desktop roles start disabled;
@@ -122,7 +122,7 @@ Memory, Skills, MCP and Hooks are maintained in this repository as built-in pane
 
 ## Features
 
-[Read the 0.2.0 release notes](features/release/release-notes.md) or
+[Read the release notes](features/release/release-notes.md) or
 [browse all feature guides, screenshots and short videos](features/index.md).
 
 - Left and right sidebars that open on keyboard shortcuts
