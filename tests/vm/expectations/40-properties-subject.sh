@@ -103,7 +103,7 @@ expect E-50-01 'status names the shown item' propertiesTitle 'Fixture item 40'
 sleep 1
 shot=$("$OVM" shot properties40-subject | tail -1)
 text=$(ocr_crop properties40-pane "$(field sidebarWidth)x360+0+720" 300% 6)
-for word in 'Fixture item 40' 'Published' 'alpha' 'Refresh'; do
+for word in 'Fixture item' 'Published' 'TAGS' 'PORTAL' 'Refresh'; do
   expect_contains E-50-01 "pane shows $word" "$text" "$word"
 done
 printf 'screenshot %s\n' "$shot"

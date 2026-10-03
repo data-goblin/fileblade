@@ -64,9 +64,10 @@ FocusScope {
     var top = item.mapToItem(content, 0, 0).y + content.y
     var bottom = top + item.height
     var limit = Math.max(0, scroller.contentHeight - scroller.height)
+    var margin = edgeFade.fadeHeight
     if (index === 0) scroller.contentY = 0
-    else if (top < scroller.contentY) scroller.contentY = Math.max(0, top - Style.space(6))
-    else if (bottom > scroller.contentY + scroller.height) scroller.contentY = Math.min(limit, bottom - scroller.height + Style.space(6))
+    else if (top < scroller.contentY + margin) scroller.contentY = Math.max(0, top - margin)
+    else if (bottom > scroller.contentY + scroller.height - margin) scroller.contentY = Math.min(limit, bottom - scroller.height + margin)
   }
 
   function moveCursor(delta) {
@@ -484,6 +485,7 @@ FocusScope {
   }
 
   PluginUi.ScrollEdgeFade {
+    id: edgeFade
     anchors.fill: scroller
     flickable: scroller
     surfaceColor: view.surfaceColor
