@@ -29,7 +29,7 @@ remove that link to preserve the source checkout.
 ```yaml
 manifest.json:                         extension identity and the blade module definition
 Provider.qml:                          shared provider runtime owned by FileBlade
-Service.qml:                           compatibility wrapper and host guard loader
+Service.qml:                           the provider again for Omarchy plugin installs, plus the host guard loader
 HostGuard.qml, HostGuard.js:           the missing-host guard
 blades/Module.qml:                     the blade module
 assets/:                               fileblade-extension-logo.svg (README banner), fileblade-logo.png (host guard)

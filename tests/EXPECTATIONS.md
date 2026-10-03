@@ -1673,6 +1673,19 @@ the same behaviour, the limits and the keyboard on a fixture context, and
    buttons appear, and a muted line says some properties were left out.
    Links that are not web addresses show as plain text and open nothing.
 
+## 51. Starting an extension from the template
+
+This file was written by an agent.
+
+`tests/extension_template_e2e.rs` generates an extension with the CLI and runs
+its own QML suite against both install shapes.
+
+1. **E-51-01** When I run `fileblade extension template <id>` and install the
+   result either natively or as an Omarchy plugin, its tab shows the selected
+   path and a muted line saying how many views share its provider, such as
+   `Shared by 1 view`. It never stays on `Loading…` in either shape, so state I
+   add to `Provider.qml` reaches the tab the same way in both.
+
 ## 90. Checking the native app before installation
 
 This file was written by an agent.

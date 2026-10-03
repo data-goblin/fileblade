@@ -5,7 +5,9 @@ This file was written by an agent.
 The native FileBlade app hosts this extension. Registration under
 `~/.config/fileblade/extensions/{{PLUGIN_ID}}` makes its manifest discoverable.
 FileBlade owns one `Provider.qml` runtime and loads `blades/Module.qml` for each
-slot and screen that displays it.
+slot and screen that displays it. Installed as an Omarchy plugin instead, the
+shell builds `Service.qml`, which is the same provider, and FileBlade hands that
+object to the module as `context.providerService`.
 
 ## Ownership
 
@@ -14,7 +16,7 @@ Provider.qml:       shared scanners, caches, watchers and mutations; attachment 
 blades/Module.qml:  presentation, plain-text rendering, shared focus commands and per-tab context.state
 manifest.json:      module identity, entry, provider, hostContract and settings schema
 HostGuard.qml, .js: host availability checks; no automatic download
-Service.qml:        compatibility wrapper; native discovery uses Provider.qml directly
+Service.qml:        the provider again for Omarchy plugin installs, plus the host guard loader; keep it a Provider so modules read the same state in both shapes
 tests/:             generated local gate and offline Commons fixtures
 assets/:            generated extension wordmark and host icon
 ```

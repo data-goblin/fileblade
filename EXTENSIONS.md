@@ -140,6 +140,32 @@ provider and supplies it as `context.providerService` and through
 `context.service(providerId)`. Use `"provider": null` for a module with no
 shared state.
 
+An extension installed as an Omarchy plugin takes the other path. The shell
+owns the plugin's service entry point and FileBlade does not create a second
+runtime beside it: `context.providerService` is the object the shell built from
+`entryPoints.service`. Make that file the provider itself, so a module reads
+the same properties in both shapes:
+
+```qml
+import QtQuick
+
+Provider {
+  property var shell: null
+  property var manifest: null
+  property var pluginRegistry: null
+  providerId: manifest && manifest.id ? String(manifest.id) : ""
+  providerRoot: decodeURIComponent(String(Qt.resolvedUrl(".")).replace(/^file:\/\//, "")).replace(/\/$/, "")
+}
+```
+
+The shell does not pass `files` or `inventoryComponentUrl`, so `attach` takes
+them from the first context (`context.service("files")`,
+`context.ui.url("ArtifactInventory")`) when they are still empty. A service that
+only wraps a lazily loaded `Provider.qml` has none of the provider's
+properties, and a module that waits on one of them stays on `Loading…` in the
+plugin shape while working natively. `fileblade extension template` writes the
+working shape.
+
 FileBlade constructs the provider with `providerId`, `providerRoot`, `files`
 and `inventoryComponentUrl`. `attach(context)` must be idempotent,
 `detach(context)` releases one view, and `shutdown()` is terminal. Creating a
@@ -717,9 +743,10 @@ What it writes:
 
 ```yaml
 manifest.json:                         one blade module, hostContract 2, two declared settings
-Service.qml, Provider.qml:             the shared runtime and the legacy wrapper with the host guard loader
+Provider.qml:                          the shared runtime FileBlade creates for a native install; attach takes files from the context when it was not given them
+Service.qml:                           the same provider for an Omarchy plugin install, where the shell builds it, plus the host guard loader
 HostGuard.qml, HostGuard.js:           the missing-host guard the satellites carry; with no host it shows the `omarchy plugin remove` command for the extension
-blades/Module.qml:                     a FocusScope that shows the selection, routes Tab, Esc, Enter and e, and exposes shortcuts
+blades/Module.qml:                     a FocusScope that shows the selection and the provider's state (Loading… until the provider is ready), routes Tab, Esc, Enter and e, and exposes shortcuts
 assets/fileblade-logo.png:             the logo the host guard tints
 README.md, ARCHITECTURE.md, docs/agent-guidelines.md, docs/agent-written/README.md, LICENSE, .gitignore
 tests/run, tests/tst_module.qml, tests/tst_host_guard.qml, tests/imports/:  the local gate, with a qs.Commons stub so the module loads offline

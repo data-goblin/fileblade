@@ -8,6 +8,10 @@ FocusScope {
 
   readonly property string title: "{{PLUGIN_NAME}}"
   readonly property var files: context ? context.service("files") : null
+  readonly property var provider: context ? context.providerService : null
+  readonly property bool loading: !provider || provider.ready !== true
+  readonly property string providerStatus: loading ? "Loading…"
+    : "Shared by " + provider.viewCount + (provider.viewCount === 1 ? " view" : " views")
   readonly property string selectedPath: files && files.selectedPath ? String(files.selectedPath) : ""
   readonly property string selectedName: context && selectedPath !== "" ? String(context.paths.name(selectedPath)) : ""
   readonly property string caption: String(setting("caption", ""))
@@ -43,8 +47,8 @@ FocusScope {
     return true
   }
 
-  Component.onCompleted: if (context && context.providerService) context.providerService.attach(context)
-  Component.onDestruction: if (context && context.providerService) context.providerService.detach(context)
+  Component.onCompleted: if (provider) provider.attach(context)
+  Component.onDestruction: if (provider) provider.detach(context)
 
   Keys.onPressed: function(event) {
     if (!context) return
@@ -111,6 +115,17 @@ FocusScope {
       color: module.selectedName !== "" ? Color.bar.text : Color.muted
       font.family: Style.font.family
       font.pixelSize: Style.font.body
+    }
+
+    Text {
+      id: providerLabel
+      width: parent.width
+      textFormat: Text.PlainText
+      elide: Text.ElideRight
+      text: module.providerStatus
+      color: Color.muted
+      font.family: Style.font.family
+      font.pixelSize: Style.font.caption
     }
 
     Text {

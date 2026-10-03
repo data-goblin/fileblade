@@ -474,6 +474,79 @@ fn the_scaffolded_gate_finds_a_plugin_route_install_without_a_path_entry() {
     );
 }
 
+fn qmltestrunner() -> Option<std::path::PathBuf> {
+    [
+        "/usr/lib/qt6/bin/qmltestrunner",
+        "/usr/lib64/qt6/bin/qmltestrunner",
+    ]
+    .into_iter()
+    .map(std::path::PathBuf::from)
+    .find(|candidate| candidate.is_file())
+}
+
+#[test]
+fn a_generated_extension_reads_its_provider_state_in_both_install_shapes() {
+    let strict = std::env::var("FILEBLADE_TEST_STRICT").is_ok_and(|value| value == "1");
+    let Some(runner) = qmltestrunner() else {
+        assert!(!strict, "qmltestrunner is required for this test");
+        return;
+    };
+    let temporary = tempfile::tempdir().unwrap();
+    let target = temporary.path().join("weather");
+    let output = fileblade()
+        .args(["extension", "template", "acme.fileblade-weather"])
+        .arg(&target)
+        .args(["--author", "Jane Doe"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let service = fs::read_to_string(target.join("Service.qml")).unwrap();
+    assert!(
+        service.contains("\nProvider {\n"),
+        "the Omarchy plugin service is the provider itself"
+    );
+    let suite = fs::read_to_string(target.join("tests/tst_module.qml")).unwrap();
+    assert!(suite.contains("test_the_omarchy_plugin_service_is_the_provider_the_module_reads"));
+    let run = Command::new(&runner)
+        .args([
+            "-platform",
+            "offscreen",
+            "-import",
+            "tests/imports",
+            "-input",
+        ])
+        .arg("tests/tst_module.qml")
+        .current_dir(&target)
+        .env_remove("QT_QPA_PLATFORMTHEME")
+        .env("QT_QPA_PLATFORM", "offscreen")
+        .env("QT_STYLE_OVERRIDE", "Basic")
+        .env("XDG_CACHE_HOME", temporary.path().join("cache"))
+        .output()
+        .unwrap();
+    let report =
+        String::from_utf8_lossy(&run.stdout).into_owned() + &String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{report}");
+    for test in [
+        "test_the_omarchy_plugin_service_is_the_provider_the_module_reads",
+        "test_the_native_provider_is_the_same_runtime",
+    ] {
+        assert!(
+            report.contains(&format!("PASS   : qmltestrunner::WeatherModule::{test}()")),
+            "{report}"
+        );
+    }
+    assert!(
+        report
+            .lines()
+            .any(|line| line.starts_with("Totals: ") && line.contains(" 0 failed,")),
+        "{report}"
+    );
+}
+
 fn which(program: &str) -> std::path::PathBuf {
     ["/usr/bin", "/bin", "/usr/local/bin"]
         .into_iter()

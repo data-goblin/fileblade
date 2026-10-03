@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../blades" as Blade
+import ".." as Extension
 
 TestCase {
   id: test
@@ -56,6 +57,16 @@ TestCase {
   }
 
   Component {
+    id: serviceComponent
+    Extension.Service { manifest: ({ id: "{{PLUGIN_ID}}" }) }
+  }
+
+  Component {
+    id: providerComponent
+    Extension.Provider { providerId: "{{PLUGIN_ID}}"; files: files }
+  }
+
+  Component {
     id: moduleComponent
     Blade.Module { width: 400; height: 300 }
   }
@@ -65,6 +76,7 @@ TestCase {
     test.stored = {}
     test.attached = 0
     test.selected = "/home/someone/projects/demo/notes.md"
+    context.providerService = provider
   }
 
   function test_title_and_selection() {
@@ -116,5 +128,29 @@ TestCase {
     compare(module.context, null)
     compare(module.selectedName, "")
     compare(module.caption, "")
+  }
+
+  function test_the_omarchy_plugin_service_is_the_provider_the_module_reads() {
+    var service = createTemporaryObject(serviceComponent, test)
+    context.providerService = service
+    compare(service.providerId, "{{PLUGIN_ID}}")
+    verify(service.providerRoot !== "")
+    var module = createTemporaryObject(moduleComponent, test, { context: context })
+    compare(service.files, files)
+    compare(service.viewCount, 1)
+    compare(module.loading, false)
+    compare(module.providerStatus, "Shared by 1 view")
+    module.destroy()
+    tryCompare(service, "viewCount", 0)
+  }
+
+  function test_the_native_provider_is_the_same_runtime() {
+    var runtime = createTemporaryObject(providerComponent, test)
+    context.providerService = runtime
+    var module = createTemporaryObject(moduleComponent, test, { context: context })
+    compare(module.loading, false)
+    compare(module.providerStatus, "Shared by 1 view")
+    runtime.shutdown()
+    compare(module.providerStatus, "Loading…")
   }
 }
