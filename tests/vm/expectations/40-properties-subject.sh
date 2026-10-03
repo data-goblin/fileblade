@@ -6,21 +6,28 @@ native=${FILEBLADE_SHAPE:-plugin}
 layout=$(field bladeLayoutPath)
 [[ $layout == /home/omarchy/*/blades.json ]] || { fail harness layout "$layout"; summary; }
 config=${layout%/*}
+settings=$config/settings.json
 if [[ $native == native ]]; then
   extensions=${config%/omarchy/fileblade}/fileblade/extensions
 else
   extensions=/home/omarchy/.config/omarchy/plugins
 fi
-id=fixture.properties40
+id=fixture.properties40-$$
 module=$id/probe
 [[ $(guest "test -e '$extensions/$id' && echo exists") == exists ]] && { fail harness fixture "refusing to replace $id"; summary; }
 original=$(guest "head -c 262145 '$layout'" | jq -ce '.blades')
+backup=$(guest 'mktemp -d /tmp/fileblade-properties40.XXXXXX') || { fail harness backup 'mktemp failed'; summary; }
+guest "if test -f '$settings'; then cp -- '$settings' '$backup/settings'; fi" || { fail harness backup 'cannot preserve settings'; summary; }
 [[ $(jq -r '(.left.slots | type) == "array" and (.right.slots | type) == "array"' <<< "$original") == true ]] || { fail harness layout 'cannot preserve the original layout'; summary; }
 slots() { ctl setBladeSlots "$1" "base64:$(printf %s "$2" | base64 -w0)"; }
 cleanup() {
   local edge
   [[ $native == native ]] || guest "omarchy plugin disable '$id'" >/dev/null
   guest "rm -rf -- '$extensions/$id'"
+  if [[ $native == native ]]; then
+    guest "if test -f '$backup/settings'; then cp -- '$backup/settings' '$settings'; fi"
+  fi
+  guest "rm -rf -- '$backup'"
   ctl closeBlade left
   sleep 2
   ctl openBlade left
@@ -32,8 +39,6 @@ cleanup() {
 trap cleanup EXIT
 
 fixture
-goto_root "$ROOT_DIR"
-ctl select "$ROOT_DIR/deep"
 
 code=$(base64 -w0 <<'PY'
 import json,pathlib,sys
@@ -63,7 +68,7 @@ FocusScope {
         { label: "Notes", value: "first line\\nsecond line", kind: "multiline" },
         { label: "Tags", value: ["alpha", "beta"], kind: "tags" },
         { label: "Portal", value: "https://example.org/item/40", kind: "link" },
-        { label: "Path", value: "Item40Path", kind: "code" }
+        { label: "Path", value: "copyme", kind: "code" }
       ],
       actions: [{ id: "refresh", text: "Refresh" }]
     })
@@ -92,6 +97,10 @@ sleep 3
 ctl openBlade left
 listed() { "$OVM" ipc "$PLUGIN.control" bladeModules | jq -e --arg id "$module" 'any(.modules[]; .id == $id)' >/dev/null; }
 wait_for listed 10 || { fail harness fixture 'fixture module is not listed'; summary; }
+goto_root "$ROOT_DIR"
+wait_for "[[ \$(field rootPath) == '$ROOT_DIR' ]]" 10
+ctl select "$ROOT_DIR/deep"
+wait_for "[[ \$(field selectedPath) == '$ROOT_DIR/deep' ]]" 10
 expect E-50-04 'a file is selected before the module publishes' selectedPath "$ROOT_DIR/deep"
 
 slots left "[{\"module\":\"files\"},{\"module\":\"$module\"},{\"module\":\"properties\"}]"
@@ -103,8 +112,12 @@ expect E-50-01 'status names the shown item' propertiesTitle 'Fixture item 40'
 sleep 1
 shot=$("$OVM" shot properties40-subject | tail -1)
 text=$(ocr_crop properties40-pane "$(field sidebarWidth)x360+0+720" 300% 6)
-for word in 'Fixture item' 'Published' 'TAGS' 'PORTAL' 'Refresh'; do
+for word in 'Fixture item' 'Refresh' 'first line' 'example.org'; do
   expect_contains E-50-01 "pane shows $word" "$text" "$word"
+done
+muted=$(ocr_crop properties40-muted "$(field sidebarWidth)x360+0+720" 300% 6 '3%,22%')
+for word in 'Published' 'TAGS' 'PORTAL'; do
+  expect_contains E-50-01 "pane shows muted $word" "$muted" "$word"
 done
 printf 'screenshot %s\n' "$shot"
 
@@ -117,15 +130,15 @@ click_word Refreshed
 guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
 "$OVM" key ret
 sleep 1
-expect_out E-50-03 'Enter on code copies it' 'timeout 3 wl-paste -n' 'Item40Path'
+expect_out E-50-03 'Enter on code copies it' 'timeout 3 wl-paste -n' 'copyme'
 "$OVM" key delete
 "$OVM" key f2
 sleep 1
 expect_out E-50-03 'file shortcuts leave the selected file alone' "test -d '$ROOT_DIR/deep' && echo kept" kept
 expect E-50-03 'file shortcuts keep the item shown' propertiesOwner "$module"
 guest "printf stale | timeout 3 wl-copy >/dev/null 2>&1 </dev/null; true"
-click_word Item40Path
-expect_out E-50-02 'a click on code copies it' 'timeout 3 wl-paste -n' 'Item40Path'
+click_word copyme
+expect_out E-50-02 'a click on code copies it' 'timeout 3 wl-paste -n' 'copyme'
 "$OVM" key g
 "$OVM" key ret
 if wait_for "[[ \$(title) == 'Refreshed 40 x2' ]]" 8; then pass E-50-03 'Enter on an action runs it'; else fail E-50-03 'Enter on an action runs it' "title $(title)"; fi
@@ -133,7 +146,8 @@ if wait_for "[[ \$(title) == 'Refreshed 40 x2' ]]" 8; then pass E-50-03 'Enter o
 sleep 1
 
 ensure_left_open
-row=$(visible_row_y deep)
+index=$(row_index deep)
+row=$( [[ $index =~ ^[0-9]+$ ]] && row_y "$index")
 if [[ $row =~ ^[0-9]+$ ]]; then
   "$OVM" mouse click "$ROW_X" "$row"
   if wait_for "[[ -z \$(owner) ]]" 8; then pass E-50-04 'selecting the same file again brings the file back'; else fail E-50-04 'selecting the same file again brings the file back' "owner $(owner)"; fi
