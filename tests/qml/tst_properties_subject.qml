@@ -16,6 +16,7 @@ TestCase {
   property var opened: []
   property var copied: []
   property int trashRequests: 0
+  property var revealed: []
 
   QtObject {
     id: selection
@@ -46,6 +47,7 @@ TestCase {
     function openUrl(url, screen) { test.opened = test.opened.concat([url]); return true }
     function copyText(text) { test.copied = test.copied.concat([text]); return true }
     function requestTrash() { test.trashRequests++ }
+    function revealInFileManager(path) { test.revealed = test.revealed.concat([path]) }
     function openDefault() { fail("file activation must not run while a module item is shown") }
     function openInEditor() { fail("file editing must not run while a module item is shown") }
     function focusTree() {}
@@ -117,8 +119,25 @@ TestCase {
         { label: "Portal", value: "https://app.fabric.microsoft.com/groups/abc/reports/def", kind: "link" },
         { label: "Path", value: "Finance.Workspace/Sales.Report", kind: "code" }
       ],
-      actions: [{ id: "rename", text: "Rename" }, { id: "refresh", text: "Refresh" }]
+      actions: [{ id: "rename", text: "Rename", glyph: "\u{F2811}", glyphFamily: "FabricSymbols NF" }, { id: "refresh", text: "Refresh" }]
     }
+  }
+
+  function grids(root) {
+    var hits = []
+    function walk(node) {
+      if (!node) return
+      if (node.cellWidth !== undefined && node.activated !== undefined && node.visible) hits.push(node)
+      for (var i = 0; i < node.children.length; i++) walk(node.children[i])
+    }
+    walk(root)
+    return hits
+  }
+
+  function labels(grid) {
+    var result = []
+    for (var i = 0; i < grid.actions.length; i++) result.push(String(grid.actions[i].text))
+    return result
   }
 
   function subjectView() {
@@ -151,6 +170,10 @@ TestCase {
   function init() {
     properties.clear()
     selection.selectedPaths = ["/work/report.pbip"]
+    files.selectedMetadata = ({ path: "/work/report.pbip", name: "report.pbip", kind: "File", mime: "text/plain", size: 12, size_text: "12 B", is_dir: false })
+    files.selectedCount = 1
+    view.width = test.width
+    test.revealed = []
     owner.retired = false
     test.triggered = []
     test.opened = []
@@ -316,5 +339,99 @@ TestCase {
     verify(properties.inspect(owner, { title: "Budget", fields: budgetFields }))
     compare(properties.subject.fields.length, 4)
     verify(properties.subject.truncated)
+  }
+
+  function test_actions_sit_in_a_two_column_grid_with_an_icon_beside_each_label() {
+    verify(properties.inspect(owner, {
+      title: "Sales",
+      actions: [
+        { id: "open", text: "Open in Fabric" },
+        { id: "copyId", text: "Copy ID" },
+        { id: "rename", text: "Rename", glyph: "\u{F2811}", glyphFamily: "FabricSymbols NF" },
+        { id: "tags", text: "Edit tags", glyph: "far too long glyph" },
+        { id: "description", text: "Edit description", glyph: "\u{F1A7D}", glyphFamily: "Bad;Family" },
+        { id: "stop", text: "Terminate" },
+        { id: "delete", text: "Delete" },
+        { id: "whatever", text: "Something else" }
+      ]
+    }))
+    var normalized = properties.subject.actions
+    compare(normalized.map(function(action) { return action.glyph }),
+            ["\u{F03CC}", "\u{F018F}", "\u{F2811}", "\u{F04FC}", "\u{F1A7D}", "\u{F0667}", "\u{F0A7A}", "\u{F0142}"])
+    compare(normalized[2].glyphFamily, "FabricSymbols NF")
+    compare(normalized[3].glyphFamily, "")
+    compare(normalized[4].glyphFamily, "")
+    verify(normalized[6].urgent)
+    verify(!normalized[0].urgent)
+    var subject = subjectView()
+    var grid = grids(subject)[0]
+    compare(grid.columns, 2)
+    waitForRendering(view)
+    var open = textItems(subject, "Open in Fabric")[0]
+    var copy = textItems(subject, "Copy ID")[0]
+    var rename = textItems(subject, "Rename")[0]
+    var openIcon = textItems(subject, "\u{F03CC}")[0]
+    var renameIcon = textItems(subject, "\u{F2811}")[0]
+    compare(renameIcon.font.family, "FabricSymbols NF")
+    var openAt = open.mapToItem(subject, 0, 0)
+    var copyAt = copy.mapToItem(subject, 0, 0)
+    var renameAt = rename.mapToItem(subject, 0, 0)
+    var iconAt = openIcon.mapToItem(subject, 0, 0)
+    compare(Math.round(openAt.y), Math.round(copyAt.y))
+    verify(copyAt.x > openAt.x + open.width)
+    verify(renameAt.y > openAt.y)
+    compare(Math.round(renameAt.x), Math.round(openAt.x))
+    verify(iconAt.x + openIcon.width <= openAt.x)
+    view.width = 150
+    tryCompare(grid, "columns", 1)
+    waitForRendering(view)
+    verify(textItems(subject, "Edit description")[0].truncated)
+    openAt = textItems(subject, "Open in Fabric")[0].mapToItem(subject, 0, 0)
+    copyAt = textItems(subject, "Copy ID")[0].mapToItem(subject, 0, 0)
+    compare(Math.round(openAt.x), Math.round(copyAt.x))
+    verify(copyAt.y > openAt.y)
+  }
+
+  function test_keyboard_walks_the_grid_and_enter_presses_the_highlighted_button() {
+    view.takeFocus("")
+    var subject = subjectView()
+    verify(properties.inspect(owner, {
+      title: "Cluster",
+      actions: [{ id: "open", text: "Open" }, { id: "start", text: "Start" }, { id: "stop", text: "Terminate" }, { id: "refresh", text: "Refresh" }]
+    }))
+    tryVerify(function() { return subject.activeFocus })
+    var grid = grids(subject)[0]
+    compare(subject.cursor, 0)
+    compare(grid.current, 0)
+    verify(grid.showCurrent)
+    press(Qt.Key_J); press(Qt.Key_J)
+    compare(grid.current, 2)
+    press(Qt.Key_Return)
+    compare(test.triggered, ["data-goblin.fileblade-fabric/fabric:stop"])
+    press(Qt.Key_K)
+    press(Qt.Key_Return)
+    compare(test.triggered, ["data-goblin.fileblade-fabric/fabric:stop", "data-goblin.fileblade-fabric/fabric:start"])
+    press(Qt.Key_G, Qt.ShiftModifier)
+    compare(grid.current, 3)
+  }
+
+  function test_file_and_folder_actions_share_the_icon_grid() {
+    var grid = grids(view)[0]
+    verify(grid !== undefined)
+    compare(labels(grid), ["Open", "Edit", "Reveal", "Rename", "Trash", "More"])
+    compare(grid.columns, 2)
+    verify(grid.actions.every(function(action) { return String(action.glyph) !== "" }))
+    verify(grid.actions[4].urgent)
+    waitForRendering(view)
+    mouseClick(textItems(view, "Trash")[0])
+    compare(test.trashRequests, 1)
+    mouseClick(textItems(view, "Reveal")[0])
+    compare(test.revealed, ["/work/report.pbip"])
+    files.selectedMetadata = ({ path: "/work/data", name: "data", kind: "Folder", is_dir: true })
+    tryCompare(grid.actions, "length", 5)
+    compare(labels(grid), ["Open folder", "Reveal", "Rename", "Trash", "More"])
+    compare(String(grid.actions[0].glyph), "\u{F0770}")
+    files.selectedCount = 3
+    tryVerify(function() { return labels(grids(view)[0]).join(",") === "Trash,More" })
   }
 }

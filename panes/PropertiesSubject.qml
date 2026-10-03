@@ -54,7 +54,7 @@ FocusScope {
 
   function itemAt(index) {
     if (index < 0) return null
-    if (index < actions.length) return actionRepeater.itemAt(index)
+    if (index < actions.length) return actionGrid.itemAt(index)
     return fieldRepeater.itemAt(index - actions.length)
   }
 
@@ -149,37 +149,6 @@ FocusScope {
     id: copiedTimer
     interval: 1400
     onTriggered: view.copiedIndex = -1
-  }
-
-  component ActionButton: Rectangle {
-    id: button
-    required property string label
-    property bool current: false
-    signal clicked()
-
-    implicitWidth: buttonLabel.implicitWidth + Style.space(18)
-    implicitHeight: Style.space(28)
-    color: buttonPointer.containsMouse ? Style.hoverFillFor(Color.bar.text, Color.accent) : Util.alpha(Color.bar.text, 0.07)
-    border.width: 1
-    border.color: current ? Color.accent : Util.alpha(Color.bar.text, 0.18)
-
-    Text {
-      id: buttonLabel
-      textFormat: Text.PlainText
-      anchors.centerIn: parent
-      text: button.label
-      color: Color.bar.text
-      font.family: Style.font.family
-      font.pixelSize: Typography.bodySmall
-    }
-
-    MouseArea {
-      id: buttonPointer
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: button.clicked()
-    }
   }
 
   component FieldValue: Item {
@@ -366,22 +335,14 @@ FocusScope {
         font.pixelSize: Typography.bodySmall
       }
 
-      Flow {
+      PluginUi.ActionGrid {
+        id: actionGrid
         width: parent.width
         visible: view.actions.length > 0
-        spacing: Style.space(6)
-
-        Repeater {
-          id: actionRepeater
-          model: view.actions
-          delegate: ActionButton {
-            required property var modelData
-            required property int index
-            label: String(modelData.text)
-            current: view.cursorShown && view.cursor === index
-            onClicked: { view.press(index); view.trigger(index) }
-          }
-        }
+        actions: view.actions
+        current: view.cursor
+        showCurrent: view.cursorShown
+        onActivated: function(index) { view.press(index); view.trigger(index) }
       }
 
       Flow {

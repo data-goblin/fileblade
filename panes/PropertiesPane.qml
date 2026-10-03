@@ -4,6 +4,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../lib/FileIcons.js" as FileIcons
+import "../lib/ActionGlyphs.js" as ActionGlyphs
 import "../lib/KeyRouter.js" as KeyRouter
 import "../lib/Highlight.js" as Highlight
 import "../lib/PathText.js" as PathText
@@ -106,7 +107,7 @@ FocusScope {
       tree: function() { returnToTree() },
       search: function() { controller.focusSearch(targetScreen()) },
       "open-with": function() { openMenu("open-with") },
-      actions: function() { openMenu("actions", moreButton) },
+      actions: function() { openMenu("actions", moreAnchor()) },
       activate: function() { controller.openDefault(entry.path, targetScreen(), !!entry.is_dir) },
       open: function() { controller.openDefault(entry.path, targetScreen(), !!entry.is_dir) },
       editor: function() { controller.openInEditor(entry.path) },
@@ -320,71 +321,39 @@ FocusScope {
     return rows.filter(function(row) { return row.value !== "" })
   }
 
-  component ActionButton: Rectangle {
-    id: button
-    required property string label
-    property bool primary: false
-    signal clicked()
-
-    implicitWidth: labelText.implicitWidth + Style.space(18)
-    implicitHeight: Style.space(28)
-    color: primary
-      ? (pointer.containsMouse ? Color.accent : Util.alpha(Color.accent, 0.82))
-      : (pointer.containsMouse ? Style.hoverFillFor(Color.bar.text, Color.accent) : Util.alpha(Color.bar.text, 0.07))
-    border.width: primary ? 0 : 1
-    border.color: Util.alpha(Color.bar.text, 0.18)
-
-    Text {
-      textFormat: Text.PlainText
-      id: labelText
-      anchors.centerIn: parent
-      text: button.label
-      color: button.primary ? Color.background : Color.bar.text
-      font.family: Style.font.family
-      font.pixelSize: Typography.bodySmall
-      font.weight: button.primary ? Font.DemiBold : Font.Normal
+  readonly property var fileActions: {
+    if (!hasSelection || isDeleted) return []
+    var list = []
+    if (actionableEntry) {
+      var folder = !!entry.is_dir
+      list.push({ id: "open", text: folder ? "Open folder" : "Open", glyph: ActionGlyphs.named(folder ? "folder" : "open"),
+                  tipActions: [{ button: "left", text: "Open" }, { shortcut: "Enter" }] })
+      if (!folder) list.push({ id: "editor", text: "Edit", tip: "Open in editor", glyph: ActionGlyphs.named("editor"),
+                               tipActions: [{ button: "left", text: "Edit" }, { shortcut: "e" }] })
+      list.push({ id: "reveal", text: "Reveal", tip: "Show in file manager", glyph: ActionGlyphs.named("reveal"),
+                  tipActions: [{ button: "left", text: "Reveal" }, { shortcut: "r" }] })
+      list.push({ id: "rename", text: "Rename", glyph: ActionGlyphs.named("rename"),
+                  tipActions: [{ button: "left", text: "Rename" }, { shortcut: "F2" }] })
     }
-
-    MouseArea {
-      id: pointer
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: button.clicked()
-    }
+    list.push({ id: "trash", text: "Trash", tip: "Move to Trash", glyph: ActionGlyphs.named("delete"), urgent: true,
+                tipActions: [{ button: "left", text: "Trash" }, { shortcut: "Delete" }] })
+    list.push({ id: "actions", text: "More", tip: "More actions", glyph: ActionGlyphs.named("more"),
+                tipActions: [{ button: "left", text: "Actions" }, { shortcut: "m" }] })
+    return list
   }
 
-  component HeaderGlyph: Item {
-    id: glyphButton
-    required property string glyph
-    property string tipTitle: ""
-    property var tipActions: []
-    signal clicked()
-    width: Style.space(22)
-    height: Style.space(22)
+  function moreAnchor() {
+    return fileGrid.visible ? fileGrid.itemAt(fileActions.length - 1) : null
+  }
 
-    Text {
-      textFormat: Text.PlainText
-      anchors.centerIn: parent
-      text: glyphButton.glyph
-      color: glyphPointer.containsMouse ? Color.accent : Color.muted
-      font.family: Style.font.family
-      font.pixelSize: Typography.body
+  function runFileAction(index) {
+    var action = fileActions[index]
+    if (!action) return false
+    if (action.id === "actions") {
+      openMenu("actions", fileGrid.itemAt(index))
+      return true
     }
-
-    MouseArea {
-      id: glyphPointer
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: glyphButton.clicked()
-    }
-
-    PluginUi.HintTip {
-      visible: glyphPointer.containsMouse
-      title: glyphButton.tipTitle
-      actions: glyphButton.tipActions
-    }
+    return runKeyAction(action.id)
   }
 
   function entryGlyph() {
@@ -545,8 +514,7 @@ FocusScope {
           textFormat: Text.PlainText
           anchors.left: headerIcon.right
           anchors.leftMargin: headerIcon.visible ? Style.space(6) : 0
-          anchors.right: headerActions.left
-          anchors.rightMargin: Style.space(6)
+          anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
           text: root.multiple
             ? controller.selectedCount + " items selected"
@@ -556,30 +524,6 @@ FocusScope {
           font.family: Style.font.family
           font.pixelSize: Typography.title
           font.weight: Font.DemiBold
-        }
-
-        Row {
-          id: headerActions
-          anchors.right: parent.right
-          anchors.verticalCenter: parent.verticalCenter
-          spacing: Style.space(2)
-          visible: !root.isDeleted
-
-          HeaderGlyph {
-            visible: root.hasEntry
-            glyph: root.entry && root.entry.is_dir ? "󰉖" : "󰏌"
-            tipTitle: root.entry && root.entry.is_dir ? "Open folder" : "Open"
-            tipActions: [{ button: "left", text: "Open" }, { shortcut: "Enter" }]
-            onClicked: controller.openDefault(root.entry.path, root.targetScreen(), !!root.entry.is_dir)
-          }
-
-          HeaderGlyph {
-            id: moreButton
-            glyph: "󰇘"
-            tipTitle: "More"
-            tipActions: [{ button: "left", text: "Actions" }, { shortcut: "m" }]
-            onClicked: root.openMenu("actions", moreButton)
-          }
         }
       }
 
@@ -592,6 +536,14 @@ FocusScope {
         color: Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
+      }
+
+      PluginUi.ActionGrid {
+        id: fileGrid
+        width: parent.width
+        visible: root.fileActions.length > 0
+        actions: root.fileActions
+        onActivated: function(index) { root.runFileAction(index) }
       }
 
       PluginUi.FilePreview {
@@ -621,15 +573,15 @@ FocusScope {
         font.pixelSize: Typography.caption
       }
 
-      Flow {
+      PluginUi.ActionGrid {
         width: parent.width
         visible: controller.operationCancellable
-        spacing: Style.space(6)
-
-        ActionButton {
-          label: "Stop " + String(controller.operationLabel || "operation").toLowerCase() + "…"
-          onClicked: root.openMenu("cancel-operation")
-        }
+        actions: controller.operationCancellable ? [{
+          id: "stop",
+          text: "Stop " + String(controller.operationLabel || "operation").toLowerCase() + "…",
+          glyph: ActionGlyphs.named("stop")
+        }] : []
+        onActivated: root.openMenu("cancel-operation")
       }
 
       PluginUi.ErrorNotice {

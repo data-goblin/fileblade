@@ -353,7 +353,10 @@ function publish(item) {
       { label: "Portal", value: item.url, kind: "link" },
       { label: "Path", value: item.path, kind: "code" }
     ],
-    actions: [{ id: "rename", text: "Rename" }, { id: "refresh", text: "Refresh" }]
+    actions: [
+      { id: "rename", text: "Rename", glyph: "\u{f0455}" },
+      { id: "refresh", text: "Refresh" }
+    ]
   })
 }
 
@@ -402,9 +405,40 @@ fields:       up to 48 of { label, value, kind }; label is one line of at most 4
   code:       monospace, keeps line breaks, at most 8192; Enter or a click copies it through files.copyText
   unknown kinds are shown as text
 budget:       all field values together are capped at 32768 characters
-actions:      up to 8 of { id, text }; id is [A-Za-z0-9][A-Za-z0-9._-]*, at most 64, unique;
+actions:      up to 8 of { id, text, glyph, glyphFamily }; id is [A-Za-z0-9][A-Za-z0-9._-]*, at most 64, unique;
               text is one line of at most 40 and defaults to the id
+  glyph:      the button's icon, bounded like the title glyph (at most 8 UTF-16 units); without one, or
+              when it is too long, FileBlade picks a Nerd Font icon from the id (see below)
+  glyphFamily: the glyph's font, bounded like the title glyphFamily; ignored without a glyph of your own
 ```
+
+Each button is a cell in a two-column grid: the icon in a tinted square on the
+left, the text on the right, cut with an ellipsis when it does not fit (hover
+shows the whole text). The pane drops to one column when it is too narrow for
+two cells of about 130 px. Pass a glyph from your own symbol set so the buttons
+match your tree; otherwise the id decides the default icon by its leading word,
+case-insensitively:
+
+```yaml
+open, launch, browse, portal, visit:              open in new (nf-md-open_in_new)
+copy, yank, clip:                                 copy (nf-md-content_copy)
+download, export, save, fetch, pull:              download (nf-md-tray_arrow_down)
+rename:                                           rename (nf-md-rename_box)
+description, describe, comment, note:             edit text (nf-md-text_box_edit_outline)
+tag:                                              tag (nf-md-tag_outline)
+edit, modify, change, update, set:                pencil (nf-md-pencil_outline)
+refresh, reload, sync, rescan:                    refresh (nf-md-refresh)
+delete, remove, trash, drop, destroy, purge:      trash (nf-md-trash_can_outline), tinted with the urgent colour
+start, run, play, resume, restart, deploy:        play (nf-md-play_circle_outline)
+stop, terminate, cancel, kill, halt, pause, abort: stop (nf-md-stop_circle_outline)
+reveal, show, locate:                             folder (nf-md-folder_eye_outline)
+login, signin, sign-in, auth:                     sign in (nf-md-login)
+more, menu, actions:                              more (nf-md-dots_horizontal)
+anything else:                                    chevron (nf-md-chevron_right)
+```
+
+The defaults are drawn in the shell font. A destructive id keeps the urgent
+tint even with a glyph of your own.
 
 Control characters are removed and an over-long value is cut with an ellipsis.
 When fields, chips or actions are dropped for these limits the pane says that
@@ -419,8 +453,8 @@ changes module, its slot is removed, the extension is removed or disabled) the
 subject is cleared, so a stale item never stays on screen. Publish again when
 your view loads if its selection should come back.
 
-The action buttons sit under the subtitle, above the fields. In the pane,
-`j`/`k` move a cursor over the buttons and then the fields, starting on the
+The action grid sits under the subtitle, above the fields. In the pane,
+`j`/`k` move a cursor over the buttons, left to right and row by row, and then the fields, starting on the
 first field; `g`/`G` jump to the first and last, Enter or `o` opens a link, copies code or runs the
 action, `y` or Ctrl+C copies the field, and Escape closes the blade. File
 shortcuts such as Delete, F2 or `e` do nothing while a subject is shown.
