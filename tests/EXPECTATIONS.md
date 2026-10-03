@@ -578,6 +578,9 @@ Automation for this section is pending.
      section or tab back, or by using the layout controls in Settings.
 169. **E-20-12** If I drag the divider between two expanded sections, they resize
      together and reopen at the sizes I chose.
+170. **E-20-13** If a module with its own header buttons, such as Fabric's up,
+     home and refresh, shares a section with other tabs, its buttons stay in its
+     header row under the tab titles, exactly as when it has the section to itself.
 
 ## 21. Docking, resizing and window behavior
 

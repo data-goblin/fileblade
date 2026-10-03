@@ -150,7 +150,7 @@ Rectangle {
     actions: header.view && Array.isArray(header.view.navigationActions)
       ? header.view.navigationActions
       : (Array.isArray(header.titleActions) ? header.titleActions : [])
-    visible: header.showNavigation && actions.length > 0 && (!!header.view || header.identityVisible)
+    visible: header.showNavigation && actions.length > 0 && (!!header.view || header.showIdentity)
     onTriggered: function(key) {
       if (header.view) header.view.navigationTriggered(key)
       else header.titleTriggered(key)
