@@ -2,6 +2,8 @@ This file was written by an agent.
 
 # FileBlade release notes
 
+## 0.3.1 (unreleased)
+
 ## 0.3.0
 
 - Explain why a file reached through a symbolic link has no preview instead of showing an error code.
