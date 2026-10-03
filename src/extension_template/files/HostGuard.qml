@@ -181,6 +181,17 @@ Item {
             font.pixelSize: Style.font.caption
           }
 
+          Text {
+            width: parent.width
+            textFormat: Text.PlainText
+            wrapMode: Text.WordWrap
+            visible: guard.plan.removal !== ""
+            text: "To remove this extension instead, run:\n" + guard.plan.removal
+            color: Color.muted
+            font.family: Style.font.family
+            font.pixelSize: Style.font.caption
+          }
+
           Rectangle {
             anchors.right: parent.right
             visible: guard.plan.command.length > 0

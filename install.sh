@@ -50,7 +50,7 @@ field() {
 
 case $(uname -m) in
   x86_64) machine=x86_64 ;;
-  *) fail "unsupported architecture: $(uname -m)" ;;
+  *) fail "unsupported architecture: $(uname -m); FileBlade releases carry an x86-64 backend only" ;;
 esac
 target="$machine-unknown-linux-musl"
 

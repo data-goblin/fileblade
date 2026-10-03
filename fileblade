@@ -3,13 +3,15 @@ set -euo pipefail
 
 launcher=$(readlink -f -- "${BASH_SOURCE[0]}")
 launcher_dir=$(cd -- "$(dirname -- "$launcher")" && pwd -P)
-[[ $(uname -m) == x86_64 ]] || { printf '%s\n' 'fileblade: unsupported architecture' >&2; exit 126; }
+machine=$(uname -m)
 
 candidates=()
 if [[ -n ${FILEBLADE_BINARY:-} ]]; then
   candidates+=("$FILEBLADE_BINARY")
 fi
-candidates+=("$launcher_dir/fileblade-bin")
+if [[ $machine == x86_64 ]]; then
+  candidates+=("$launcher_dir/fileblade-bin")
+fi
 candidates+=(
   "$launcher_dir/bin/fileblade"
   "$launcher_dir/target/release/fileblade"
@@ -23,5 +25,9 @@ for candidate in "${candidates[@]}"; do
   fi
 done
 
+if [[ $machine != x86_64 ]]; then
+  printf 'fileblade: the bundled backend is x86-64 only and this machine is %s; build one here with cargo build --release --locked, or set FILEBLADE_BINARY to a backend for this machine\n' "$machine" >&2
+  exit 126
+fi
 printf '%s\n' 'fileblade: no compatible backend found; reinstall the plugin, set FILEBLADE_BINARY, or install a package providing /usr/bin/fileblade-bin' >&2
 exit 127

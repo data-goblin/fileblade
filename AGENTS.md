@@ -47,7 +47,7 @@ Preserve unrelated changes and the project's design intent.
 
 ## Cleaning up
 
-- No damn comments in the code write in the docs ya damn clanker
+- Do not write code comments; put explanations in the docs.
 - Keep Cargo targets and bundle staging on disk, not a memory-backed `/tmp`.
   See the build settings in [CONTRIBUTING.md](CONTRIBUTING.md#tests).
 - Remove your temporary files, screenshots, staging directories, and unused
@@ -65,4 +65,4 @@ Preserve unrelated changes and the project's design intent.
 # PR / Issues
 
 - Ensure human users verify your PR / issue body content
-- Ideally include an image, diagram, or gif to show rather than tell
+- Include a screenshot, diagram or gif for any user-visible change.

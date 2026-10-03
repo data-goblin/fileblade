@@ -246,6 +246,9 @@ Ids never get reused. When behaviour changes, edit the entry in place.
 66. **E-08-10** When I select an image the shell does not decode, such as an SVG
     or a GIF, no preview box appears at all; the properties show without an empty
     card, and opening the file still uses the desktop default application.
+66a. **E-08-11** When I select a text file or an image inside a folder I reached
+    through a symbolic link, I see a clear explanation that it opens externally
+    rather than a technical error code.
 
 ## 9. Searching
 
@@ -1049,6 +1052,11 @@ E-35-01 through E-35-05 belong to historical shell-host discovery fixtures.
 They remain in the regression scripts and Git history, but do not qualify
 native registration. Native extension directories, providers and rescanning
 are described in [the extension contract](../EXTENSIONS.md).
+
+- **E-35-06** When an extension runs as an Omarchy plugin and FileBlade is not
+  installed, its panel tells me to install FileBlade myself and also shows the
+  command that removes the extension, so removing FileBlade never leaves me
+  with a panel I cannot get rid of.
 
 ## 36. Explicit cleanup and agent-file management
 

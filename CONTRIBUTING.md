@@ -41,6 +41,10 @@ FILEBLADE_BINARY="$PWD/target/release/fileblade" ./fileblade --version
 ```
 
 Normal installation uses the bundled static backend and requires no Cargo build.
+The bundled backend is x86-64 only. On another architecture the launcher skips
+it and runs a backend built there: `target/release/fileblade` after the build
+above, or the one `FILEBLADE_BINARY` names. Releases and the native installer
+remain x86-64 only.
 For development, set `FILEBLADE_BINARY`
 to test a local build, or run `tools/bundle build` to refresh the bundle before
 staging a native payload for a test VM. Use the installer to drain and replace

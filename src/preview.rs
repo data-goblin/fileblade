@@ -21,7 +21,7 @@ pub fn preview(raw_path: &str, lines: usize, cancelled: &AtomicBool) -> Value {
     let bytes = match read_bounded_nofollow(&path, PREVIEW_BYTES) {
         Ok(Some(bytes)) => bytes,
         Ok(None) => return failure(&text, "file is missing"),
-        Err(error) => return failure(&text, &error.to_string()),
+        Err(error) => return failure(&text, &read_refusal(&error)),
     };
     if bytes.iter().take(8192).any(|byte| *byte == 0) {
         return json!({"ok": true, "path": text, "backend": "none", "binary": true, "truncated": false, "lines": []});
@@ -51,6 +51,15 @@ pub fn preview(raw_path: &str, lines: usize, cancelled: &AtomicBool) -> Value {
 
 fn failure(path: &str, error: &str) -> Value {
     json!({"ok": false, "path": path, "backend": "none", "binary": false, "truncated": false, "lines": [], "error": error})
+}
+
+pub(crate) fn read_refusal(error: &std::io::Error) -> String {
+    if error.raw_os_error() == Some(libc::ELOOP) {
+        "Files reached through a link open externally to avoid following a link inside the shell."
+            .into()
+    } else {
+        error.to_string()
+    }
 }
 
 fn run(text: &str, color: i32, bold: bool) -> Value {

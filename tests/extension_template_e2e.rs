@@ -161,6 +161,7 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
     assert!(!gate.contains("python3"));
     let guard = text(&rendered(&files, "HostGuard.js"));
     assert!(guard.contains("--output json host-status --companion"));
+    assert!(guard.contains("\"omarchy plugin remove \" + row.id"));
     assert!(rendered(&files, "tests/run").executable);
     assert!(!rendered(&files, "manifest.json").executable);
 
