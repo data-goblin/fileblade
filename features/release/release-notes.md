@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # FileBlade release notes
 
-## 0.3.0 (unreleased)
+## 0.3.0
 
 - Explain why a file reached through a symbolic link has no preview instead of showing an error code.
 - Extensions made from the template show how to remove themselves when FileBlade is not installed.
