@@ -868,6 +868,7 @@ Item {
     var parentIndex = indexOfTreePath(path)
     if (parentIndex < 0) return
     if (!response || !response.ok) {
+      if (parentIndex === 0 && response && !!response.missing && recoverMissingRoot(path)) return
       treeModel.setProperty(parentIndex, "error", metadataText(response, "error", "Unable to refresh directory"))
       return
     }

@@ -120,7 +120,10 @@ Item {
       return
     }
     if (context.gitDirectory) gitDirectoryEventsIgnored++
-    var directory = parentDirectory(changedPath)
+    var events = Array.isArray(event.events) ? event.events : []
+    var selfGone = String(event.name || "") === "" && changedPath === String(event.root || "")
+      && (events.indexOf("delete_self") >= 0 || events.indexOf("move_self") >= 0)
+    var directory = selfGone ? changedPath : parentDirectory(changedPath)
     lastFilesystemEventPath = changedPath
     if (!context.gitDirectory) indexDirty = true
     var index = indexOfTreePath(directory)
