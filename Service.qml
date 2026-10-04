@@ -56,6 +56,7 @@ Item {
     id: ownedBackend
     desiredRunning: !service.chooserSession
     cliPath: service.cliPath
+    teardown: function() { bladeHost.flushUnwrittenLayout() }
     expectedVersion: service.manifest && service.manifest.version ? String(service.manifest.version) : ""
   }
 
@@ -127,6 +128,10 @@ Item {
 
   function backendCommand(name) {
     return [cliPath, "_backend", String(name)]
+  }
+
+  function backendDetached(arguments) {
+    backendClient.detached(arguments)
   }
 
   function moduleDirs(id, callback) { return bladeHost.dirs.ensure(id, callback) }
@@ -208,7 +213,10 @@ Item {
     updates: updateController
     onAnyOpenChanged: if (anyOpen) updateController.checkIfStale()
     onLayoutApplied: {
-      if (bladeHost.pendingOpenEdges && bladeHost.pendingOpenEdges.left) navigationController.focusAfterOpen()
+      var files = bladeHost.findModule("files")
+      if (bladeHost.pendingOpenEdges && bladeHost.pendingOpenEdges.left
+          && files && bladeHost.slotActiveTab(files.edge, files.index) === files.tab)
+        navigationController.focusAfterOpen()
     }
   }
 

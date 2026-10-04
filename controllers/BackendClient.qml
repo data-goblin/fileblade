@@ -24,6 +24,7 @@ Item {
   property string lastStderr: ""
   property string backendVersion: ""
   property var limits: ({})
+  property var teardown: null
   property var paths: ({})
   readonly property bool nativeAuthority: String(Quickshell.env("FILEBLADE_NATIVE_STATE_ROOT") || "") !== ""
   signal operationAccepted(string requestId, string generation, string operationId)
@@ -374,14 +375,21 @@ Item {
     ensureRunning()
   }
 
+  function detached(arguments) {
+    Quickshell.execDetached([root.cliPath, "_backend"].concat(arguments))
+  }
+
   function stop() {
     if (!desiredRunning) return
     desiredRunning = false
     restartTimer.stop()
+    if (typeof teardown === "function") {
+      try { teardown() } catch (error) { console.warn("data-goblin.fileblade: teardown work failed: " + error) }
+    }
     if (backend.running) {
       var owner = String(backend.processId)
       backend.running = false
-      if (!nativeAuthority) Quickshell.execDetached([root.cliPath, "_backend", "dim-windows", "--state", "off", "--after-exit", owner])
+      if (!nativeAuthority) detached(["dim-windows", "--state", "off", "--after-exit", owner])
     }
     failAll("Backend stopped")
   }

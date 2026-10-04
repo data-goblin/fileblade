@@ -101,6 +101,8 @@ Item {
   property alias lastFocusRestore: focusController.lastFocusRestore
   property string lastSavedLayoutText: ""
   property string lastWrittenLayoutText: ""
+  property string flushedLayoutText: ""
+  readonly property int teardownArgumentBytes: 120 * 1024
   property var pendingOpenEdges: null
   property int layoutRevision: 0
   property var windowAddresses: ({ left: "", right: "" })
@@ -985,16 +987,33 @@ Item {
   function scheduleSave() {
     if (layoutReady && layoutWritable) saveTimer.restart()
   }
-  function save() {
-    if (!layoutWritable || layoutIncomplete) return
+  function pendingLayoutText() {
+    if (!layoutWritable || layoutIncomplete) return ""
     var text = bladeLayout.serialized(layoutDocument(), 2)
     if (!text || bladeLayout.utf8Length(text + "\n") > bladeLayout.maximumLayoutBytes) {
       console.warn("data-goblin.fileblade: refusing to overwrite blade layout above " + bladeLayout.maximumLayoutBytes + " bytes")
-      return
+      return ""
     }
-    text += "\n"
+    return text + "\n"
+  }
+  function save() {
+    var text = pendingLayoutText()
+    if (!text) return
     lastSavedLayoutText = text
     writeLayout(text)
+  }
+  function flushUnwrittenLayout() {
+    var text = saveTimer.running ? pendingLayoutText() : lastSavedLayoutText
+    saveTimer.stop()
+    if (!text || text === lastWrittenLayoutText || text === flushedLayoutText) return false
+    if (!service || typeof service.backendDetached !== "function") return false
+    if (bladeLayout.utf8Length(text) > teardownArgumentBytes) {
+      console.warn("data-goblin.fileblade: blade layout above " + teardownArgumentBytes + " bytes was not saved before unloading")
+      return false
+    }
+    flushedLayoutText = text
+    service.backendDetached(["layout-write", "--document", text])
+    return true
   }
   function writeLayout(text) {
     if (service && service.chooserSession) return
@@ -1087,6 +1106,9 @@ Item {
 
   Component.onCompleted: {
     probeAppearance()
+  }
+  Component.onDestruction: {
+    try { flushUnwrittenLayout() } catch (error) { console.warn("data-goblin.fileblade: blade layout flush failed: " + error) }
   }
 
 }

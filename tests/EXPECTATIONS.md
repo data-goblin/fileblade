@@ -1782,6 +1782,24 @@ the placement rules.
    same setting and prints the placement now in effect.
 7. **E-61-07** Searching Settings for "navbar" shows the Navbar row.
 
+## 62. Keeping my layout when the shell reloads plugins
+
+This file was written by an agent.
+
+`tests/vm/expectations/62-plugin-reload-layout.sh` covers these in the plugin
+shape; the native app is not reloaded by a plugin rescan, so the native shape
+reports both as pending.
+
+1. **E-62-01** If the left blade is open on a tab other than FileBlade, for
+   example Memory or Branches, and the shell rescans its plugins (installing,
+   enabling or updating any plugin does this), FileBlade comes back on the
+   same tab, and `blades.json` keeps that tab instead of switching to the
+   FileBlade tab.
+2. **E-62-02** If I switch a tab or rearrange a section's tabs and the shell
+   rescans its plugins at once, before the change is saved, FileBlade comes
+   back with the change: the same tab order and the same current tab, not the
+   layout from before the change.
+
 ## 90. Checking the native app before installation
 
 This file was written by an agent.

@@ -196,6 +196,17 @@ its delegates `modelData` as a converted map whose nested arrays fail
 `Array.isArray`, which once dropped every button's `tipActions` and hid its
 hover tip.
 
+Saves are debounced by 160 ms and written by the backend's `layout-write`. A
+shell plugin rescan unloads and recreates the plugin, and the new instance
+reads `blades.json`, so on teardown `BladeHost.flushUnwrittenLayout` hands any
+layout the backend has not confirmed to a detached `fileblade _backend
+layout-write`. It runs from whichever goes first, `BladeHost`'s destruction or
+`BackendClient.stop()` through its `teardown` hook, and `BackendClient.detached`
+stays the only place QML spawns a detached process; a document above 120 KiB
+would not fit one argument and is skipped with a warning. Restoring a layout never changes the shown tab: the
+tree focus that follows an open left blade at load only runs when the Files
+tab is already the current tab of its section.
+
 Docked blades are layer surfaces with an exclusive zone, which is why your
 tiled windows shift over.
 
