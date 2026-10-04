@@ -1702,6 +1702,26 @@ its own QML suite against both install shapes.
    `Shared by 1 view`. It never stays on `Loading…` in either shape, so state I
    add to `Provider.qml` reaches the tab the same way in both.
 
+## 52. Searching and jumping in an extension tab
+
+This file was written by an agent.
+
+`tests/qml/tst_extension_search.qml` covers the shared pieces; the Fabric and
+Databricks extensions prove them in their own VM scenarios.
+
+1. **E-52-01** When an extension tab such as Fabric or Databricks shows its
+   search row, it has the same `Aa`, `.*` and `fzf` buttons as Files, with the
+   same hover tips, and `Ctrl+F` turns fzf on and off there as it does in
+   Files. The search syntax (`'word`, `^start`, `end$`, `"phrase"`,
+   `-word`, `!word`, `name:`, `type:`, `in:`) means the same thing in both.
+2. **E-52-02** If I press `Shift+Z` in such a tab, the same quick navigation
+   card as in Files opens: the places I visit most come first, typing narrows
+   them with the same fuzzy matching and highlights, `↑`/`↓`, `Ctrl+N`/`Ctrl+P`
+   and `Tab` move, `Enter` goes there, `Shift+Enter` takes the tab's
+   alternate action, `Ctrl+F` switches to fzf search and `Escape` closes it.
+3. **E-52-03** Quick navigation in Files looks and behaves exactly as before
+   after this change (E-10-01 to E-10-07 still hold).
+
 ## 90. Checking the native app before installation
 
 This file was written by an agent.

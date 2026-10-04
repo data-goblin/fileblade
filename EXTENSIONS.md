@@ -495,6 +495,48 @@ link to the desktop's default handler through the backend (`gio open`), after
 releasing the blade's keyboard focus. `copyText` sends at most 64 KiB to the
 clipboard as private request input, never as a command argument.
 
+## Search and quick nav like Files
+
+This file was written by an agent.
+
+A module whose rows are not files can still search and jump the way Files
+does. Three shared pieces, loaded through `context.ui.url(...)`, keep the
+keys, buttons and matching identical, so the two cannot drift:
+
+```yaml
+PaneSearchField:  the search row. Set showOptions and showDeepOption to get the Aa, .* and fzf buttons;
+                  bind caseSensitive, regex and deep, handle optionsToggled(case, regex), deepToggled(on),
+                  historyStepped(delta) for ↑/↓ recall, dismissed, advanced and accepted
+SearchGrammar:    the Files search grammar (lib/SearchQuery.js) as a non-visual item: parse(query, keys, options),
+                  matches, rank, compareRanks, rankedTree(rows, spec, recordOf), rankedGroups, words(spec),
+                  spans(text, spec), markup(text, spans, color), frecency({ score, last }, now) and
+                  ranked(query, records, options)
+QuickNavCard:     the Shift+Z card Files uses: title, note, placeholder, status, statusUrgent, chips, model,
+                  glyphFor / glyphColorFor / glyphFamilyFor(row); signals edited(text), activated(index, alternate),
+                  dismissed(), chipToggled(key, active), deepRequested() (Ctrl+F), emptyBackspace()
+```
+
+A record is `{ name, text, fields }`: unqualified terms match `name` first
+and then `text`, `name:` only the name, and each `fields` key holds a string
+or an array for the qualifiers you pass in `keys`. Files folds `type:` values
+into its own kinds (`dir`, `file`, `image` and so on); pass
+`options.normalize(key, value)` to keep your own (`type:report`,
+`type:notebook`). `ranked` parses once, drops non-matching records, orders by
+the fzf rank, then by `record.frecency`, then by `text`, and returns at most
+`options.limit` rows (default 200) as `{ record, rank, frecency, nameSpans,
+relativeSpans }`. Card rows are `{ name, relative, nameSpans, relativeSpans }`
+plus whatever your glyph functions read; a `ListModel` with those roles works
+too. `frecency` decays a visit score with the same 7-day half-life as
+FileBlade's recent files; a visit adds 1 to the decayed score.
+
+Keep the keys Files uses: `/` reveals the search row, `Ctrl+F` toggles fzf
+mode, `Shift+Z` opens the card, `Enter` and `Shift+Enter` activate and
+alternate, `Esc` closes. In fzf mode, search everything the module can know
+about (an index of its own), not only the rows it has loaded. A host older
+than this section has no `SearchGrammar` or `QuickNavCard`: the Loader fails
+quietly, so keep a plain filter and say that quick nav needs a newer
+FileBlade.
+
 ## Drop wheel actions for your items
 
 This file was written by an agent.

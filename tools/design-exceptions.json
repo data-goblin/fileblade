@@ -86,12 +86,12 @@
       "reason": "hairline separator, not a corner"
     },
     {
-      "path": "modules/files/QuickNavOverlay.qml",
+      "path": "ui/QuickNavCard.qml",
       "binding": "radius: Style.cornerRadius",
       "reason": "not a button; the straight-corner rule covers buttons for now"
     },
     {
-      "path": "modules/files/QuickNavOverlay.qml",
+      "path": "ui/QuickNavCard.qml",
       "binding": "radius: Math.min(Style.cornerRadius, Style.space(4))",
       "reason": "not a button; the straight-corner rule covers buttons for now"
     },

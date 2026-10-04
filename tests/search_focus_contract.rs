@@ -11,6 +11,7 @@ fn ctrl_f_toggles_deep_search_and_focuses_its_field_from_every_focus_state() {
     let service = source("Service.qml");
     let pane = source("panes/TreePane.qml");
     let quick_nav = source("modules/files/QuickNavOverlay.qml");
+    let card = source("ui/QuickNavCard.qml");
 
     assert!(service.contains("function toggleSearchDeep() { return setSearchDeep(!searchDeep) }"));
     assert!(pane.contains(
@@ -24,8 +25,10 @@ fn ctrl_f_toggles_deep_search_and_focuses_its_field_from_every_focus_state() {
         "onDeepToggled: { if (root.mediaActive) root.mediaRecursive = !root.mediaRecursive; else controller.toggleSearchDeep() }"
     ));
     assert!(pane.contains("Keys.priority: Keys.BeforeItem"));
-    assert!(quick_nav.contains("import \"../../lib/KeyRouter.js\" as KeyRouter"));
-    assert!(quick_nav.contains("if (KeyRouter.listModeAction(event, false) === \"deep\")"));
+    assert!(card.contains("import \"../lib/KeyRouter.js\" as KeyRouter"));
+    assert!(card.contains("if (KeyRouter.listModeAction(event, false) === \"deep\")"));
+    assert!(quick_nav.contains("PluginUi.QuickNavCard {"));
+    assert!(quick_nav.contains("onDeepRequested: overlay.toggleDeepSearch()"));
     assert!(!quick_nav.contains("channelChip"));
     assert!(!quick_nav.contains("Enter opens the folder"));
 }
