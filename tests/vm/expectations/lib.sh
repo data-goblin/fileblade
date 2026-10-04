@@ -247,6 +247,28 @@ click_word() {
   "$OVM" mouse click ${point}
   sleep 1
 }
+add_module_point() {
+  local edge=${1:-left} shot crop width offset=0 point
+  "$OVM" mouse move 900 900
+  sleep 0.5
+  shot=$("$OVM" shot "add-module-$edge" | tail -1)
+  width=$(field sidebarWidth)
+  if [[ $edge == right ]]; then
+    width=$(field propertiesBladeWidth)
+    offset=$(($(magick identify -format '%w' "$shot") - width))
+  fi
+  crop=$(mktemp --suffix=.png)
+  magick "$shot" -crop "${width}x80+${offset}+0" +repage -colorspace gray -level '5%,40%' -negate -resize 400% "$crop" || { rm -f -- "$crop" "$shot"; return 1; }
+  point=$(tesseract "$crop" - --psm 6 tsv 2>/dev/null | awk -F '\t' -v offset="$offset" '
+    $1 == 5 && $12 == "+" {
+      x = offset + int(($7 + $9 / 2) / 4); y = int(($8 + $10 / 2) / 4)
+      if (!found || y < best_y - 4 || (y <= best_y + 4 && x < best_x)) { best_x = x; best_y = y; found = 1 }
+    }
+    END { if (found) print best_x, best_y }')
+  rm -f -- "$crop" "$shot"
+  [[ $point =~ ^[0-9]+\ [0-9]+$ ]] || return 1
+  printf '%s\n' "$point"
+}
 ocr_crop() {
   local shot crop result
   shot=$("$OVM" shot "$1" 2>/dev/null | tail -1)
