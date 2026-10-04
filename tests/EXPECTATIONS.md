@@ -1941,6 +1941,11 @@ finish safely. The script also runs sections 91 and 93 against that fixture.
   installation and explains that the selection changed.
 - **E-94-03** When I remove FileBlade, removal requests reversal of its managed
   desktop roles before asking the app to finish its running work and stop.
+- **E-94-04** If FileBlade answers that it cannot stop yet, the refused update
+  tells me what it answered: the status and FileBlade's own reason, such as
+  `drain failed (status busy: layout is not writable)`, not a generic line.
+- **E-94-05** If FileBlade prints a notice before its answer, the update still
+  reads the answer, continues, and shows no parser error.
 
 ## 95. Using an installed app through update, rollback and removal
 

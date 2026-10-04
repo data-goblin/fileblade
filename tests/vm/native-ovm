@@ -61,8 +61,15 @@ case $verb in
     esac
     ;;
   restart|restart-shell)
-    result=$("$launcher" native drain --timeout-ms 30000 --json)
-    jq -e -s 'length == 1 and (.[0] | .schema == 1 and .action == "drain" and (.status | IN("drained", "already_stopped")) and .error == "" and (.operation_ids | type == "array" and all(.[]; type == "string")) and (.dirty_note_ids | type == "array" and all(.[]; type == "string")))' <<< "$result" >/dev/null || fail 'drain did not confirm a safe restart'
+    code=0
+    result=$("$launcher" native drain --timeout-ms 30000 --json) || code=$?
+    answer=$(jq -Rsc 'split("\n") as $lines | [range(0; $lines | length) as $start | select($lines[$start] | test("^\\s*[{]")) | range($lines | length; $start; -1) as $end | $lines[$start:$end] | join("\n") | try fromjson catch empty | objects] | if length > 0 then .[0] else empty end' <<< "$result" 2>/dev/null)
+    if [[ -z $answer ]] || ! jq -e '.schema == 1 and .action == "drain" and (.status | IN("drained", "already_stopped")) and .error == "" and (.operation_ids | type == "array" and all(.[]; type == "string")) and (.dirty_note_ids | type == "array" and all(.[]; type == "string"))' <<< "$answer" >/dev/null 2>&1; then
+      if [[ -n $answer ]]; then
+        fail "drain did not confirm a safe restart (exit $code, $(jq -r '"status \(.status // "missing" | tostring)" + (if (.error // "") != "" then ": \(.error | tostring)" else "" end)' <<< "$answer"))"
+      fi
+      fail "drain did not confirm a safe restart (exit $code without a JSON answer: $(head -c 300 <<< "$result" | tr -s '[:space:]' ' '))"
+    fi
     [[ $(readlink -f -- "$launcher") == "$physical" ]] || fail 'stable launcher changed during drain; retry'
     if [[ -n ${installation:-} ]]; then
       [[ $(readlink -f -- "$installation/active/runtime") == "$runtime" ]] || fail 'activation changed during drain; retry'
@@ -70,8 +77,8 @@ case $verb in
     mkdir -p -- "$FILEBLADE_NATIVE_STATE_ROOT"
     setsid -f "$launcher" </dev/null >>"$FILEBLADE_NATIVE_STATE_ROOT/native-ovm.log" 2>&1
     for attempt in {1..60}; do
-      if timeout 2 "$launcher" native ipc -- fileblade.native status | jq -e --arg root "$runtime" '.loaded and .sourceDir == $root' >/dev/null &&
-        timeout 2 "$launcher" native ipc -- data-goblin.fileblade status | jq -e '.bladeModules | contains(["files", "notes", "properties", "welcome", "hooks", "mcp", "memory", "skills"])' >/dev/null; then exit 0; fi
+      if timeout 2 "$launcher" native ipc -- fileblade.native status 2>/dev/null | jq -R -e --arg root "$runtime" 'fromjson? | objects | .loaded and .sourceDir == $root' >/dev/null 2>&1 &&
+        timeout 2 "$launcher" native ipc -- data-goblin.fileblade status 2>/dev/null | jq -R -e 'fromjson? | objects | .bladeModules | contains(["files", "notes", "properties", "welcome", "hooks", "mcp", "memory", "skills"])' >/dev/null 2>&1; then exit 0; fi
       sleep 0.5
     done
     fail 'installed app did not become ready after restart'

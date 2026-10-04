@@ -72,8 +72,26 @@ check_activation() {
   contract_compatible "$native_root/packaging/runtime.json" "$installation/versions/$active_payload/packaging/runtime.json" || fail 'active runtime dependency contract differs; the payload does not list that contract digest under upgrades'
 }
 
+lifecycle_answer() {
+  jq -Rsc 'split("\n") as $lines | [range(0; $lines | length) as $start | select($lines[$start] | test("^\\s*[{]")) | range($lines | length; $start; -1) as $end | $lines[$start:$end] | join("\n") | try fromjson catch empty | objects] | if length > 0 then .[0] else empty end' <<< "$1" 2>/dev/null
+}
+
+lifecycle_said() {
+  local answer=$1 output=$2 code=$3 text
+  text=$(head -c 300 <<< "$output" | tr -s '[:space:]' ' ')
+  text=${text# }
+  text=${text% }
+  if [[ -n $answer ]]; then
+    jq -r '"status \(.status // "missing" | tostring)" + (if (.error // "") != "" then ": \(.error | tostring)" else "" end)' <<< "$answer"
+  elif [[ -n $text ]]; then
+    printf 'exit %s without a JSON answer: %s' "$code" "$text"
+  else
+    printf 'exit %s without an answer' "$code"
+  fi
+}
+
 lifecycle() {
-  local operation=$1 result commands
+  local operation=$1 result commands answer code=0
   shift
   if [[ $operation == roles_disable ]]; then
     if ! commands=$("$installation/versions/$active_payload/app/launch" native roles --help 2>&1 9>&-); then
@@ -85,9 +103,10 @@ lifecycle() {
       fail 'native role discovery failed; runtime retained'
     fi
   fi
-  result=$("$installation/versions/$active_payload/app/launch" native "$@" --json 9>&-) || fail "$operation failed; runtime retained (roles may already be disabled)"
-  jq -e -s --arg operation "$operation" '
-    length == 1 and (.[0] |
+  result=$("$installation/versions/$active_payload/app/launch" native "$@" --json 9>&-) || code=$?
+  answer=$(lifecycle_answer "$result")
+  ((code == 0)) || fail "$operation failed ($(lifecycle_said "$answer" "$result" "$code")); runtime retained (roles may already be disabled)"
+  [[ -n $answer ]] && jq -e --arg operation "$operation" '
     .schema == 1 and .action == $operation and .error == "" and
     (if $operation == "drain" then
       (.status | IN("drained", "already_stopped")) and
@@ -97,8 +116,8 @@ lifecycle() {
       .status == "complete" and .remaining_owned_entries == [] and
       (.roles | type == "object" and keys == ["autostart", "bindings", "chooser", "folder", "reveal"]) and
       all(.roles[]; (.status | IN("restored", "preserved_newer", "already_off")) and .remaining_owned_entries == [] and .error == "")
-    end))
-  ' <<< "$result" >/dev/null || fail "$operation returned an unknown or incomplete result; runtime retained (roles may already be disabled)"
+    end)
+  ' <<< "$answer" >/dev/null 2>&1 || fail "$operation returned an unknown or incomplete result ($(lifecycle_said "$answer" "$result" "$code")); runtime retained (roles may already be disabled)"
 }
 
 activate_payload() (

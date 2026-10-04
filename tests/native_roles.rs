@@ -129,10 +129,10 @@ fn installer_filter() -> String {
         fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("packaging/install.sh"))
             .unwrap();
     let start = script
-        .find("jq -e -s --arg operation \"$operation\" '")
+        .find("jq -e --arg operation \"$operation\" '")
         .unwrap();
-    let body = &script[start + "jq -e -s --arg operation \"$operation\" '".len()..];
-    body[..body.find("' <<< \"$result\"").unwrap()].to_string()
+    let body = &script[start + "jq -e --arg operation \"$operation\" '".len()..];
+    body[..body.find("' <<< \"$answer\"").unwrap()].to_string()
 }
 
 fn expected_files(home: &Home, role: &str) -> Vec<(String, String)> {
@@ -248,7 +248,6 @@ fn fresh_home_disable_all_matches_the_installer_contract() {
         let status = Command::new("/usr/bin/jq")
             .args([
                 "-e",
-                "-s",
                 "--arg",
                 "operation",
                 "roles_disable",

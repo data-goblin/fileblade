@@ -10,6 +10,7 @@ cp -a -- "$payload" "$work/fixture"
 cat > "$work/fixture/app/launch" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ $* == 'native roles --help' ]]; then printf '%s\n' 'Usage: fileblade native roles <COMMAND>'; exit 0; fi
 [[ $1 == native && ${*: -1} == --json ]]
 [[ ${BASH_SOURCE[0]} == "$XDG_DATA_HOME/fileblade/installation/versions/"*/app/launch ]]
 flock -n -s "$XDG_DATA_HOME/fileblade/installation/lock" true
@@ -25,7 +26,16 @@ else
     ln -sfn generations/generation.changed "$CINDER_ACTIVE"
   fi
   if [[ ${CINDER_RESULT:-} == failure ]]; then exit 3; fi
-  jq -n --arg status "${CINDER_RESULT:-drained}" '{schema:1,action:"drain",status:$status,operation_ids:[],dirty_note_ids:[],error:""}'
+  if [[ ${CINDER_RESULT:-} == answered ]]; then
+    printf '%s\n' '{"schema":1,"action":"drain","status":"busy","operation_ids":[],"dirty_note_ids":[],"error":"layout is not writable"}'
+    exit 3
+  fi
+  status=${CINDER_RESULT:-drained}
+  if [[ $status == noisy ]]; then
+    printf '%s\n' 'fileblade: startup recovery finished'
+    status=drained
+  fi
+  jq -n --arg status "$status" '{schema:1,action:"drain",status:$status,operation_ids:[],dirty_note_ids:[],error:""}'
 fi
 EOF
 digest=$(sha256sum "$work/fixture/app/launch")
@@ -52,6 +62,18 @@ printf 'PASS E-94-02 changed activation identity refuses after drain\n'
 "$native" remove
 [[ $(cat "$CINDER_CALLS") == $'roles\ndrain' ]]
 printf 'PASS E-94-03 removal reverses roles before drain\n'
+"$native" install "$work/fixture" > /dev/null
+cp "$installation/active/receipt.json" "$work/receipt"
+if CINDER_RESULT=answered "$native" install "$work/fixture" > "$work/refusal" 2>&1; then exit 1; fi
+grep -F 'drain failed (status busy: layout is not writable); runtime retained' "$work/refusal"
+if grep -F 'parse error' "$work/refusal"; then exit 1; fi
+cmp "$work/receipt" "$installation/active/receipt.json"
+printf 'PASS E-94-04 a refused drain reports its status and error\n'
+CINDER_RESULT=noisy "$native" install "$work/fixture" > "$work/noisy" 2>&1
+if grep -F 'parse error' "$work/noisy"; then exit 1; fi
+grep -F 'Installed ' "$work/noisy"
+printf 'PASS E-94-05 a notice before the drain answer is tolerated\n'
+"$native" remove
 unset CINDER_CALLS
 "$source_root/tests/vm/expectations/91-delivery-install.sh" "$work/fixture"
 "$source_root/tests/vm/expectations/93-delivery-remove.sh" "$work/fixture"
