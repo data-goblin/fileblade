@@ -51,7 +51,7 @@ Item {
     }
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i]
-      if (node.path !== undefined && node.pendingCallback !== undefined) {
+      if (node.path !== undefined && node.pending !== undefined) {
         var p = point(node)
         var gp = grid.mapToGlobal(0, 0)
         gp.y += m.context.docked ? m.context.surfaceOriginY : 0

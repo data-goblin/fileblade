@@ -7,7 +7,7 @@ fixture >/dev/null
 open_left
 goto_root "$ROOT_DIR"
 
-"$OVM" mouse click 353 43; sleep 3
+click_settings_gear; sleep 3
 expect E-17-01 "the gear opens settings" settingsOpen true
 
 before_width=$(field sidebarWidth)
@@ -30,7 +30,7 @@ ctl setPlacement "$before_place"; sleep 3
 
 expect_true E-17-05 "trash retention is set" "[[ \$(field trashRetentionDays) -ge 0 ]]"
 
-[[ $(field settingsOpen) == true ]] || { "$OVM" mouse click 353 43; wait_for "[[ \$(field settingsOpen) == true ]]" 10; }
+[[ $(field settingsOpen) == true ]] || { click_settings_gear; wait_for "[[ \$(field settingsOpen) == true ]]" 10; }
 "$OVM" mouse click 95 102
 "$OVM" key ctrl-a
 "$OVM" type shortcuts; sleep 1
@@ -45,8 +45,8 @@ from_key=$("$OVM" ocr 2>/dev/null | tr -s '[:space:]' ' ')
 expect_contains E-17-06 "the settings entry opens the shortcut guide" "$from_settings" "Quick nav"
 expect_contains E-17-06 "and it is the same guide ? opens" "$from_key" "Quick nav"
 
-"$OVM" mouse click 353 43; sleep 3
-[[ $(field settingsOpen) == true ]] || { "$OVM" mouse click 353 43; sleep 3; }
+click_settings_gear; sleep 3
+[[ $(field settingsOpen) == true ]] || { click_settings_gear; sleep 3; }
 "$OVM" key esc; sleep 2
 expect E-17-07 "escape closes settings first" settingsOpen false
 expect E-17-07 "and leaves the blade open" open true

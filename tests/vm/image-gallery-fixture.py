@@ -55,7 +55,7 @@ if sys.argv[1] == 'prepare':
     shell = json.loads(config.read_text())
     rows = shell['bar']['layout']['right']
     rows[:] = [row for row in rows if row['id'] != 'kurt.goblin-images']
-    rows.insert(0, {'id': 'kurt.goblin-images'})
+    rows.insert(0, {'id': 'kurt.goblin-images', 'showNavbarIcon': True})
     config.write_text(json.dumps(shell))
 else:
     for name, path in [('Module.qml', module), ('shell.json', config), ('blades.json', layout), ('GoblinBarWidget.qml', consumer / 'GoblinBarWidget.qml'), ('manifest.json', consumer / 'manifest.json')]:

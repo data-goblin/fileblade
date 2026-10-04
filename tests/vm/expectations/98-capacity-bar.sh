@@ -51,7 +51,7 @@ locate_word() {
   [[ $point =~ ^[0-9]+\ [0-9]+$ ]] || return 1
   printf '%s\n' "$point"
 }
-open_settings() { [[ $(field settingsOpen) == true ]] || { "$OVM" mouse click 353 43; wait_for "[[ \$(field settingsOpen) == true ]]" 10; }; }
+open_settings() { [[ $(field settingsOpen) == true ]] || { click_settings_gear; wait_for "[[ \$(field settingsOpen) == true ]]" 10; }; }
 close_settings() { "$OVM" key esc; sleep 1; wait_for "[[ \$(field settingsOpen) == false ]]" 5 || { "$OVM" key esc; sleep 1; }; [[ $(field open) == true ]] || open_left; }
 sheet_text() { ocr_crop "settings-$1" "${WIDTH}x360+0+40" 300% 6 '5%,40%'; }
 toggle_row_y() {

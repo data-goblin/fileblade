@@ -64,8 +64,12 @@ observe E-37-01 'open blade settings' 'settings row shows the pictorial module i
 "$OVM" shot flint-E-37-01-settings >/dev/null
 ctl toggleBladeSettings left
 sleep 1
-"$OVM" mouse click 113 42
-sleep 1
+if plus=$(add_module_point left); then
+  "$OVM" mouse click ${plus}
+  sleep 1
+else
+  fail E-37-01 'find the left module +' 'no + in the left header'
+fi
 observe E-37-01 'open module picker' 'picker includes image icons and glyph fallbacks' '(.surfaceIcons | any(.url | endswith("goblin.svg"))) and (.surfaceIcons | any(.url == "" and .glyph != ""))'
 "$OVM" shot flint-E-37-01-picker >/dev/null
 key_gallery esc
@@ -94,6 +98,7 @@ read -r second_x second_y second_path < <(gallery | jq -r '.tiles[1] | "\(.point
 double_click "$second_x" "$second_y"
 wait_for "[[ \$(field lastLaunchedPath) == $(printf '%q' "$second_path") ]]" 15
 expect E-37-02 'double click opens another image' lastLaunchedPath "$second_path"
+guest "pkill -f -- $(printf '%q' "[/]${GALLERY_STATE#/}/library/")" >/dev/null
 ctl focusBlade left
 click_tile
 for key in right down left up l j h k; do

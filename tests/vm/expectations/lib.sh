@@ -269,6 +269,12 @@ add_module_point() {
   [[ $point =~ ^[0-9]+\ [0-9]+$ ]] || return 1
   printf '%s\n' "$point"
 }
+click_settings_gear() {
+  local point width
+  width=$(field sidebarWidth)
+  point=$(add_module_point left) && [[ $width =~ ^[0-9]+$ ]] || { fail harness 'find the settings gear' 'no + in the left header'; return 1; }
+  "$OVM" mouse click $((width - 25)) "${point#* }"
+}
 ocr_crop() {
   local shot crop result
   shot=$("$OVM" shot "$1" 2>/dev/null | tail -1)
