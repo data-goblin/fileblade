@@ -7,6 +7,7 @@ shot() { "$OVM" shot "$1"; }
 wheel() { status | jq -r ".dropWheel.$1"; }
 wheel_labels() { status | jq -r '[.dropWheel.actions[]?.label]|join(",")'; }
 wheel_index() { status | jq -r --arg n "$1" '[.dropWheel.actions[]?.label]|index($n)'; }
+left_split() { "$OVM" ipc "$PLUGIN" blades | jq -c '[.blades.left.slots[] | [.id, .fraction]]'; }
 clients() { "$OVM" hypr clients 2>/dev/null | jq length; }
 kill_windows() { "$OVM" ssh 'pkill -x foot; pkill -x nvim' >/dev/null 2>&1; wait_for "[[ \$(clients) == 0 ]]" 15; }
 
@@ -153,13 +154,19 @@ TOML
   wait_for "! guest 'pgrep -x democtl' | grep -q ." 30
   sleep 1.5
 }
+declare -A ROW
+locate() {
+  "$OVM" mouse move 900 900
+  ROW[$1]=$(visible_row_y "$1") || { fail harness "locate $1" "the row is not visible in the Files tree"; summary; }
+}
+release_target() {
+  awk -v sx="$1" -v sy="$2" -v n="$3" -v tx="$(($(field sidebarWidth) + 120))" 'BEGIN { if (n < 1) exit; a = (90 - 90 / n) * 3.14159265 / 180; printf "%d %d\n", tx, sy - (tx - sx) * sin(a) / cos(a) }'
+}
 mid() { jq -r ".$1" <<<"${mid_drag:-null}" 2>/dev/null; }
 seen() { jq -r ".$1" <<<"${loaded:-null}" 2>/dev/null; }
 
-if [[ $FILEBLADE_SHAPE == native ]]; then
-  ctl setBladeSlots left "base64:$(printf '%s' '[{"id":"e26-files","modules":[{"module":"files","state":{"mediaMode":false}}]},{"id":"e26-properties","modules":[{"module":"properties"}],"fraction":0.34}]' | base64 -w0)"
-  sleep 2
-fi
+ctl setBladeSlots left "base64:$(printf '%s' '[{"id":"e26-files","modules":[{"module":"files","state":{"mediaMode":false}}]},{"id":"e26-properties","modules":[{"module":"properties"}],"fraction":0.34}]' | base64 -w0)"
+wait_for "[[ \$(left_split) == '[[\"e26-files\",-1],[\"e26-properties\",0.34]]' ]]" 12 || { fail harness "give Properties a third of the blade" "split is $(left_split)"; summary; }
 fixture >/dev/null
 open_left
 goto_root "$ROOT_DIR"
@@ -167,14 +174,16 @@ kill_windows
 focus_tree
 ctl hideDropWheel >/dev/null 2>&1
 
-"$OVM" mouse click "$ROW_X" "$(row_y "$(row_index alpha.txt)")"
+for name in alpha.txt long.txt dest; do locate "$name"; done
+
+"$OVM" mouse click "$ROW_X" "${ROW[alpha.txt]}"
 "$OVM" hold ctrl
-"$OVM" mouse click "$ROW_X" "$(row_y "$(row_index long.txt)")"
+"$OVM" mouse click "$ROW_X" "${ROW[long.txt]}"
 "$OVM" release ctrl
 expect_true E-26-02 "two rows are selected before dragging the second" "[[ \$(field selectedCount) == 2 && \$(field selectedPath) == $ROOT_DIR/long.txt ]]"
 [[ $(field selectedCount) == 2 && $(field selectedPath) == "$ROOT_DIR/long.txt" ]] || summary
 "$OVM" mouse down
-"$OVM" mouse move 180 "$(row_y "$(row_index long.txt)")"
+"$OVM" mouse move 180 "${ROW[long.txt]}"
 "$OVM" mouse move 900 500
 wait_for "[[ \$(wheel dragging) == true && \$(wheel count) == 2 ]]" 5
 expect_true E-26-02 "the real drag carries both selected rows" "[[ \$(wheel dragging) == true && \$(wheel count) == 2 && \$(wheel open) == false ]]"
@@ -187,16 +196,17 @@ expect_true E-26-02 "the rendered ghost badge counts both items" "[[ $ghost_coun
 wait_for "[[ \$(wheel dragging) == false && \$(wheel open) == false ]]" 5
 expect_true E-26-08 "Escape cancels the held drag without dismissing the blade" "[[ \$(wheel dragging) == false && \$(wheel count) == 0 && \$(field open) == true ]]"
 shot E-26-08-escape-before-wheel-mouse-held
-"$OVM" mouse move "$ROW_X" "$(row_y "$(row_index dest)")"
+"$OVM" mouse move "$ROW_X" "${ROW[dest]}"
 "$OVM" mouse up
 sleep 1
 expect_true E-26-08 "mouse release after Escape keeps the drag canceled" "[[ \$(wheel dragging) == false && \$(wheel open) == false && \$(clients) == 0 ]]"
 expect_out E-26-08 "release over a directory after Escape moves no carried file" "test -f $ROOT_DIR/alpha.txt && test -f $ROOT_DIR/long.txt && test ! -e $ROOT_DIR/dest/alpha.txt && test ! -e $ROOT_DIR/dest/long.txt && echo unchanged" unchanged
 focus_tree
 
-"$OVM" mouse click "$ROW_X" "$(row_y "$(row_index alpha.txt)")"
+locate alpha.txt
+"$OVM" mouse click "$ROW_X" "${ROW[alpha.txt]}"
 "$OVM" mouse down
-"$OVM" mouse move 180 "$(row_y "$(row_index alpha.txt)")"
+"$OVM" mouse move 180 "${ROW[alpha.txt]}"
 "$OVM" mouse move 900 500
 "$OVM" hold spc
 wait_for "[[ \$(wheel open) == true && \$(wheel loading) == false ]]" 10
@@ -212,7 +222,8 @@ sleep 1
 expect_true E-26-08 "Escape cancels the open wheel drag and release opens nothing" "[[ \$(wheel dragging) == false && \$(wheel open) == false && \$(field open) == true && \$(clients) == 0 ]]"
 focus_tree
 
-drag_with_space "$ROW_X" "$(row_y "$(row_index alpha.txt)")" 900 500 ease_in_out 12 3000 E-26-01-drag-ghost "" E-26-03-wheel-open E-26-04-desktop-actions
+locate alpha.txt
+drag_with_space "$ROW_X" "${ROW[alpha.txt]}" 900 500 ease_in_out 12 3000 E-26-01-drag-ghost "" E-26-03-wheel-open E-26-04-desktop-actions
 expect_true E-26-01 "leaving the blade with a row starts a drag" "[[ \$(mid dragging) == true ]]"
 expect_true E-26-01 "that carries one item" "[[ \$(mid count) == 1 ]]"
 expect_true E-26-03 "holding the modifier opens the wheel during the drag" "[[ \$(mid open) == true && \$(mid fromDrag) == true ]]"
@@ -251,10 +262,19 @@ expect_true E-26-08 "without opening anything" "[[ \$(clients) == 0 ]]"
 expect_out E-26-08 "and the file is untouched" "test -f $ROOT_DIR/alpha.txt && echo yes || echo no" yes
 shot E-26-08-cancelled
 
-drag_with_space "$ROW_X" "$(row_y "$(row_index long.txt)")" 560 220 linear 60 3000 "" "" "" ""
-wait_for "[[ \$(clients) -ge 1 ]]" 20
-expect_true E-26-07 "releasing on Open in new window opens the file" "[[ \$(clients) -ge 1 ]]"
-expect_true E-26-07 "and the wheel closes" "[[ \$(wheel open) == false ]]"
+desktop_count=$(jq '.actions | length' <<<"${loaded:-null}" 2>/dev/null)
+desktop_open=$(jq '[.actions[]?.id] | index("open")' <<<"${loaded:-null}" 2>/dev/null)
+locate long.txt
+release_x=$(($(field sidebarWidth) - 60))
+read -r target_x target_y <<<"$(release_target "$release_x" "${ROW[long.txt]}" "${desktop_count:-0}")"
+if [[ $desktop_open == 0 && $target_y =~ ^[0-9]+$ ]] && ((target_y > 40)); then
+  drag_with_space "$release_x" "${ROW[long.txt]}" "$target_x" "$target_y" linear 60 3000 "" "" "" ""
+  wait_for "[[ \$(clients) -ge 1 ]]" 20
+  expect_true E-26-07 "releasing on Open in new window opens the file" "[[ \$(clients) -ge 1 ]]"
+  expect_true E-26-07 "and the wheel closes" "[[ \$(wheel open) == false ]]"
+else
+  fail E-26-07 "releasing on Open in new window opens the file" "no release line reaches the top wedge: open is wedge $desktop_open of $desktop_count, target y $target_y"
+fi
 shot E-26-07-file-opened
 kill_windows
 
