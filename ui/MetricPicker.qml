@@ -233,8 +233,8 @@ Item {
     id: removeGlyph
     visible: !picker.adder && !picker.pinned && picker.hovered
     z: 2
-    anchors.left: parent.left
-    anchors.leftMargin: Style.space(2)
+    anchors.right: parent.right
+    anchors.rightMargin: Style.space(2)
     anchors.verticalCenter: parent.verticalCenter
     width: Style.space(14)
     height: parent.height

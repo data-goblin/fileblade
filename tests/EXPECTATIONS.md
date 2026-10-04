@@ -703,7 +703,9 @@ Automation for the remaining tab-management scenarios is pending.
      confirmation as closing a tab; it is disabled on the last tab. Every
      entry carries an icon.
 191. **E-22-12** The close mark on a tab only appears while my pointer is over
-     that tab; otherwise the tab shows its title alone.
+     that tab; otherwise the tab shows its title alone. The mark sits to the
+     right of the title, never to its left, so the title does not move away
+     from where I aimed when the mark appears.
 
 ## 23. Opening files, locations and recent items
 
@@ -756,7 +758,8 @@ view preference for normal browsing.
 207. **E-24-04** If I press `Ctrl+Shift+B` during a deep search, the results
      switch between a flat list and a tree without changing the search.
 208. **E-24-05** If I click the add-column control, I can choose another detail
-     to show beside each row; I can also remove a column I no longer want.
+     to show beside each row; I can also remove a column I no longer want
+     with the `×` that appears at the right end of its label while I hover it.
 209. **E-24-06** If I drag a detail column, it moves to the indicated horizontal
      position without obscuring the other column labels.
 210. **E-24-07** If I click a column label or use its menu, I can sort ascending,

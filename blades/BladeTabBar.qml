@@ -205,6 +205,19 @@ Item {
           z: 1
 
           Text {
+            textFormat: Text.PlainText
+            id: label
+            text: bar.slot.host.tabTitle(bar.slot.edge, bar.slot.slotIndex, tab.index).toUpperCase()
+            color: tab.current
+              ? (bar.slot.activeFocus ? Color.accent : Color.muted)
+              : (pointer.containsMouse ? Color.bar.text : Color.muted)
+            font.family: Style.font.family
+            font.pixelSize: Typography.caption
+            font.weight: Font.DemiBold
+            font.letterSpacing: 0.6
+          }
+
+          Text {
             id: closeGlyph
             textFormat: Text.PlainText
             visible: bar.slot.tabs.length > 1
@@ -226,19 +239,6 @@ Item {
               cursorShape: Qt.PointingHandCursor
               onClicked: bar.slot.requestCloseTab(tab.index)
             }
-          }
-
-          Text {
-            textFormat: Text.PlainText
-            id: label
-            text: bar.slot.host.tabTitle(bar.slot.edge, bar.slot.slotIndex, tab.index).toUpperCase()
-            color: tab.current
-              ? (bar.slot.activeFocus ? Color.accent : Color.muted)
-              : (pointer.containsMouse ? Color.bar.text : Color.muted)
-            font.family: Style.font.family
-            font.pixelSize: Typography.caption
-            font.weight: Font.DemiBold
-            font.letterSpacing: 0.6
           }
         }
 
