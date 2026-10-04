@@ -88,6 +88,12 @@ Item {
       cursorShape: Qt.PointingHandCursor
       onClicked: bar.context.toggleCollapsed()
     }
+
+    PluginUi.HintTip {
+      visible: disclosurePointer.containsMouse
+      title: bar.context.collapsed ? "Expand section" : "Collapse section"
+      actions: [{ button: "left", text: bar.context.collapsed ? "Expand" : "Collapse" }, { shortcut: "Alt+Z" }]
+    }
   }
 
   Item {

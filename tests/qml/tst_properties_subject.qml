@@ -494,4 +494,65 @@ TestCase {
     compare(String(iconOf(deleteCell).color), "#ff6666")
     compare(String(del.color), "#eeeeee")
   }
+
+  function tips(root) {
+    var hits = []
+    function walk(node) {
+      if (!node) return
+      if (node.revealed !== undefined && node.anchorItem !== undefined && node.title !== undefined) hits.push(node)
+      for (var i = 0; i < node.children.length; i++) walk(node.children[i])
+    }
+    walk(root)
+    return hits
+  }
+
+  function shownTip(title) {
+    var scene = view
+    while (scene.parent) scene = scene.parent
+    var found = tips(scene).filter(function(tip) { return tip.revealed && tip.visible && tip.title === title })
+    return found.length === 1 ? found[0] : null
+  }
+
+  function anyTipShown() {
+    var scene = view
+    while (scene.parent) scene = scene.parent
+    return tips(scene).some(function(tip) { return tip.revealed && tip.visible })
+  }
+
+  function test_hovering_a_file_button_names_it_with_its_shortcut() {
+    waitForRendering(view)
+    var rename = textItems(view, "Rename")[0]
+    mouseMove(rename, 4, rename.height / 2)
+    tryVerify(function() { return shownTip("Rename") !== null }, 2000)
+    var tip = shownTip("Rename")
+    compare(tip.actions.length, 2)
+    compare(String(tip.actions[1].shortcut), "F2")
+    mouseMove(view, 1, view.height - 1)
+    tryVerify(function() { return !anyTipShown() }, 2000)
+  }
+
+  function test_hovering_an_item_button_shows_its_full_label() {
+    view.width = 300
+    var subject = subjectView()
+    var long = "Copy the workspace path with folders"
+    verify(properties.inspect(owner, { title: "Item", actions: [{ id: "copy", text: long }, { id: "refresh", text: "Refresh" }] }))
+    tryVerify(function() { return textItems(subject, long).length === 1 })
+    waitForRendering(view)
+    var label = textItems(subject, long)[0]
+    var refresh = textItems(subject, "Refresh")[0]
+    verify(label.truncated)
+    verify(!refresh.truncated)
+    mouseMove(refresh, 4, refresh.height / 2)
+    tryVerify(function() { return shownTip("Refresh") !== null }, 2000)
+    mouseMove(label, 4, label.height / 2)
+    tryVerify(function() { return shownTip(long) !== null }, 2000)
+    mouseMove(subject, 1, subject.height - 1)
+    tryVerify(function() { return !anyTipShown() }, 2000)
+    mouseMove(label, 6, label.height / 2)
+    wait(150)
+    verify(properties.inspect(owner, { title: "Itex", actions: [{ id: "copy", text: long }, { id: "refresh", text: "Refresh" }] }))
+    tryVerify(function() { return shownTip(long) !== null }, 2000)
+    mouseMove(subject, 1, subject.height - 1)
+    tryVerify(function() { return !anyTipShown() }, 2000)
+  }
 }

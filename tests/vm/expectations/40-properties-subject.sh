@@ -109,6 +109,7 @@ owner() { field propertiesOwner; }
 title() { field propertiesTitle; }
 if wait_for "[[ \$(owner) == '$module' ]]" 12; then pass E-50-01 'the module item replaces the file in Properties'; else fail E-50-01 'the module item replaces the file in Properties' "owner $(owner)"; fi
 expect E-50-01 'status names the shown item' propertiesTitle 'Fixture item 40'
+"$OVM" mouse move 900 500 >/dev/null
 sleep 1
 shot=$("$OVM" shot properties40-subject | tail -1)
 text=$(ocr_crop properties40-pane "$(field sidebarWidth)x360+0+720" 300% 6)

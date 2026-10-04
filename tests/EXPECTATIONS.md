@@ -511,6 +511,10 @@ Dialog keyboard regressions: `tests/vm/trash-dialog-focus.sh`.
 145. **E-17-10** If I hover an icon button such as the gear or refresh, its tip
      shows the action after a mouse glyph and the shortcut after a keyboard
      glyph, in the same layout everywhere; the gear reads Open settings and `,`.
+     The chevron at the left of a section header names Collapse section or
+     Expand section with `Alt+Z`, and an extension's header buttons (Fabric
+     and Databricks up, home, refresh, sign in) name their action and key the
+     same way.
 146. **E-17-12** The Files settings are grouped under Tree, Git, and Trash and
      drives headings instead of one flat list, and filtering by a heading name
      shows the rows under it.
@@ -1658,9 +1662,10 @@ the same behaviour, the limits and the keyboard on a fixture context, and
    recognise Open, Copy, Rename, Start, Stop or Refresh at a glance. The icon
    is the extension's own when it sends one, otherwise one FileBlade picks
    from the action, and delete actions have a red icon. Hovering a button
-   turns its icon and label the accent colour. In a narrow pane the grid
-   becomes one column and long labels end with an ellipsis; hovering shows
-   the full label.
+   turns its icon and label the accent colour and, after a short pause,
+   shows a tip naming the button in full, even when the label fits. In a
+   narrow pane the grid becomes one column and long labels end with an
+   ellipsis; the tip still shows the full label.
 3. **E-50-03** With Properties focused, `j`/`k` and the arrows move a
    highlight over the item's buttons, left to right and row by row through
    the grid under its subtitle, and then its fields, starting on the first

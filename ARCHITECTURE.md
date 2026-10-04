@@ -183,7 +183,12 @@ blades:
 It's written atomically and watched, so editing it by hand or through
 `fileblade blade set|add|remove|move-slot` updates the live UI without a
 restart. Slots render through a Repeater over `slots.length`, not over the
-array, so a save never tears down and reloads every module.
+array, so a save never tears down and reloads every module. The Properties
+action grid (`ui/ActionGrid.qml`) does the same over `actions.length` and
+reads each action from the array by index: a Repeater over a JS array hands
+its delegates `modelData` as a converted map whose nested arrays fail
+`Array.isArray`, which once dropped every button's `tipActions` and hid its
+hover tip.
 
 Docked blades are layer surfaces with an exclusive zone, which is why your
 tiled windows shift over. An undocked blade (Super+T while it has focus) is a

@@ -33,11 +33,11 @@ Item {
 
     Repeater {
       id: cells
-      model: grid.actions
+      model: grid.actions.length
       delegate: Item {
         id: cell
-        required property var modelData
         required property int index
+        readonly property var modelData: cell.index < grid.actions.length && grid.actions[cell.index] ? grid.actions[cell.index] : ({})
         readonly property bool current: grid.showCurrent && grid.current === index
         readonly property bool hot: pointer.containsMouse
         readonly property color tone: modelData.urgent ? Color.urgent : Color.accent
@@ -85,7 +85,7 @@ Item {
         }
 
         HintTip {
-          visible: pointer.containsMouse && (label.truncated || cell.tipActions.length > 0 || !!cell.modelData.tip)
+          visible: pointer.containsMouse && title !== ""
           title: String(cell.modelData.tip || cell.modelData.text || "")
           actions: cell.tipActions
         }

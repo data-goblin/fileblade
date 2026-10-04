@@ -93,6 +93,12 @@ Rectangle {
       cursorShape: Qt.PointingHandCursor
       onClicked: if (header.context) header.context.toggleCollapsed()
     }
+
+    HintTip {
+      visible: disclosurePointer.containsMouse
+      title: header.context && header.context.collapsed ? "Expand section" : "Collapse section"
+      actions: [{ button: "left", text: header.context && header.context.collapsed ? "Expand" : "Collapse" }, { shortcut: "Alt+Z" }]
+    }
   }
 
   ModuleIcon {
