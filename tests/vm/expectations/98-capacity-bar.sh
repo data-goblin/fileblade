@@ -12,13 +12,14 @@ FIX=/home/omarchy/capacity-fixture
 BIND=/home/omarchy/capacity-bind
 IMG=/home/omarchy/capacity-fixture.img
 THEMES=/home/omarchy/.config/omarchy/themes
+UDEV_RULE=/run/udev/rules.d/99-fileblade-capacity-fixture.rules
 theme_dir() { guest 't=~/.local/state/omarchy/current/theme; [ -e "$t" ] || t=~/.config/omarchy/current/theme; readlink -f "$t"'; }
 ORIGINAL_THEME=$(guest 'n=~/.local/state/omarchy/current/theme.name; [ -s "$n" ] && cat "$n" || basename "$(readlink -f ~/.config/omarchy/current/theme)"')
 
 cleanup() {
   ctl setRoot "$ROOT_DIR" >/dev/null 2>&1
   [[ -n $ORIGINAL_THEME ]] && guest "omarchy-theme-set $ORIGINAL_THEME" >/dev/null 2>&1
-  "$OVM" sudo "umount -l $FIX/stack 2>/dev/null; umount -l $BIND 2>/dev/null; umount -l $FIX 2>/dev/null; [ -n '$LOOP' ] && losetup -d $LOOP 2>/dev/null; rm -f $IMG; rm -r $FIX $BIND $THEMES/capacity-green $THEMES/capacity-noblue 2>/dev/null; true" >/dev/null 2>&1
+  "$OVM" sudo "umount -l $FIX/stack 2>/dev/null; umount -l $BIND 2>/dev/null; umount -l $FIX 2>/dev/null; [ -n '$LOOP' ] && losetup -d $LOOP 2>/dev/null; rm -f $IMG $UDEV_RULE; udevadm control --reload; rm -r $FIX $BIND $THEMES/capacity-green $THEMES/capacity-noblue 2>/dev/null; true" >/dev/null 2>&1
   guest "rm -f $ROOT_DIR/blob.bin $ROOT_DIR/fixlink" >/dev/null 2>&1
 }
 trap cleanup EXIT
@@ -26,11 +27,19 @@ trap cleanup EXIT
 LOOP=""
 "$OVM" sudo "umount -l $BIND 2>/dev/null; umount -l $FIX 2>/dev/null; rm -r $FIX $BIND 2>/dev/null; rm -f $IMG; true" >/dev/null 2>&1
 guest "dd if=/dev/zero of=$IMG bs=1M count=64 status=none && mkfs.ext4 -q -F $IMG && mkdir -p $FIX $BIND" >/dev/null
+rule=$(printf 'SUBSYSTEM=="block", KERNEL=="loop*", ATTR{loop/backing_file}=="%s", ENV{UDISKS_IGNORE}="1"\n' "$IMG" | base64 -w0)
+"$OVM" sudo "mkdir -p /run/udev/rules.d && printf %s $rule | base64 -d > $UDEV_RULE && udevadm control --reload" >/dev/null 2>&1
 LOOP=$("$OVM" sudo "losetup --find --show $IMG" 2>/dev/null | tr -d '\r' | tail -1)
+if [[ $LOOP == /dev/loop* ]]; then
+  "$OVM" sudo "udevadm trigger --action=change --settle $LOOP" >/dev/null 2>&1
+  [[ $("$OVM" sudo "udevadm info -q property $LOOP" 2>/dev/null) == *UDISKS_IGNORE=1* ]] || fail harness "keep udisks off the fixture" "$LOOP has no UDISKS_IGNORE"
+fi
 if [[ $LOOP != /dev/loop* ]] || ! "$OVM" sudo "mount $LOOP $FIX && chown omarchy:omarchy $FIX && mount --bind $FIX $BIND" >/dev/null 2>&1; then
   fail harness "capacity fixture" "the loop image did not mount"
   summary
 fi
+"$OVM" sudo "rm -f $UDEV_RULE && udevadm control --reload && udevadm trigger --action=change --settle $LOOP" >/dev/null 2>&1
+[[ $("$OVM" sudo "udevadm info -q property $LOOP" 2>/dev/null) != *UDISKS_IGNORE=1* ]] || fail harness "show the mounted fixture to udisks again" "$LOOP still has UDISKS_IGNORE"
 guest "mkdir -p $FIX/stack $FIX/inner" >/dev/null
 HOME_MOUNT=$(guest "findmnt -T /home/omarchy -n -o TARGET")
 

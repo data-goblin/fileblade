@@ -1,3 +1,4 @@
+import collections
 import statistics
 import sys
 from PIL import Image
@@ -94,11 +95,10 @@ def drives_bar(path, y, left, right):
     fills = []
     tracks = []
     for row in range(max(0, y - 10), min(image.height, y + 11)):
-        samples = [pixels[x, row] for x in range(left, right)]
-        median = tuple(statistics.median(channel[i] for channel in samples) for i in range(3))
+        background = collections.Counter(pixels[x, row] for x in range(left, right)).most_common(1)[0][0]
 
         def differs(pixel, limit):
-            return max(abs(pixel[i] - median[i]) for i in range(3)) > limit
+            return max(abs(pixel[i] - background[i]) for i in range(3)) > limit
 
         fills.append(longest_run(pixels, row, left, right, lambda pixel: differs(pixel, 25))[0])
         tracks.append(longest_run(pixels, row, left, right, lambda pixel: differs(pixel, 4))[0])
