@@ -196,9 +196,9 @@ ctl focusBlade right
 drag E-20-05-properties-becomes-tab 1620 557 220 500 E-20-07-body-target
 expect_true E-20-05 "module dropped on the Files body becomes a tab" "[[ \$(modules left) == '[[\"files\",\"properties\"]]' ]]"
 before=$(slots left)
-drag E-20-09-invalid-tab-drop-unchanged 190 42 950 500
+drag E-20-09-invalid-tab-drop-unchanged 150 42 950 500
 expect_true E-20-09 "tab dropped outside both blades preserves its layout" "[[ \$(modules left) == '[[\"files\",\"properties\"]]' && \$(slots left) == $(printf '%q' "$before") ]]"
-drag E-20-05-tabs-reordered 190 42 30 42 E-20-08-tab-insertion
+drag E-20-05-tabs-reordered 150 42 30 42 E-20-08-tab-insertion
 expect_true E-20-05 "dragging a tab changes its position" "[[ \$(modules left) == '[[\"properties\",\"files\"]]' ]]"
 before=$(slots left)
 reopen left
