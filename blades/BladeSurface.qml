@@ -268,7 +268,7 @@ PanelWindow {
     onCleared: surface.handleFocusGrabCleared()
   }
 
-  readonly property bool standaloneMenuHere: panelEnabled && !windowMode && actionMenuHere && host.services.files.actionMenuStandalone
+  readonly property bool standaloneMenuHere: !windowMode && actionMenuHere && host.services.files.actionMenuStandalone
   visible: panelEnabled && !windowMode && (bladeOpen || !parked) || standaloneMenuHere
   exclusionMode: ExclusionMode.Ignore
   implicitWidth: surfaceWidth

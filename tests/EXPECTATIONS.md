@@ -1189,6 +1189,9 @@ is maintained separately.
   known time never count as midnight photos.
 
 E-37-06 is a retired shell-host popout expectation and is outside native scope.
+The plugin shape still checks it: a right-click on a picture in the bar dropdown
+draws the file actions menu on that side of the screen, even when I have not
+opened the blade on that side since the shell started.
 
 ## 38. Configuring the drop wheel
 

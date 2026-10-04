@@ -76,7 +76,7 @@ Popup {
   ))
   readonly property string ownerEdge: hostWindow && hostWindow.edge ? String(hostWindow.edge) : "left"
   readonly property string requestedEdge: controller.actionMenuOpenLeft ? "right" : "left"
-  readonly property bool requestedVisible: hostWindow && hostWindow.surfaceActive !== false
+  readonly property bool requestedVisible: hostWindow && (hostWindow.surfaceActive !== false || hostWindow.standaloneMenuHere === true)
     && ownerEdge === requestedEdge
     && controller.actionMenuVisibleFor(hostWindow.screen)
   readonly property bool hostActive: hostWindow && hostWindow.contentItem ? hostWindow.contentItem.Window.active : true

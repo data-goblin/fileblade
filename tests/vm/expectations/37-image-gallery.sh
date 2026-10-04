@@ -194,7 +194,7 @@ read -r popup_x popup_y popup_path < <(gallery popout | jq -r '.tiles[0] | "\(.p
 sleep 1
 expect E-37-06 'popout right click hands focus to file actions' actionMenuOpen true
 expect E-37-06 'popout actions name the clicked image' actionMenuPath "$popup_path"
-expect_contains E-37-06 'popout file actions are actually drawn' "$(screen_text)" 'Open' 
+expect_contains E-37-06 'popout file actions are actually drawn' "$(screen_text)" 'Open with'
 "$OVM" shot flint-E-37-06-menu >/dev/null
 key_gallery esc
 summary
