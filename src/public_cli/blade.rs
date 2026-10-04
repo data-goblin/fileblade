@@ -108,6 +108,15 @@ pub(super) fn blade(action: BladeCommand) -> AppResult<PublicResult> {
             }
             .to_string()],
         )?,
+        BladeCommand::BarPlacement(value) => ipc(
+            "setBarPlacement",
+            &[match value.placement {
+                BarPlacement::Below => "below",
+                BarPlacement::Beside => "beside",
+                BarPlacement::Toggle => "toggle",
+            }
+            .to_string()],
+        )?,
         BladeCommand::Move(value) => ipc(
             "moveBladeModule",
             &[
@@ -154,6 +163,7 @@ pub enum BladeCommand {
     ExpandSlot(BladeIndexArgs),
     ToggleSlot(BladeIndexArgs),
     Animations(BladeAnimationArgs),
+    BarPlacement(BarPlacementArgs),
     Move(BladeMoveArgs),
     MoveSlot(BladeMoveSlotArgs),
     Release,
@@ -205,6 +215,19 @@ pub struct BladeAnimationArgs {
 pub enum BladeAnimationState {
     On,
     Off,
+    Toggle,
+}
+
+#[derive(Clone, Debug, Args)]
+pub struct BarPlacementArgs {
+    #[arg(value_enum)]
+    pub placement: BarPlacement,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+pub enum BarPlacement {
+    Below,
+    Beside,
     Toggle,
 }
 

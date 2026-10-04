@@ -7,6 +7,7 @@ import qs.Ui
 import "../ui" as PluginUi
 import "../lib/PathText.js" as PathText
 import "../lib/DropFocusPolicy.js" as DropFocusPolicy
+import "../lib/BarPlacement.js" as BarPlacement
 import "../theme"
 
 PanelWindow {
@@ -34,17 +35,22 @@ PanelWindow {
   readonly property var slots: Array.isArray(blade.slots) ? blade.slots : []
   readonly property bool bladeFocused: bladeOpen && !keyboardFocusReleased && scope.activeFocus
   property bool shortcutsOpen: false
-  readonly property string barPosition: host.shell && host.shell.barConfig ? String(host.shell.barConfig.position || "top") : "top"
+  readonly property string barPosition: BarPlacement.position(host.shell && host.shell.bar && host.shell.bar.position
+    ? host.shell.bar.position : (host.shell && host.shell.barConfig ? host.shell.barConfig.position : "top"))
   readonly property bool barVertical: barPosition === "left" || barPosition === "right"
   readonly property int defaultBarSize: barVertical ? Style.bar.sizeVertical : Style.bar.sizeHorizontal
   readonly property int liveBarSize: {
     if (!host.shell || !host.shell.bar) return defaultBarSize
     return host.shell.bar.barHidden ? 0 : Math.max(0, Number(host.shell.bar.barSize) || defaultBarSize)
   }
-  readonly property int barInsetLeft: barPosition === "left" ? liveBarSize : 0
-  readonly property int barInsetRight: barPosition === "right" ? liveBarSize : 0
+  readonly property string barPlacement: BarPlacement.normalize(host.barPlacement)
+  readonly property var barInsets: BarPlacement.insets(edge, barPosition, liveBarSize, false, barPlacement)
+  readonly property int barInsetTop: barInsets.top
+  readonly property int barInsetBottom: barInsets.bottom
+  readonly property int barInsetLeft: barInsets.left
+  readonly property int barInsetRight: barInsets.right
   readonly property int surfaceOriginX: isRight ? Math.max(0, (screen ? screen.width : 0) - barInsetRight - width) : barInsetLeft
-  readonly property int surfaceOriginY: barPosition === "top" ? liveBarSize : 0
+  readonly property int surfaceOriginY: barInsetTop
   readonly property string dragScope: "screen"
   readonly property int stackHeight: stack.height
   readonly property int footerHeight: Style.space(32)
@@ -264,8 +270,7 @@ PanelWindow {
 
   readonly property bool standaloneMenuHere: panelEnabled && !windowMode && actionMenuHere && host.services.files.actionMenuStandalone
   visible: panelEnabled && !windowMode && (bladeOpen || !parked) || standaloneMenuHere
-  exclusionMode: ExclusionMode.Normal
-  exclusiveZone: bladeOpen ? bladeWidth : 0
+  exclusionMode: ExclusionMode.Ignore
   implicitWidth: surfaceWidth
   color: "transparent"
   surfaceFormat.opaque: false
@@ -332,6 +337,20 @@ PanelWindow {
     bottom: true
     left: !surface.isRight
     right: surface.isRight
+  }
+
+  margins {
+    top: surface.barInsetTop
+    bottom: surface.barInsetBottom
+    left: surface.barInsetLeft
+    right: surface.barInsetRight
+  }
+
+  BladeReservation {
+    screen: surface.screen
+    edge: surface.edge
+    beforeBar: BarPlacement.reservesBeforeBar(surface.barPlacement)
+    zone: surface.bladeOpen ? surface.bladeWidth : 0
   }
 
   WlrLayershell.namespace: "omarchy-fileblade-" + edge

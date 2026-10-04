@@ -21,6 +21,7 @@ Service.qml:                 shared service entry; owns the host, the IPC handle
 blades/BladeHost.qml:        the layout model; reads and writes blades.json, routes focus, holds the module registry
 blades/BladeRegistry.qml:    finds modules (built in, yours, registered extensions); see EXTENSIONS.md
 blades/BladeSurface.qml:     one docked PanelWindow per edge per enabled screen
+blades/BladeReservation.qml: the invisible strip that holds a docked blade's exclusive zone
 blades/BladeWindow.qml:      one ordinary window per undocked edge
 blades/BladeSlot.qml:        loads a module's entry QML and hands it a BladeContext
 blades/BladeModuleLoader.qml: gives each loaded module its own context through replacement and teardown
@@ -166,6 +167,7 @@ monitorMode: active | all | locked
 monitorLock: ""  # named output when locked
 animations: true
 fontScale: 1.0
+barPlacement: below | beside  # below the desktop bar, or full height beside it
 defaultPlacements: [ data-goblin.fileblade-fabric/fabric ]  # beside-files modules already placed once; see EXTENSIONS.md
 blades:
   left:
@@ -195,7 +197,28 @@ its delegates `modelData` as a converted map whose nested arrays fail
 hover tip.
 
 Docked blades are layer surfaces with an exclusive zone, which is why your
-tiled windows shift over. An undocked blade (Super+T while it has focus) is a
+tiled windows shift over.
+
+The zone is not held by the visible sheet. Hyprland reserves exclusive zones
+one layer surface at a time, Background to Overlay and, inside a layer, in the
+order the surfaces were created; a surface reserved first spans the full edge
+and every later one is placed inside what is left. With the sheet and the
+`omarchy-bar` both on the Top layer, whichever came first won, so a bar the
+shell recreated after FileBlade started (a shell restart under the native app)
+ended up shortened beside a full-height blade. Now each `BladeSurface` sheet
+uses `ExclusionMode.Ignore` and is placed with margins from
+`lib/BarPlacement.js`, and a 1 px `BladeReservation` with an empty input mask
+and the namespace `omarchy-fileblade-<edge>-reserve` holds the zone.
+`barPlacement` picks its layer: `below` puts it on Overlay, so it always
+reserves after the bar and the sheet gets a margin of the bar's size on the
+shared edge (under a top bar, above a bottom bar, inside a side bar on its own
+edge); `beside` puts it on Bottom, so it always reserves before the bar, the
+sheet keeps the full height and the bar is shortened between the blades. The
+bar's edge, size and hidden state come from the shell (`shell.bar.position`,
+`barSize`, `barHidden` in the plugin; `shell.json`, the bar size token and the
+`bar-off` toggle in the native app, see `app/BarVisibility.qml`), and a hidden
+bar gives no margin. `surfaceOriginX` and `surfaceOriginY` follow the same
+margins, so drags and menus map to the right screen point in both placements. An undocked blade (Super+T while it has focus) is a
 plain Hyprland window you can tile and move like anything else. Its screen is
 chosen once when entering window mode from the edge's invocation or lock
 target. Later compositor movement is retained, and focus reports use the
@@ -505,6 +528,7 @@ gitStatusPollIntervalMs:     5000       Git fallback base in ms; 6x while inotif
 dropModifier:               space      drop-wheel hold key: space, alt, ctrl, shift, or meta
 monitorMode:                active     invocation monitor; all mirrors, locked uses the saved monitorLock
 animateBlades:              true       slide blades open and closed
+barPlacement:               below      first-run blade placement against the desktop bar: below or beside
 checkUpdates:               true       the six-hourly ref lookup described under Checkout update checks
 blades:                     omitted    optional full first-run left/right layout; supersedes the legacy layout keys above
 ```

@@ -721,7 +721,8 @@ Item {
           readonly property bool monitorsShown: root.matches("general monitors screens display active primary all")
           readonly property bool managementShown: root.matches("general manage agent files skills memory permissions")
           readonly property bool fontScaleShown: root.matches("general font size text scale typography percent")
-          readonly property bool shown: animateShown || monitorsShown || managementShown || fontScaleShown
+          readonly property bool barShown: root.matches("general navbar bar below beside under full height layout")
+          readonly property bool shown: animateShown || monitorsShown || managementShown || fontScaleShown || barShown
           width: parent.width
           spacing: Style.space(5)
           visible: shown
@@ -749,6 +750,16 @@ Item {
             options: MonitorMode.choices(root.host.screenNames)
             value: MonitorMode.choiceKey(root.host.monitorMode, root.host.monitorLock)
             onChosen: function(key) { var choice = MonitorMode.parseChoice(key); root.host.setMonitorMode(choice.mode, choice.lock) }
+          }
+
+          PluginUi.ChoiceRow {
+            width: parent.width
+            visible: general.barShown
+            glyph: "󰕮"
+            label: "Navbar"
+            options: [{ key: "below", label: "Below it" }, { key: "beside", label: "Full height beside it" }]
+            value: root.host.barPlacement
+            onChosen: function(key) { root.host.setBarPlacement(key) }
           }
 
           PluginUi.NumberRow {

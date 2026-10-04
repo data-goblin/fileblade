@@ -1754,6 +1754,34 @@ This file was written by an agent.
    layout, brings back the default arrangement with every installed
    beside-Files extension as a tab next to FileBlade again.
 
+## 61. Blades and the desktop bar
+
+This file was written by an agent.
+
+`tests/vm/expectations/61-bar-placement.sh` covers these in both shapes
+(E-61-02 only in the native shape); `tests/qml/tst_bar_placement.qml` covers
+the placement rules.
+
+1. **E-61-01** With the bar at the top and the default settings, both blades
+   start right under the bar and the bar keeps the full screen width; nothing
+   of either blade sits beside or behind the bar.
+2. **E-61-02** If the desktop shell restarts while the native app keeps
+   running, the recreated bar still spans the full width and the blades stay
+   below it.
+3. **E-61-03** Moving the bar to the bottom puts the bottom of both blades
+   just above it; moving it to the left or right moves only the blade on that
+   edge in beside the bar, and the other blade keeps the full height.
+4. **E-61-04** Hiding the bar gives the blades the full screen height at once;
+   showing it again puts them back below it.
+5. **E-61-05** Choosing Settings, General, Navbar, "Full height beside it"
+   brings back the full-height layout: both blades run from the top to the
+   bottom of the screen and the bar is shortened to fit between them. The
+   choice survives a restart and is saved as `barPlacement` in `blades.json`.
+   "Below it" returns to the default.
+6. **E-61-06** `fileblade blade bar-placement below|beside|toggle` changes the
+   same setting and prints the placement now in effect.
+7. **E-61-07** Searching Settings for "navbar" shows the Navbar row.
+
 ## 90. Checking the native app before installation
 
 This file was written by an agent.

@@ -5,6 +5,7 @@ import qs.Commons
 import "../lib/PathText.js" as PathText
 import "../lib/LayoutInventory.js" as LayoutInventory
 import "../lib/DefaultPlacement.js" as DefaultPlacement
+import "../lib/BarPlacement.js" as BarPlacement
 import "../theme"
 
 Item {
@@ -76,6 +77,7 @@ Item {
   property alias monitorLock: persisted.monitorLock
   property alias animateBlades: persisted.animateBlades
   property alias fontScale: persisted.fontScale
+  property alias barPlacement: persisted.barPlacement
   property alias defaultPlacements: persisted.defaultPlacements
   property bool layoutReady: false
   property bool pressActive: false
@@ -154,6 +156,7 @@ Item {
     property string monitorLock: ""
     property bool animateBlades: true
     property real fontScale: 1.0
+    property string barPlacement: "below"
     property var defaultPlacements: []
   }
 
@@ -248,6 +251,7 @@ Item {
   function defaultLayout() { return bladeLayout.defaultLayout() }
   function resetLayout() {
     fontScale = Typography.clamp(config.fontScale)
+    barPlacement = normalizeBarPlacement(config.barPlacement)
     defaultPlacements = []
     applyLayout(defaultLayout(), config.monitorMode, true, config.animateBlades)
     return true
@@ -630,6 +634,17 @@ Item {
     return animateBlades
   }
 
+  function normalizeBarPlacement(value) { return BarPlacement.normalize(value) }
+
+  function setBarPlacement(value) {
+    var wanted = String(value || "").toLowerCase()
+    if (wanted === "toggle") wanted = barPlacement === "beside" ? "below" : "beside"
+    if (wanted !== "below" && wanted !== "beside") return "invalid"
+    barPlacement = wanted
+    scheduleSave()
+    return barPlacement
+  }
+
   function setFontScale(value) {
     fontScale = Typography.clamp(value)
     scheduleSave()
@@ -897,6 +912,7 @@ Item {
     try { parsed = raw ? JSON.parse(raw) : null } catch (e) { parsed = null }
     if (!parsed || typeof parsed !== "object") {
       layoutWritable = !!seed
+      if (!layoutReady) barPlacement = normalizeBarPlacement(config.barPlacement)
       if (!layoutReady) applyLayout(defaultLayout(), config.monitorMode, layoutWritable, config.animateBlades)
       return
     }
@@ -904,6 +920,7 @@ Item {
     if (layoutReady) return applyLiveLayout(parsed)
     if (typeof parsed.monitorLock === "string") monitorLock = parsed.monitorLock
     if (typeof parsed.fontScale === "number") fontScale = Typography.clamp(parsed.fontScale)
+    barPlacement = normalizeBarPlacement(typeof parsed.barPlacement === "string" ? parsed.barPlacement : config.barPlacement)
     defaultPlacements = DefaultPlacement.recorded(parsed.defaultPlacements)
     applyLayout(parsed, parsed.monitorMode || config.monitorMode, false, parsed.animations)
   }
@@ -930,16 +947,18 @@ Item {
     var desiredMonitorLock = typeof parsed.monitorLock === "string" ? parsed.monitorLock : monitorLock
     var desiredAnimations = typeof parsed.animations === "boolean" ? parsed.animations : animateBlades
     var desiredFontScale = typeof parsed.fontScale === "number" ? Typography.clamp(parsed.fontScale) : fontScale
+    var desiredBarPlacement = typeof parsed.barPlacement === "string" ? normalizeBarPlacement(parsed.barPlacement) : barPlacement
     var desiredPlacements = DefaultPlacement.recorded(parsed.defaultPlacements)
     var unchanged = JSON.stringify(incoming) === JSON.stringify(normalizeLayout(layout))
       && desiredMonitorMode === monitorMode && desiredMonitorLock === monitorLock && desiredAnimations === animateBlades
-      && desiredFontScale === fontScale && JSON.stringify(desiredPlacements) === JSON.stringify(DefaultPlacement.recorded(defaultPlacements))
+      && desiredFontScale === fontScale && desiredBarPlacement === barPlacement && JSON.stringify(desiredPlacements) === JSON.stringify(DefaultPlacement.recorded(defaultPlacements))
     if (unchanged) return
     defaultPlacements = desiredPlacements
     monitorMode = desiredMonitorMode
     monitorLock = desiredMonitorLock
     animateBlades = desiredAnimations
     fontScale = desiredFontScale
+    barPlacement = desiredBarPlacement
     if (typeof parsed.animations === "boolean") animationsExplicit = true
     replaceLayout(incoming, false)
     layoutApplied()

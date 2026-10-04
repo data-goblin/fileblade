@@ -1258,10 +1258,13 @@ fn drop_drag_leaves_the_blade_at_the_sheet_edge_not_the_layer_edge() {
     assert!(surface.contains("implicitWidth: surfaceWidth"));
     assert!(surface.contains("function containsScenePoint(x, y)"));
     assert!(surface.contains("x >= sheet.x && x <= sheet.x + sheet.width"));
-    assert!(surface.contains(
-        "readonly property int surfaceOriginY: barPosition === \"top\" ? liveBarSize : 0"
-    ));
+    assert!(surface.contains("readonly property int surfaceOriginY: barInsetTop"));
+    assert!(surface.contains("top: surface.barInsetTop"));
+    assert!(surface.contains("exclusionMode: ExclusionMode.Ignore"));
     assert!(surface.contains("host.shell.bar.barHidden ? 0"));
+    let reservation = text(&root.join("blades/BladeReservation.qml"));
+    assert!(reservation.contains("beforeBar ? WlrLayer.Bottom : WlrLayer.Overlay"));
+    assert!(reservation.contains("mask: Region { }"));
     let window = text(&root.join("blades/BladeWindow.qml"));
     assert!(window.contains("function containsScenePoint(x, y)"));
     let row = text(&root.join("panes/BrowserRow.qml"));

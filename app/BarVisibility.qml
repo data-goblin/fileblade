@@ -7,6 +7,7 @@ Item {
   required property var service
   required property var barConfig
   property bool barHidden: false
+  readonly property string position: ["top", "bottom", "left", "right"].indexOf(String(barConfig.position)) >= 0 ? String(barConfig.position) : "top"
   readonly property int barSize: barConfig.position === "left" || barConfig.position === "right"
     ? Style.bar.sizeVertical : Style.bar.sizeHorizontal
   readonly property string toggles: Quickshell.env("HOME") + "/.local/state/omarchy/toggles"
