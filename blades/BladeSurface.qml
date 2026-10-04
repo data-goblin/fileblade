@@ -6,6 +6,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../lib/PathText.js" as PathText
+import "../lib/DropFocusPolicy.js" as DropFocusPolicy
 import "../theme"
 
 PanelWindow {
@@ -68,6 +69,7 @@ PanelWindow {
     && isRight === !!host.services.files.actionMenuOpenLeft
   readonly property int actionMenuLayerWidth: host.maximumWidth(screen ? screen.width : 0)
   readonly property bool dropWheelOpen: host.services && host.services.files ? !!host.services.files.dropWheelOpen : false
+  readonly property var dropWheel: host.services && host.services.files ? host.services.files.dropWheel : null
   readonly property var slideCurve: [0.32, 0.72, 0.0, 1.0, 1.0, 1.0]
   readonly property int slideInMs: 500
   readonly property int slideOutMs: 380
@@ -255,7 +257,7 @@ PanelWindow {
   }
 
   HyprlandFocusGrab {
-    active: surface.bladeOpen && !surface.keyboardFocusReleased
+    active: DropFocusPolicy.bladeGrabsFocus(surface.bladeOpen, surface.keyboardFocusReleased, !!surface.dropWheel && surface.dropWheel.wheelOpen, !!surface.dropWheel && surface.dropWheel.wheelFromDrag)
     windows: [surface]
     onCleared: surface.handleFocusGrabCleared()
   }

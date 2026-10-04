@@ -281,6 +281,11 @@ kill_windows
 ctl select "$ROOT_DIR/alpha.txt"
 ctl showDropWheel 900 500
 wait_for "[[ \$(wheel open) == true && \$(wheel loading) == false ]]" 10
+open_with_index=$(status | jq '[.dropWheel.actions[].id] | index("open-with")')
+read -r px py <<<"$(wedge_point 900 500 "$(status | jq '.dropWheel.actions | length')" "$open_with_index")"
+"$OVM" mouse move "$px" "$py"
+wait_for "[[ \$(wheel highlighted) == $open_with_index ]]" 5
+expect_true E-26-05 "the pointer highlights a wedge right after the window under it closed" "[[ \$(wheel highlighted) == $open_with_index ]]"
 expect_contains E-26-10 "Open with lists an installed application for this text file" "$(status | jq -r '.dropWheel.actions[] | select(.id == "open-with") | .placements[].label')" Neovim
 if choose_child open-with Neovim E-26-10; then
   wait_for "guest 'pgrep -a -x nvim' | grep -Fq '$ROOT_DIR/alpha.txt'" 15

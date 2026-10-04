@@ -836,6 +836,8 @@ This file was written by an agent.
      desktop, the wheel offers actions that make sense for that target.
 230. **E-26-05** I can move around the wheel with the pointer, scroll wheel,
      arrow keys, `h/j/k/l`, or `Tab`, and the highlighted choice is always clear.
+     The pointer keeps highlighting wedges when a blade takes focus back while
+     the wheel is open, such as right after I close the window under the pointer.
 231. **E-26-06** If an action offers placements such as a tab, split, pane, or
      window, I can enter that second ring and choose the exact destination.
      The Herdr and tmux opening actions offer horizontal and vertical splits without an automatic
