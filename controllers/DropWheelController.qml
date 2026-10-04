@@ -264,6 +264,18 @@ Item {
     return true
   }
 
+  function openForItems(paths, entries, spec, targetScreen, x, y) {
+    if (dragActive || !spec || typeof spec !== "object" || spec.local !== false) return false
+    var list = fileUrlsToPaths(paths)
+    if (list.length === 0) return false
+    dragPaths = list
+    dragEntries = entrySnapshots(entries)
+    dragSpec = spec
+    dragDocked = true
+    openWheel(targetScreen, x, y, false)
+    return true
+  }
+
   function openWheel(targetScreen, x, y, fromDrag) {
     if (wheelOpen) close()
     wheelScreen = targetScreen || service.referenceScreen(null)

@@ -889,7 +889,10 @@ actions for the item, titled with the item's name, with no wait for the window
 under the pointer. Letters, arrows and Enter pick as usual, an action with
 choices opens its second ring, and an action that cannot run keeps the wheel
 open and says why. Holding Shift or Ctrl while I release such an item never
-pastes a path, and releasing it without the wheel does nothing.
+pastes a path, and releasing it without the wheel does nothing. The extension
+can also open that wheel from the keyboard (Fabric and Databricks use `m`): it
+appears centred on the item's row with the same actions, takes the keyboard
+for its letters, arrows, Enter and Escape, and closes after an action runs.
 
 **E-26-16** When I drop such an item on a folder in Files, the extension
 receives that folder (for Fabric and Databricks, the item downloads into it).

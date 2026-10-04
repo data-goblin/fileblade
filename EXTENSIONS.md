@@ -510,6 +510,7 @@ files.dropWheel.updateDrag(x, y, outside, modifiers):                          e
 files.dropWheel.endDrag():                                                     on release, after source.Drag.drop()
 files.dropWheel.cancelDrag():                                                  when the drag is cancelled
 files.dropWheel.handleDragKey(event) / handleDragKeyRelease(event):            call first from your key handlers; true means handled
+files.dropWheel.openForItems(paths, entries, spec, screen, x, y):              open the wheel from the keyboard, centred on x, y; false while a drag runs, for an empty paths or a spec without local: false
 ```
 
 `x` and `y` are `context.surfaceOriginX/Y` plus the scene position, and
@@ -542,6 +543,13 @@ Shift or Ctrl release, and a drop on a Files folder goes to `drop` instead of
 moving or copying anything. The wheel opens the usual way: hold the drop-wheel
 key (Space by default) once the pointer is outside the blade. `ArtifactTree`
 modules return the same `spec` from `dropSpec(item)`.
+
+To open the same wheel from the keyboard, for example on `m` like the Files
+actions key, call `openForItems` with the cursor row's identity, ghost entry
+and `spec`, and the row's centre in the same coordinates as a drag
+(`context.surfaceOriginX/Y` plus `row.mapToItem(null, ...)`). The wheel takes
+the keyboard: its letter keys, the arrows and Enter pick an action, and Escape
+closes it. Feature-detect it with `typeof files.dropWheel.openForItems === "function"`.
 
 ## Image galleries
 

@@ -351,6 +351,32 @@ TestCase {
     compare(launches.length, 0)
   }
 
+  function test_keyboard_opens_a_module_item_wheel_on_the_row() {
+    var log = []
+    verify(!wheel.openForItems(["WS00.Workspace/Sales.Report"], [], { title: "Local", actions: [] }, null, 120, 300))
+    verify(!wheel.openForItems([], [], moduleSpec(log), null, 120, 300))
+    verify(!wheel.wheelOpen)
+    verify(wheel.openForItems(["WS00.Workspace/Sales.Report"], [{ name: "Sales.Report", isDir: false, glyph: "R" }], moduleSpec(log), null, 120, 300))
+    verify(wheel.wheelOpen)
+    verify(!wheel.wheelFromDrag)
+    verify(!wheel.dragActive)
+    compare(wheel.wheelX, 120)
+    compare(wheel.wheelY, 300)
+    compare(callbacks.length, 0)
+    compare(wheel.ringTitle, "Sales.Report")
+    compare(wheel.ringItems.map(function(item) { return item.label }), ["Open in Fabric", "Copy", "Download"])
+    verify(wheel.activateKey("d", false))
+    verify(wheel.wheelOpen)
+    compare(wheel.error, "Choose a folder first")
+    verify(wheel.activateKey("o", false))
+    compare(log, [["open", ["WS00.Workspace/Sales.Report"], ""]])
+    verify(!wheel.wheelOpen)
+    verify(wheel.beginDrag(["/tmp/a.txt"], [], null, true, 200, 200, null))
+    verify(!wheel.openForItems(["WS00.Workspace/Sales.Report"], [], moduleSpec(log), null, 120, 300))
+    wheel.cancelDrag()
+    compare(launches.length, 0)
+  }
+
   function test_module_item_action_that_refuses_keeps_the_wheel_open_with_its_reason() {
     var log = []
     verify(wheel.beginDrag(["WS00.Workspace/Sales.Report"], [], null, true, 200, 200, moduleSpec(log)))
