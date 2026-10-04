@@ -52,7 +52,7 @@ pub(crate) fn legacy_activation(config_root: &std::path::Path) -> Result<Vec<Str
             || !config["plugins"].is_array()
             || config["plugins"]
                 .as_array()
-                .is_some_and(|rows| rows.iter().any(|row| row["id"].as_str().is_none()))
+                .is_some_and(|rows| rows.iter().any(|row| !shell_plugin_row(row)))
             || config.get("disabledPlugins").is_some_and(|value| {
                 !value.is_array()
                     || value
@@ -495,7 +495,9 @@ impl ShellActivation {
                 .into_iter()
                 .flatten()
             {
-                if let Some(id) = row["id"].as_str() {
+                if let Some(id) = row.as_str().or_else(|| row["id"].as_str())
+                    && !id.is_empty()
+                {
                     listed.insert(id.to_string());
                 }
             }
@@ -513,6 +515,14 @@ impl ShellActivation {
 
     fn enabled(&self, id: &str) -> bool {
         !self.disabled.contains(id) && self.listed.contains(id)
+    }
+}
+
+fn shell_plugin_row(row: &Value) -> bool {
+    match row {
+        Value::String(id) => !id.is_empty(),
+        Value::Object(fields) => fields.get("id").is_some_and(Value::is_string),
+        _ => false,
     }
 }
 

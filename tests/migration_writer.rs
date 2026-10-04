@@ -223,3 +223,36 @@ fn conflicting_activation_and_bounded_ipc_fail_closed() {
     run(&mut fixture.command("Unknown"));
     assert!(start.elapsed() < std::time::Duration::from_secs(6));
 }
+
+#[test]
+fn shell_plugin_rows_accept_the_entry_forms_omarchy_reads() {
+    let fixture = Fixture::new();
+    fs::create_dir(fixture.root.path().join("state")).unwrap();
+    let shell = fixture.root.path().join("desktop/omarchy/shell.json");
+    let malformed = r#"Unknown { reason: "legacy shell activation configuration is malformed" }"#;
+    let disagree = r#"Unknown { reason: "legacy CLI and shell activation evidence disagree" }"#;
+    for (config, expected) in [
+        (
+            r#"{"plugins":[{"id":"kurt.notifications"},"kurt.calendar"],"disabledPlugins":["kurt.elgato"]}"#,
+            "Stopped",
+        ),
+        (r#"{"plugins":["data-goblin.fileblade"]}"#, "Stopped"),
+        (
+            r#"{"plugins":["kurt.calendar"],"bar":{"layout":{"center":["data-goblin.fileblade"]}}}"#,
+            disagree,
+        ),
+        (
+            r#"{"plugins":[{"id":"data-goblin.fileblade"},"kurt.calendar"]}"#,
+            disagree,
+        ),
+        (r#"{"plugins":[""]}"#, malformed),
+        (r#"{"plugins":[7]}"#, malformed),
+        (r#"{"plugins":[null]}"#, malformed),
+        (r#"{"plugins":[["kurt.calendar"]]}"#, malformed),
+        (r#"{"plugins":[{"name":"kurt.calendar"}]}"#, malformed),
+        (r#"{"plugins":[{"id":7}]}"#, malformed),
+    ] {
+        fs::write(&shell, config).unwrap();
+        run(&mut fixture.command(expected));
+    }
+}
