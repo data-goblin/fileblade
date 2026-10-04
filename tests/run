@@ -41,7 +41,7 @@ if [[ ! -x "$runner" ]]; then
 fi
 for suite in tests/qml/tst_*.qml; do
   suite_env=()
-  [[ $suite == tests/qml/tst_wheel_release.qml || $suite == tests/qml/tst_remote_containment.qml || $suite == tests/qml/tst_operations_forms.qml ]] && suite_env=(QML_XHR_ALLOW_FILE_READ=1)
+  [[ $suite == tests/qml/tst_wheel_release.qml || $suite == tests/qml/tst_image_grid_drag.qml || $suite == tests/qml/tst_remote_containment.qml || $suite == tests/qml/tst_operations_forms.qml ]] && suite_env=(QML_XHR_ALLOW_FILE_READ=1)
   if output=$(env -u QT_QPA_PLATFORMTHEME QT_QPA_PLATFORM=offscreen QT_STYLE_OVERRIDE=Basic "${suite_env[@]}" \
     "$runner" -platform offscreen -import tests/imports -input "$suite" 2>&1); then
     status=0

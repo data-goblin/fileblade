@@ -1161,7 +1161,10 @@ is maintained separately.
   first, with undated pictures last. Clicking a tile selects it and the
   Properties pane previews it; double-click or Enter opens it with the default
   application; a right-click or `m` opens the same file actions menu as the
-  Files tree, naming the picture.
+  Files tree, naming the picture. Dragging a tile works like dragging a Files
+  row: holding Space once the pointer is outside the blade opens the drop
+  wheel, Escape cancels the drag without closing the gallery, and letting go
+  of the mouse leaves no drag label behind.
 - **E-37-03** `-` and `=`/`+` step the preview size through five sizes; the
   toolbar slider shows the current step with a straight track and filled-centre
   Omarchy mark. Dragging reaches all five stops; arrows and Home/End work while

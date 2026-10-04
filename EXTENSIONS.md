@@ -635,7 +635,7 @@ A module that shows pictures instead of rows loads the shared gallery through
 `context.ui.url(...)`, the same way artifact modules load `ArtifactTree`:
 
 ```yaml
-ImageGrid:         a FocusScope; feed it `items`, `query`, `filterKeys`, `sizeStep`, `thumbnails` and `selectedPath`
+ImageGrid:         a FocusScope; feed it `items`, `query`, `filterKeys`, `sizeStep`, `thumbnails`, `selectedPath` and your `context`
 ThumbnailCache:    one per provider service; `files` is the files service, `request(path, stamp, edge, callback)` answers with `{ ok, url }`
 TimelineScrubber:  drawn by the grid on its right edge: a year rail with one dot per month, a thumb for the viewport, and a month pill while the pointer scrubs
 ImageSizeControl:  the five-step preview size stepper (`step`, `stepRequested(step)`), for a toolbar
@@ -650,7 +650,10 @@ the file (size and modification time) that keys the thumbnail. The grid groups
 items by month, newest first, lays rows out for the current width, keeps a
 cursor, and emits `chosen(item)` when the cursor moves, `activated(item)` on
 Enter or a double-click, `contextRequested(item, x, y)` on a right-click, and
-`dragBegan`, `dragMoved`, `dragEnded` for a drop-wheel drag. `sizeStep` is 0 to
+`dragBegan`, `dragMoved`, `dragEnded` for a drop-wheel drag. With `context` set,
+the grid routes the drop-wheel keys during that drag itself, so Space opens the
+wheel and Escape cancels the drag before your own key handling sees them, and
+hiding the grid mid-drag ends it with `dragEnded(item, true)`. `sizeStep` is 0 to
 4 (`lib/ImageGallery.js` owns the five cell sizes and the thumbnail edge each
 step requests); `+`, `-` and `=` ask the owner to change it through
 `sizeStepRequested(delta)` so the value can live in `context.state`. Arrows and

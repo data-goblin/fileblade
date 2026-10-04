@@ -18,6 +18,13 @@ FocusScope {
   property bool showTimeline: true
   property bool showLabels: sizeStep >= 3
   property bool dragEnabled: true
+  property var context: null
+  readonly property var dropWheel: {
+    var files = context && typeof context.service === "function" ? context.service("files") : null
+    return files && files.dropWheel ? files.dropWheel : null
+  }
+  property var dragItem: null
+  readonly property bool dragging: dragItem !== null
   property int gap: Style.space(4)
   property int padding: Style.space(6)
   property int headerHeight: Style.space(24)
@@ -108,9 +115,31 @@ FocusScope {
     if (current) activated(current)
   }
 
+  function beginTileDrag(item, scene, modifiers) {
+    dragItem = item
+    dragBegan(item, scene, modifiers)
+  }
+
+  function endTileDrag(canceled) {
+    if (!dragging) return
+    var item = dragItem
+    dragItem = null
+    dragEnded(item, canceled)
+  }
+
   onCountChanged: if (cursor >= count) cursor = count - 1
+  onVisibleChanged: if (!visible) endTileDrag(true)
+  Component.onDestruction: endTileDrag(true)
+
+  Keys.onReleased: function(event) {
+    if (dropWheel && dropWheel.handleDragKeyRelease(event)) event.accepted = true
+  }
 
   Keys.onPressed: function(event) {
+    if (dropWheel && dropWheel.handleDragKey(event)) {
+      event.accepted = true
+      return
+    }
     var plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
     var control = (event.modifiers & Qt.ControlModifier) && !(event.modifiers & (Qt.AltModifier | Qt.MetaModifier))
     if (plain && (event.key === Qt.Key_Left || event.key === Qt.Key_H)) move("left")
@@ -216,10 +245,10 @@ FocusScope {
             onDragBegan: function(scene, modifiers) {
               grid.forceActiveFocus()
               grid.setCursor(itemIndex, true)
-              grid.dragBegan(tile.item, scene, modifiers)
+              grid.beginTileDrag(tile.item, scene, modifiers)
             }
-            onDragMoved: function(scene, modifiers) { grid.dragMoved(tile.item, scene, modifiers) }
-            onDragEnded: function(canceled) { grid.dragEnded(tile.item, canceled) }
+            onDragMoved: function(scene, modifiers) { if (grid.dragging) grid.dragMoved(tile.item, scene, modifiers) }
+            onDragEnded: function(canceled) { grid.endTileDrag(canceled) }
           }
         }
       }

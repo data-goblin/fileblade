@@ -160,11 +160,16 @@ sleep 3
 "$OVM" hold spc
 sleep 0.6
 expect E-37-02 'virtual pointer image drag reaches the wheel controller' dropWheel.dragging true
+expect E-37-02 'Space outside the blade opens the drop wheel from the tile drag' dropWheel.open true
 "$OVM" shot flint-E-37-02-drag >/dev/null
 "$OVM" key esc
+sleep 0.5
+expect E-37-02 'Escape cancels the tile drag at once' dropWheel.dragging false
+expect E-37-02 'Escape during the drag keeps the blade open' open true
 "$OVM" release spc
 wait "$drag_pid" || fail harness "virtual pointer recorder" "see fileblade-gallery recorder log"
 expect E-37-02 'cancel drag clears the wheel' dropWheel.dragging false
+expect E-37-02 'cancel drag closes the wheel' dropWheel.open false
 read -r bar_x bar_y < <(gallery bar | jq -r '.point | "\(.x) \(.y)"')
 "$OVM" mouse click "$bar_x" "$bar_y"
 sleep 1
