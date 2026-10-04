@@ -13,9 +13,12 @@ Install and start FileBlade, then register this trusted checkout:
 mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions"
 git clone {{REPOSITORY}} "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions/{{PLUGIN_ID}}"
 fileblade rescan-modules
-fileblade blade add right {{PLUGIN_ID}}/{{MODULE_ID}}
 ```
 
+The module declares `"defaultPlacement": "beside-files"`, so FileBlade adds it
+as a tab in the section that holds the FileBlade tab the first time it is
+discovered, and never again once you move or close it. Remove that key to make
+people place it themselves from blade settings or with `fileblade blade add`.
 The module declares `hostContract: 2`. FileBlade lists but refuses a module
 whose contract is newer than its own. Review the extension before registration:
 its QML executes with your desktop user's authority.
@@ -64,8 +67,8 @@ Esc:              close the blade
 
 1. Link a trusted checkout under the native extension directory and run
    `fileblade rescan-modules`.
-2. Use `fileblade modules` to confirm discovery and `fileblade blade add right
-   {{PLUGIN_ID}}/{{MODULE_ID}}` to place it.
+2. Use `fileblade modules` to confirm discovery; the module's `placed` field
+   shows the tab FileBlade added beside Files.
 3. Work in an isolated desktop. After changing QML, drain the native runtime
    with `fileblade native drain` and start `fileblade` again.
 4. Run `tests/run` and `fileblade extension check .` before committing.

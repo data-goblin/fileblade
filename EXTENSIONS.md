@@ -15,8 +15,13 @@ A symlink to a local checkout also works. Then refresh discovery:
 ```sh
 fileblade rescan-modules
 fileblade modules
-fileblade blade add left publisher.name/module
 ```
+
+A module that declares `"defaultPlacement": "beside-files"` then appears as a
+tab beside the FileBlade tab on its own (see
+[Where a new module appears](#where-a-new-module-appears)). Place any other
+module from blade settings, the `+` in a tab row, or
+`fileblade blade add left publisher.name/module`.
 
 The authority validates the manifest and records activation in its receipt.
 New valid providers are activated by default. Removing the directory and
@@ -104,6 +109,7 @@ singleton:    true means only one slot may hold it (default true); false allows 
 minHeight:    pixels the slot can't shrink below, 0 to 4096
 category:     one word or a short phrase (max 32) the picker groups by; set this explicitly for a contributed module
 settings:     optional `{ defaults, schema }`; the host renders the schema in blade settings and stores values in `context.state` under each key
+defaultPlacement: optional; "beside-files" adds the module as a tab beside the FileBlade tab the first time it is discovered; any other value is ignored
 ```
 
 A `blade.json` holds one of these. A manifest holds a list of them under the
@@ -131,6 +137,34 @@ socket key, and can also set `hostContract` once at the top for all of them:
   }
 }
 ```
+
+### Where a new module appears
+
+Without `defaultPlacement` a discovered module only joins the picker and
+`fileblade modules`; the person places it. With `"defaultPlacement":
+"beside-files"` the host places it once, the first time the module is both
+discovered and loadable (registered, enabled, `hostContract` supported):
+
+```yaml
+target:       the section holding the `files` tab, on whichever blade it is; the tab is appended after the existing tabs
+selection:    unchanged; the new tab is not made current and no blade opens
+no files tab: the section of the most recently placed beside-files module that is still in the layout, else a new section at the bottom of the left blade
+full section: a section already at 32 tabs gets a new section directly below it instead
+same rescan:  several new modules are placed in the module picker's order (category, then name)
+```
+
+The host records every beside-files module it has seen in
+`defaultPlacements`, a list of canonical module IDs at the top level of
+`blades.json`, and never places a recorded module again: closing its tab,
+moving it, or disabling, removing and reinstalling the extension keeps the
+person's choice. A module that is already somewhere in the layout when the host
+first sees it is recorded without a second tab. Placement waits until the saved
+layout has been read and is writable; a chooser window or an unreadable layout
+never places. Reverting to defaults in Settings, or `resetBladeLayout`, clears
+the record, so the default arrangement includes every installed beside-files
+module again. `fileblade modules` reports the declared value as
+`defaultPlacement` (null when absent), and `fileblade extension check` refuses
+any value other than `beside-files`. Older hosts ignore the key.
 
 ### The provider a module shares
 
@@ -794,7 +828,7 @@ DIRECTORY:      where to write; defaults to ./<id>
 What it writes:
 
 ```yaml
-manifest.json:                         one blade module, hostContract 2, two declared settings
+manifest.json:                         one blade module placed beside Files, hostContract 2, two declared settings
 Provider.qml:                          the shared runtime FileBlade creates for a native install; attach takes files from the context when it was not given them
 Service.qml:                           the same provider for an Omarchy plugin install, where the shell builds it, plus the host guard loader
 HostGuard.qml, HostGuard.js:           the missing-host guard the satellites carry; with no host it shows the `omarchy plugin remove` command for the extension
@@ -814,7 +848,8 @@ fileblade extension image:               writes assets/fileblade-extension-logo.
 ```
 
 Register a generated checkout under the native extension directory described
-above, then rescan and add its module. Use `fileblade extension check .` and
+above, then rescan; its module declares `defaultPlacement: "beside-files"` and
+joins the FileBlade tab's section. Use `fileblade extension check .` and
 its generated `tests/run` gate before registration. The stable `fileblade`
 launcher must be available on `PATH` for CLI and host checks.
 

@@ -1,6 +1,7 @@
 import QtQuick
 import "../lib/Definitions.js" as Definitions
 import "../lib/PathText.js" as PathText
+import "../lib/DefaultPlacement.js" as DefaultPlacement
 
 QtObject {
   id: registry
@@ -96,7 +97,8 @@ QtObject {
       needsUpdate: false,
       compatible: hostContract <= contractVersion,
       category: Definitions.category(raw.category, source),
-      settings: Definitions.settingsSpec(raw.settings)
+      settings: Definitions.settingsSpec(raw.settings),
+      defaultPlacement: DefaultPlacement.normalize(raw.defaultPlacement)
     }
   }
 
@@ -285,6 +287,7 @@ QtObject {
         category: found.category,
         source: found.source,
         singleton: found.singleton,
+        defaultPlacement: found.defaultPlacement !== "" ? found.defaultPlacement : null,
         entry: found.entryUrl,
         settings: { keys: settingKeys(found) },
         placed: placed(found.id) || null

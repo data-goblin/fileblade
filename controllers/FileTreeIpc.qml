@@ -45,6 +45,7 @@ QtObject {
       monitorLock: String(layout && layout.monitorLock || ""),
       animations: !!(layout && layout.animations),
       fontScale: Typography.clamp(layout && layout.fontScale),
+      defaultPlacements: layout && Array.isArray(layout.defaultPlacements) ? layout.defaultPlacements.slice() : [],
       blades: { left: publicBlade(blades.left), right: publicBlade(blades.right) }
     }
   }

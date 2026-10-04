@@ -4,6 +4,7 @@ import Quickshell.Io
 import qs.Commons
 import "../lib/PathText.js" as PathText
 import "../lib/LayoutInventory.js" as LayoutInventory
+import "../lib/DefaultPlacement.js" as DefaultPlacement
 import "../theme"
 
 Item {
@@ -75,6 +76,7 @@ Item {
   property alias monitorLock: persisted.monitorLock
   property alias animateBlades: persisted.animateBlades
   property alias fontScale: persisted.fontScale
+  property alias defaultPlacements: persisted.defaultPlacements
   property bool layoutReady: false
   property bool pressActive: false
   property bool pointerHeld: false
@@ -152,6 +154,7 @@ Item {
     property string monitorLock: ""
     property bool animateBlades: true
     property real fontScale: 1.0
+    property var defaultPlacements: []
   }
 
   Binding {
@@ -245,6 +248,7 @@ Item {
   function defaultLayout() { return bladeLayout.defaultLayout() }
   function resetLayout() {
     fontScale = Typography.clamp(config.fontScale)
+    defaultPlacements = []
     applyLayout(defaultLayout(), config.monitorMode, true, config.animateBlades)
     return true
   }
@@ -900,6 +904,7 @@ Item {
     if (layoutReady) return applyLiveLayout(parsed)
     if (typeof parsed.monitorLock === "string") monitorLock = parsed.monitorLock
     if (typeof parsed.fontScale === "number") fontScale = Typography.clamp(parsed.fontScale)
+    defaultPlacements = DefaultPlacement.recorded(parsed.defaultPlacements)
     applyLayout(parsed, parsed.monitorMode || config.monitorMode, false, parsed.animations)
   }
   function applyLayoutResponse(response) {
@@ -925,10 +930,12 @@ Item {
     var desiredMonitorLock = typeof parsed.monitorLock === "string" ? parsed.monitorLock : monitorLock
     var desiredAnimations = typeof parsed.animations === "boolean" ? parsed.animations : animateBlades
     var desiredFontScale = typeof parsed.fontScale === "number" ? Typography.clamp(parsed.fontScale) : fontScale
+    var desiredPlacements = DefaultPlacement.recorded(parsed.defaultPlacements)
     var unchanged = JSON.stringify(incoming) === JSON.stringify(normalizeLayout(layout))
       && desiredMonitorMode === monitorMode && desiredMonitorLock === monitorLock && desiredAnimations === animateBlades
-      && desiredFontScale === fontScale
+      && desiredFontScale === fontScale && JSON.stringify(desiredPlacements) === JSON.stringify(DefaultPlacement.recorded(defaultPlacements))
     if (unchanged) return
+    defaultPlacements = desiredPlacements
     monitorMode = desiredMonitorMode
     monitorLock = desiredMonitorLock
     animateBlades = desiredAnimations
@@ -936,6 +943,24 @@ Item {
     if (typeof parsed.animations === "boolean") animationsExplicit = true
     replaceLayout(incoming, false)
     layoutApplied()
+  }
+
+  function placeDefaults() {
+    if (!layoutReady || !layoutWritable || layoutIncomplete) return false
+    if (service && service.chooserSession) return false
+    var planned = DefaultPlacement.plan(layout, registry.modules, registry.order, defaultPlacements)
+    if (!planned.changed) return false
+    defaultPlacements = planned.placed
+    if (planned.added.length > 0) replaceLayout(planned.layout, true)
+    else scheduleSave()
+    return planned.added.length > 0
+  }
+
+  onLayoutApplied: Qt.callLater(placeDefaults)
+
+  Connections {
+    target: registry
+    function onRegistryChanged() { Qt.callLater(host.placeDefaults) }
   }
 
   function scheduleSave() {

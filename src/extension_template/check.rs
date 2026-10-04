@@ -121,6 +121,12 @@ fn blade_modules(root: &Path, document: &Value) -> AppResult<Vec<Value>> {
             .map_or(Some(0), Value::as_i64)
             .ok_or_else(|| AppError::invalid("minHeight must be 0 to 4096".to_string()))?;
         check((0..=4096).contains(&height), "minHeight must be 0 to 4096")?;
+        check(
+            module
+                .get("defaultPlacement")
+                .is_none_or(|placement| placement == "beside-files"),
+            "defaultPlacement must be beside-files when present",
+        )?;
     }
     Ok(modules)
 }

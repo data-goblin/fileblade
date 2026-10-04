@@ -147,6 +147,7 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
     assert_eq!(module["name"], "Weather");
     assert_eq!(module["entry"], "blades/Module.qml");
     assert_eq!(module["hostContract"], 2);
+    assert_eq!(module["defaultPlacement"], "beside-files");
     assert_eq!(module["settings"]["defaults"]["caption"], "");
     assert_eq!(module["settings"]["schema"][0]["key"], "caption");
 
@@ -168,7 +169,8 @@ fn rendered_files_carry_no_placeholders_and_match_the_manifest_contract() {
     let readme = text(&rendered(&files, "README.md"));
     assert!(readme.contains("**FileBlade Weather**"));
     assert!(readme.contains("git clone https://github.com/acme/fileblade-weather.git"));
-    assert!(readme.contains("fileblade blade add right acme.fileblade-weather/weather"));
+    assert!(readme.contains("tab beside the FileBlade tab"));
+    assert!(!readme.contains("fileblade blade add"));
     assert!(readme.contains("assets/fileblade-extension-logo.svg"));
     assert!(readme.contains("fileblade/extensions/acme.fileblade-weather"));
     assert!(readme.contains("fileblade rescan-modules"));
@@ -207,7 +209,7 @@ fn the_cli_writes_the_template_and_refuses_a_non_empty_directory() {
     assert!(document["next"].as_array().unwrap().iter().any(|step| {
         step.as_str()
             .unwrap()
-            .contains("fileblade blade add right acme.fileblade-weather/weather")
+            .contains("acme.fileblade-weather/weather as a tab beside Files")
     }));
     assert!(
         document["next"]
@@ -292,7 +294,7 @@ fn the_cli_writes_the_template_and_refuses_a_non_empty_directory() {
     assert!(temporary.path().join("acme.clock/manifest.json").is_file());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.starts_with("Created acme.clock (Clock) in "));
-    assert!(stdout.contains("fileblade blade add right acme.clock/clock"));
+    assert!(stdout.contains("acme.clock/clock as a tab beside Files"));
 
     let bad = fileblade()
         .current_dir(temporary.path())

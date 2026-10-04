@@ -66,7 +66,7 @@ fn a_broken_extension_is_refused_with_the_failing_rule() {
     scaffold(&target);
 
     type Case = (&'static str, fn(&mut Value), &'static str);
-    let cases: [Case; 6] = [
+    let cases: [Case; 7] = [
         (
             "version",
             |document| document["version"] = json!("1.0.0"),
@@ -105,6 +105,14 @@ fn a_broken_extension_is_refused_with_the_failing_rule() {
                     json!(1)
             },
             "default stray has no schema row",
+        ),
+        (
+            "placement",
+            |document| {
+                document["extensions"]["data-goblin.fileblade/blade"][0]["defaultPlacement"] =
+                    json!("top-right")
+            },
+            "defaultPlacement must be beside-files when present",
         ),
     ];
     let original = manifest(&target);

@@ -260,7 +260,7 @@ pub fn next_steps(scaffold: &Scaffold, directory: &str) -> Vec<String> {
             id = scaffold.id
         ),
         format!(
-            "fileblade blade add right {}/{}",
+            "fileblade modules (FileBlade adds {}/{} as a tab beside Files the first time it sees it)",
             scaffold.id, scaffold.module
         ),
         "tests/run".to_string(),

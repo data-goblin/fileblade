@@ -166,6 +166,7 @@ monitorMode: active | all | locked
 monitorLock: ""  # named output when locked
 animations: true
 fontScale: 1.0
+defaultPlacements: [ data-goblin.fileblade-fabric/fabric ]  # beside-files modules already placed once; see EXTENSIONS.md
 blades:
   left:
     open: true
@@ -182,7 +183,10 @@ blades:
 
 It's written atomically and watched, so editing it by hand or through
 `fileblade blade set|add|remove|move-slot` updates the live UI without a
-restart. Slots render through a Repeater over `slots.length`, not over the
+restart. `BladeHost.placeDefaults` runs `lib/DefaultPlacement.js` after
+every registry rebuild and every applied layout: it appends a newly discovered
+`defaultPlacement: "beside-files"` module to the Files tab's slot and records
+it in `defaultPlacements` so it is placed only once. Slots render through a Repeater over `slots.length`, not over the
 array, so a save never tears down and reloads every module. The Properties
 action grid (`ui/ActionGrid.qml`) does the same over `actions.length` and
 reads each action from the array by index: a Repeater over a JS array hands

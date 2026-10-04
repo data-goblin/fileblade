@@ -23,6 +23,7 @@
         "provider": "Provider.qml",
         "singleton": true,
         "minHeight": 120,
+        "defaultPlacement": "beside-files",
         "hostContract": 2,
         "settings": {
           "defaults": {

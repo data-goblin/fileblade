@@ -23,11 +23,9 @@ git clone {{REPOSITORY}} "${XDG_CONFIG_HOME:-$HOME/.config}/fileblade/extensions
 fileblade rescan-modules
 ```
 
-Then put the blade in a slot from the blade settings, or from a terminal:
-
-```bash
-fileblade blade add right {{PLUGIN_ID}}/{{MODULE_ID}}
-```
+FileBlade adds the blade as a tab beside the FileBlade tab the first time it
+discovers it. Move or close that tab like any other; FileBlade remembers the
+choice and does not put it back.
 
 Customize this starter README to describe your extension. Full technical docs are in [docs/agent-written/README.md](docs/agent-written/README.md); design notes in [ARCHITECTURE.md](ARCHITECTURE.md).
 

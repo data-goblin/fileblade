@@ -1725,6 +1725,35 @@ Databricks extensions prove them in their own VM scenarios.
 3. **E-52-03** Quick navigation in Files looks and behaves exactly as before
    after this change (E-10-01 to E-10-07 still hold).
 
+## 60. Where a newly installed extension appears
+
+This file was written by an agent.
+
+`tests/vm/expectations/60-default-placement.sh` covers these in both shapes;
+`tests/qml/tst_default_placement.qml` covers the layout rules.
+
+1. **E-60-01** When I install an extension whose module asks to sit beside
+   Files (Fabric and Databricks do) and rescan, its tab appears in the
+   section that holds the FileBlade tab, after the tabs already there, without
+   a `fileblade blade add`. Installing two such extensions gives one section
+   with FILEBLADE, then each extension in the order FileBlade discovered
+   them; extensions that arrive in the same rescan follow the module
+   picker's order.
+2. **E-60-02** The new tab does not take the selection: the tab I was looking
+   at stays current and no blade opens on its own.
+3. **E-60-03** This happens once per module. If I close the tab, move it to
+   another section or blade, or disable and re-enable the extension, it stays
+   where I left it, or stays gone, after a rescan, a reload or a restart.
+4. **E-60-04** If the module is already somewhere in my layout when FileBlade
+   first sees it (for example I placed it by hand before this rule existed),
+   FileBlade leaves it there and never adds a second tab.
+5. **E-60-05** If I removed the FileBlade tab, a new extension joins the
+   section of an extension that was placed this way earlier; when there is
+   none, it gets its own section at the bottom of the left blade.
+6. **E-60-06** Reverting to defaults in Settings, or resetting the blade
+   layout, brings back the default arrangement with every installed
+   beside-Files extension as a tab next to FileBlade again.
+
 ## 90. Checking the native app before installation
 
 This file was written by an agent.
