@@ -65,9 +65,11 @@ pending E-17-13 "a typed Font size percentage scales blade text and survives a r
 [[ $(field settingsOpen) == true ]] && { "$OVM" key esc; sleep 2; }
 open_left; focus_tree
 "$OVM" key comma; sleep 2
-sheet=$(ocr_crop ocr-settings-groups "378x900+0+60" 300% 6 '5%,40%' | tr '[:lower:]' '[:upper:]')
 for heading in "TREE" "GIT"; do
+  "$OVM" type "${heading,,}"; sleep 1.5
+  sheet=$(ocr_crop "ocr-settings-group-${heading,,}" "378x900+0+60" 300% 6 '5%,40%' | tr '[:lower:]' '[:upper:]')
   expect_contains E-17-12 "the Files settings show a $heading heading" "$sheet" "$heading"
+  "$OVM" key ctrl-a; "$OVM" key backspace; sleep 1
 done
 "$OVM" type trash; sleep 1.5
 filtered=$(ocr_crop ocr-settings-filtered "378x900+0+60" 300% 6 '5%,40%' | tr '[:lower:]' '[:upper:]')

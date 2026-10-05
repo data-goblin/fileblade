@@ -313,6 +313,8 @@ dock_blades() {
 }
 
 GUEST_PLUGIN=/home/omarchy/.config/omarchy/plugins/$PLUGIN
+GUEST_CLI=$GUEST_PLUGIN/fileblade
+[[ $FILEBLADE_SHAPE == native ]] && GUEST_CLI=${FILEBLADE_NATIVE_LAUNCHER:-/home/omarchy/.local/bin/fileblade}
 left_modules() { "$OVM" ipc "$PLUGIN" blades | jq -c '[.blades.left.slots[].modules[].module]'; }
 reset_modules() {
   [[ $(left_modules) == '["files","properties"]' ]] && return 0

@@ -43,7 +43,7 @@ fi
 guest "mkdir -p $FIX/stack $FIX/inner" >/dev/null
 HOME_MOUNT=$(guest "findmnt -T /home/omarchy -n -o TARGET")
 
-space_json() { guest "$GUEST_PLUGIN/fileblade -o json space $1"; }
+space_json() { guest "$GUEST_CLI -o json space $1"; }
 shot() { "$OVM" shot "$1" 2>/dev/null | tail -1; }
 bar_geometry() { python3 "$LIB" bar "$(shot "$1")" "$WIDTH"; }
 bar_fill() { python3 "$LIB" fill-at "$(shot "$1")" "$WIDTH" "$Y_TOP" "$Y_BOTTOM" "$X0"; }
@@ -163,15 +163,15 @@ expect_true E-98-05 "fileblade space reports the fixture's used bytes like df" "
 expect_true E-98-05 "and its free bytes" "[[ $space_avail == $df_avail ]]"
 expect_true E-98-05 "and its size" "[[ $space_size == $df_size ]]"
 expect_true E-98-05 "and df's percentage" "[[ $space_pcent == ${df_pcent%\%} ]]"
-line=$(guest "$GUEST_PLUGIN/fileblade space $FIX")
+line=$(guest "$GUEST_CLI space $FIX")
 line_ok=$([[ $line == *"${df_pcent%\%}% full"* ]] && echo true || echo false)
 expect_true E-98-05 "and the text form prints one line with that percentage" "[[ $line_ok == true ]]"
 
-line=$(guest "$GUEST_PLUGIN/fileblade space")
+line=$(guest "$GUEST_CLI space")
 line_ok=$([[ $line == *'% full'* && $line == *"on $FIX"* ]] && echo true || echo false)
 expect_true E-98-06 "fileblade space without a path measures the open folder" "[[ $line_ok == true ]]"
 ctl navigate "trash:///"; sleep 3
-refusal=$(guest "$GUEST_PLUGIN/fileblade space 2>&1; echo \"exit=\$?\"")
+refusal=$(guest "$GUEST_CLI space 2>&1; echo \"exit=\$?\"")
 refusal_ok=$([[ $refusal == *'not on a local drive'* && $refusal == *'exit=1'* ]] && echo true || echo false)
 expect_true E-98-06 "and refuses while Trash is open" "[[ $refusal_ok == true ]]"
 goto_root "$FIX"
@@ -179,7 +179,7 @@ wait_ready
 
 before=$(field capacityUsed)
 guest "dd if=/dev/urandom of=$ROOT_DIR/blob.bin bs=1M count=16 status=none" >/dev/null
-guest "$GUEST_PLUGIN/fileblade copy-to $FIX $ROOT_DIR/blob.bin --wait" >/dev/null 2>&1
+guest "$GUEST_CLI copy-to $FIX $ROOT_DIR/blob.bin --wait" >/dev/null 2>&1
 expect_true E-98-07 "copying a file into the fixture raises the fill right after the copy" "$(wait_for "[[ \$(field capacityUsed) -gt $before ]]" 10 && echo true || echo false)"
 
 toggle_capacity_setting off || fail harness "find the Drive usage toggle" "the settings sheet did not show the row"
