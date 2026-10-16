@@ -120,7 +120,8 @@ fn native_launch_waits_for_plugin_discovery_before_starting_its_writer() {
   case "$count" in
     1) exit 1 ;;
     2) echo 'Not ready to accept queries yet' ;;
-    *) echo '[]' ;;
+    3) echo '[]' ;;
+    *) echo '[{"id":"data-goblin.fileblade"}]' ;;
   esac
 else
   echo native-view
@@ -148,6 +149,6 @@ esac"#,
         .output()
         .unwrap();
     assert!(output.status.success(), "{output:?}");
-    assert_eq!(fs::read_to_string(root.join("authority")).unwrap(), "3\n");
+    assert_eq!(fs::read_to_string(root.join("authority")).unwrap(), "4\n");
     assert_eq!(String::from_utf8_lossy(&output.stdout), "native-view\n");
 }

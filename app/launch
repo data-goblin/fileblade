@@ -23,7 +23,7 @@ done
 if ! "$FILEBLADE_BINARY" serve --native-probe >/dev/null 2>&1; then
   export OMARCHY_PATH=${OMARCHY_PATH:-/usr/share/omarchy}
   shell_deadline=$((SECONDS + 30))
-  until timeout 2 qs ipc -n -p "$OMARCHY_PATH/shell" call -- shell listPlugins 2>/dev/null | jq -e 'type == "array"' >/dev/null 2>&1; do
+  until timeout 2 qs ipc -n -p "$OMARCHY_PATH/shell" call -- shell listPlugins 2>/dev/null | jq -e 'type == "array" and length > 0' >/dev/null 2>&1; do
     if (( SECONDS >= shell_deadline )); then
       printf '%s\n' 'fileblade: waiting for Omarchy plugin discovery timed out; start FileBlade again after the shell is ready' >&2
       exit 1
