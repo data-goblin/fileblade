@@ -2,6 +2,8 @@ This file was written by an agent.
 
 # FileBlade release notes
 
+## 0.3.2 (unreleased)
+
 ## 0.3.1
 
 - An interrupted delete or move on a drive that is not mounted no longer blocks startup recovery. It waits, `fileblade doctor` names the folder, and the file is put back the next time FileBlade starts with the drive present (#22).
