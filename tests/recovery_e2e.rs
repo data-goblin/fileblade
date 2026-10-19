@@ -197,3 +197,107 @@ fn a_staged_item_whose_original_name_is_taken_is_reported_not_overwritten() {
         "a conflict keeps its intent for the next sweep"
     );
 }
+
+#[test]
+fn an_intent_on_an_absent_volume_waits_and_is_restored_when_the_volume_returns() {
+    let temporary = tempdir().unwrap();
+    let root = temporary.path();
+    fs::create_dir_all(root.join("docs")).unwrap();
+    fs::write(root.join("docs/warm-up.txt"), "x").unwrap();
+    let first = backend(
+        root,
+        &[
+            "move",
+            "--source",
+            root.join("docs/warm-up.txt").to_str().unwrap(),
+            "--destination",
+            root.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(first["ok"], true, "{first}");
+
+    let mounted = root.join("media/vol");
+    let trash = mounted.join(".Trash-1000/files");
+    let stage = trash.join(".fileblade-stage-cafe");
+    write_private(
+        &inflight_dir(root).join("cafe.json"),
+        json!({
+            "kind": "stage",
+            "stage": stage,
+            "item": "item-cafe",
+            "original": trash.join("thesis.txt"),
+            "pid": 1
+        })
+        .to_string(),
+    );
+
+    for _ in 0..2 {
+        let waiting = backend(root, &["recover"]);
+        assert_eq!(waiting["ok"], true, "{waiting}");
+        assert_eq!(
+            waiting["deferred"],
+            json!([{
+                "path": inflight_dir(root).join("cafe.json").to_string_lossy(),
+                "folder": trash.to_string_lossy()
+            }]),
+            "{waiting}"
+        );
+        assert_eq!(
+            intent_count(root),
+            1,
+            "the intent survives while the volume is away"
+        );
+    }
+
+    fs::create_dir_all(&stage).unwrap();
+    fs::write(stage.join("item-cafe"), "thesis").unwrap();
+    let returned = backend(root, &["recover"]);
+    assert_eq!(returned["ok"], true, "{returned}");
+    assert_eq!(returned["deferred"], json!([]), "{returned}");
+    assert_eq!(
+        returned["restored"],
+        json!([trash.join("thesis.txt").to_string_lossy()]),
+        "{returned}"
+    );
+    assert_eq!(
+        fs::read_to_string(trash.join("thesis.txt")).unwrap(),
+        "thesis"
+    );
+    assert_eq!(intent_count(root), 0);
+}
+
+#[test]
+fn an_intent_whose_stage_folder_is_gone_is_cleared() {
+    let temporary = tempdir().unwrap();
+    let root = temporary.path();
+    let folder = root.join("docs");
+    fs::create_dir_all(&folder).unwrap();
+    fs::write(folder.join("warm-up.txt"), "x").unwrap();
+    let first = backend(
+        root,
+        &[
+            "move",
+            "--source",
+            folder.join("warm-up.txt").to_str().unwrap(),
+            "--destination",
+            root.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(first["ok"], true, "{first}");
+
+    write_private(
+        &inflight_dir(root).join("beef.json"),
+        json!({
+            "kind": "stage",
+            "stage": folder.join(".fileblade-stage-beef"),
+            "item": "item-beef",
+            "original": folder.join("gone.txt"),
+            "pid": 1
+        })
+        .to_string(),
+    );
+    let recovered = backend(root, &["recover"]);
+    assert_eq!(recovered["ok"], true, "{recovered}");
+    assert_eq!(recovered["deferred"], json!([]), "{recovered}");
+    assert_eq!(intent_count(root), 0);
+}

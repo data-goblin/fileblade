@@ -58,9 +58,26 @@ pub(super) fn doctor() -> AppResult<PublicResult> {
             .to_string(),
         );
     }
-    if inflight > 0 {
+    let waiting: Vec<&str> = serve["recovered"]["deferred"]
+        .as_array()
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| entry["folder"].as_str())
+                .collect()
+        })
+        .unwrap_or_default();
+    let active = inflight.saturating_sub(waiting.len());
+    if active > 0 {
         advice.push(format!(
-            "{inflight} operation intent(s) exist; recovery skips active operations"
+            "{active} operation intent(s) exist; recovery skips active operations"
+        ));
+    }
+    if !waiting.is_empty() {
+        advice.push(format!(
+            "{} interrupted operation(s) wait for a folder that is not there, usually an unmounted drive: {}; they are restored the next time FileBlade starts with it present",
+            waiting.len(),
+            waiting.join(", ")
         ));
     }
     if recovery_failed {

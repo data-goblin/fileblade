@@ -286,6 +286,8 @@ Item {
         console.warn("data-goblin.fileblade: restored " + recovered.restored.length + " staged item(s) after an interrupted operation: " + recovered.restored.join(", "))
       if (recovered && Array.isArray(recovered.conflicts) && recovered.conflicts.length > 0)
         console.warn("data-goblin.fileblade: " + recovered.conflicts.length + " staged item(s) could not be restored because the original name is taken; see fileblade doctor")
+      if (recovered && Array.isArray(recovered.deferred) && recovered.deferred.length > 0)
+        console.warn("data-goblin.fileblade: " + recovered.deferred.length + " interrupted operation(s) wait for a folder that is not there, usually an unmounted drive; see fileblade doctor")
       var frames = queued
       queued = []
       for (var index = 0; index < frames.length; index++) dispatch(frames[index])
