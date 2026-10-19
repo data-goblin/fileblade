@@ -4,6 +4,16 @@ This file was written by an agent.
 
 ## 0.3.1 (unreleased)
 
+- An interrupted delete or move on a drive that is not mounted no longer blocks startup recovery. It waits, `fileblade doctor` names the folder, and the file is put back the next time FileBlade starts with the drive present (#22).
+- Startup recovery clears an interrupted operation whose staging folder is already gone instead of failing on every start.
+- The native app waits for the plugin list before it starts writing, so a fast autostart no longer refuses the migration (#25).
+- Docked blades sit below the desktop bar; a Navbar setting keeps them full height beside it.
+- Deleting or moving the open folder moves the tree to its parent.
+- A shell plugin rescan keeps the blade layout and the tab you left.
+- Modules show their own selected item in Properties, and Properties buttons are an icon grid with a label beside each icon.
+- Extension modules can appear as a tab beside Files, put their own items on the drop wheel, receive drops on Files folders, open the drop wheel from the keyboard, and share the Files search grammar and the Shift+Z quick nav card.
+- Fixes for tab and column close marks, hover tips on Properties buttons, the drop wheel following the pointer, the bar dropdown's file actions menu, Image Gallery tile drags, the shortcut guide scrolling from the keyboard, and stale git status in the tree.
+
 ## 0.3.0
 
 - Explain why a file reached through a symbolic link has no preview instead of showing an error code.
