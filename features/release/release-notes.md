@@ -4,6 +4,9 @@ This file was written by an agent.
 
 ## 0.3.2 (unreleased)
 
+- Blades render their theme colours again on Quickshell builds where QtQuick's own `Color` type hid the shell palette, which left panes black.
+- State migration and keybindings no longer refuse to load when Quickshell prints a locale warning, so layouts, notes and shortcuts are writable again.
+
 ## 0.3.1
 
 - An interrupted delete or move on a drive that is not mounted no longer blocks startup recovery. It waits, `fileblade doctor` names the folder, and the file is put back the next time FileBlade starts with the drive present (#22).
