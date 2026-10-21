@@ -246,10 +246,10 @@ fn rust_and_qml_contracts_keep_output_and_state_boundaries_explicit() {
         "var screen = controller.focusTarget
 "
     ));
-    assert!(tab_bar.contains("closePointer.containsMouse ? Color.urgent"));
+    assert!(tab_bar.contains("closePointer.containsMouse ? Commons.Color.urgent"));
     assert!(tab_bar.contains("last.width + Math.round(tabRow.spacing / 2)"));
     assert!(!tab_bar.contains(
-        "anchors.fill: parent\n    visible: bar.dropIndex >= 0\n    color: Util.alpha(Color.accent, 0.16)"
+        "anchors.fill: parent\n    visible: bar.dropIndex >= 0\n    color: Util.alpha(Commons.Color.accent, 0.16)"
     ));
     let blade_slot = text(&root.join("blades/BladeSlot.qml"));
     assert!(blade_slot.contains("tabs.length <= 1"));
@@ -333,7 +333,7 @@ fn rust_and_qml_contracts_keep_output_and_state_boundaries_explicit() {
     assert!(artifact_tree.contains("linkOnRight: !linked"));
     assert!(!artifact_tree.contains("visible: rowHover.hovered && !row.isGroup && tree.isLinked"));
     let pane_row = text(&root.join("ui/PaneRow.qml"));
-    assert!(pane_row.contains("linkHover.hovered ? Color.accent"));
+    assert!(pane_row.contains("linkHover.hovered ? Commons.Color.accent"));
     assert!(pane_row.contains("property bool linkOnRight: true"));
     assert!(pane_row.contains("row.linkOnRight ? linkGlyph : rowGlyph"));
     let file_icons = text(&root.join("lib/FileIcons.js"));
@@ -408,7 +408,7 @@ fn scroll_indicators_are_thin_shared_and_the_trees_carry_a_marked_ruler() {
     let indicator = text(&root.join("ui/AccentScrollBar.qml"));
     assert!(indicator.contains("policy: ScrollBar.AsNeeded"));
     assert!(indicator.contains("implicitWidth: 1"));
-    assert!(indicator.contains("color: Color.accent"));
+    assert!(indicator.contains("color: Commons.Color.accent"));
 
     for path in files(root, &["qml"]) {
         assert!(
@@ -438,7 +438,7 @@ fn scroll_indicators_are_thin_shared_and_the_trees_carry_a_marked_ruler() {
         "a ruler that cannot scroll must not keep drawing its marks"
     );
     assert!(ruler.contains("width: Style.space(4)"));
-    assert!(ruler.contains("color: Color.accent"));
+    assert!(ruler.contains("color: Commons.Color.accent"));
     assert!(ruler.contains("color: modelData.color"));
     assert!(ruler.contains("function scrollToPointer(y)"));
     assert!(ruler.contains("readonly property real awayOpacity: 0.5"));
@@ -1311,18 +1311,24 @@ fn drop_drag_leaves_the_blade_at_the_sheet_edge_not_the_layer_edge() {
         );
     }
     let wheel = text(&root.join("ui/DropWheel.qml"));
-    assert!(wheel.contains("context.fillStyle = overlay.alpha(Color.popups.background, 0.94)"));
+    assert!(
+        wheel.contains("context.fillStyle = overlay.alpha(Commons.Color.popups.background, 0.94)")
+    );
     assert!(wheel.contains("monochrome: !wedge.active"));
     assert!(wheel.contains("monochrome: !child.active"));
     assert!(wheel.contains("globalCompositeOperation = \"destination-out\""));
-    assert!(wheel.contains("strokeStyle = overlay.alpha(Color.accent, active ? 0.85 : 0.42)"));
+    assert!(
+        wheel.contains("strokeStyle = overlay.alpha(Commons.Color.accent, active ? 0.85 : 0.42)")
+    );
     assert!(!wheel.contains("wedgeGap"));
     assert!(
-        wheel.contains("iconColor: wedge.modelData.enabled === false ? Color.muted : wedge.active ? Qt.lighter(Color.accent, 1.5) : Color.accent")
+        wheel.contains("iconColor: wedge.modelData.enabled === false ? Commons.Color.muted : wedge.active ? Qt.lighter(Commons.Color.accent, 1.5) : Commons.Color.accent")
     );
-    assert!(wheel.contains("iconColor: Qt.lighter(Color.accent, child.active ? 1.75 : 1.45)"));
-    assert!(!wheel.contains("iconColor: Color.popups.background"));
-    assert!(!wheel.contains("fallbackColor: Color.popups.background"));
+    assert!(
+        wheel.contains("iconColor: Qt.lighter(Commons.Color.accent, child.active ? 1.75 : 1.45)")
+    );
+    assert!(!wheel.contains("iconColor: Commons.Color.popups.background"));
+    assert!(!wheel.contains("fallbackColor: Commons.Color.popups.background"));
     assert!(wheel.matches("icon_mask || \"alpha\"").count() >= 2);
     assert!(wheel.matches("trustedIconSource:").count() >= 2);
     assert!(

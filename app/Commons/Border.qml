@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import "BorderGeometry.js" as Geometry
-import qs.Commons as Commons
+import "." as Commons
 
 QtObject {
   id: root

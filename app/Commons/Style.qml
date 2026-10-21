@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.Commons as Commons
+import "." as Commons
 
 QtObject {
   id: root

@@ -7,11 +7,11 @@ fn all_color_scope_tints_property_columns_with_a_muted_entry_color() {
 
     assert!(row.contains("readonly property bool colorsRow: entryColor !== \"\" && controller.folderColorScope === \"row\""));
     assert!(row.contains(
-        "readonly property color mutedEntryColor: colorsRow ? Util.alpha(entryColor, 0.68) : Color.muted"
+        "readonly property color mutedEntryColor: colorsRow ? Util.alpha(entryColor, 0.68) : Commons.Color.muted"
     ));
     assert!(row.contains("color: row.mutedEntryColor"));
     assert!(row.contains(
-        "color: row.colorsRow ? row.mutedEntryColor : (row.selected ? Color.bar.text : Color.muted)"
+        "color: row.colorsRow ? row.mutedEntryColor : (row.selected ? Commons.Color.bar.text : Commons.Color.muted)"
     ));
 }
 
