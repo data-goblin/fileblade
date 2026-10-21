@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../lib/ImageGallery.js" as ImageGallery
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: rail
@@ -41,7 +42,7 @@ Item {
     y: rail.trackTop
     width: 1
     height: rail.trackHeight
-    color: Util.alpha(Color.bar.text, 0.16)
+    color: Util.alpha(Commons.Color.bar.text, 0.16)
   }
 
   Repeater {
@@ -55,7 +56,7 @@ Item {
       height: width
       radius: width / 2
       visible: !modelData.undated
-      color: Util.alpha(Color.bar.text, rail.engaged ? 0.6 : 0.34)
+      color: Util.alpha(Commons.Color.bar.text, rail.engaged ? 0.6 : 0.34)
     }
   }
 
@@ -69,7 +70,7 @@ Item {
       width: rail.trackX - Style.space(6)
       y: Math.round(rail.trackTop + modelData.fraction * rail.trackHeight) - height / 2
       text: modelData.label
-      color: rail.activeSection && rail.activeSection.year === Number(modelData.label) ? Color.accent : Color.muted
+      color: rail.activeSection && rail.activeSection.year === Number(modelData.label) ? Commons.Color.accent : Commons.Color.muted
       horizontalAlignment: Text.AlignRight
       font.family: Style.font.family
       font.pixelSize: Typography.caption
@@ -83,7 +84,7 @@ Item {
     width: rail.engaged ? Style.space(3) : Style.space(2)
     height: Math.round(rail.thumbLength)
     radius: width / 2
-    color: Color.accent
+    color: Commons.Color.accent
     opacity: rail.engaged ? 1 : 0.75
   }
 
@@ -95,16 +96,16 @@ Item {
     width: pillLabel.implicitWidth + Style.space(14)
     height: pillLabel.implicitHeight + Style.space(6)
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: Color.tooltip.background
+    color: Commons.Color.tooltip.background
     border.width: 1
-    border.color: Color.tooltip.border
+    border.color: Commons.Color.tooltip.border
 
     Text {
       id: pillLabel
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: rail.pointerSection ? String(rail.pointerSection.shortLabel) : ""
-      color: Color.tooltip.text
+      color: Commons.Color.tooltip.text
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
     }
@@ -116,7 +117,7 @@ Item {
     y: Math.round(pointer.mouseY)
     width: rail.trackX - x + 1
     height: 1
-    color: Color.accent
+    color: Commons.Color.accent
   }
 
   MouseArea {

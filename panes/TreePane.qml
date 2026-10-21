@@ -13,6 +13,7 @@ import "../lib/FooterFields.js" as FooterFields
 import "../lib/GitSummary.js" as GitSummary
 import "../lib/ToolbarFields.js" as ToolbarFields
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -896,7 +897,7 @@ FocusScope {
     reservedRight: root.context ? root.context.cornerReserveRight : 0
     status: treeKeys.hint !== "" ? treeKeys.hint : (controller.modeBadge === "header" ? root.editorMode : "")
     statusGlyph: treeKeys.hint !== "" ? "" : (controller.modeBadge === "header" ? "\ue6ae" : "")
-    statusColor: treeKeys.hint !== "" ? Color.muted : controller.editorModeColor
+    statusColor: treeKeys.hint !== "" ? Commons.Color.muted : controller.editorModeColor
     highlighted: root.activeFocus || root.visualMode || (root.context && root.context.dragging)
     Row {
       anchors.verticalCenter: parent ? parent.verticalCenter : undefined
@@ -1034,7 +1035,7 @@ FocusScope {
     height: visible ? Style.space(30) : 0
     glyph: FileIcons.entryIcon(entry ? entry.name : "", true, entry ? entry.isSymlink : false, false,
       entry ? entry.isGitRepo : false, entry ? entry.path === controller.home : false)
-    glyphColor: entry && entry.error ? Color.urgent : Color.accent
+    glyphColor: entry && entry.error ? Commons.Color.urgent : Commons.Color.accent
     label: entry && entry.path !== controller.home ? entry.name : controller.rootName(controller.rootPath)
     detail: summary.identity || ""
     badge: entry && entry.error ? "Unavailable" : (summary.text || "")
@@ -1089,13 +1090,13 @@ FocusScope {
         contentItem: Text {
           textFormat: Text.PlainText
           text: mediaSortButton.text
-          color: Color.accent
+          color: Commons.Color.accent
           font.family: Style.font.family
           font.pixelSize: Typography.body
           horizontalAlignment: Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
         }
-        background: Rectangle { color: mediaSortButton.hovered || mediaSortButton.activeFocus ? Color.menu.selectedBackground : "transparent" }
+        background: Rectangle { color: mediaSortButton.hovered || mediaSortButton.activeFocus ? Commons.Color.menu.selectedBackground : "transparent" }
         onClicked: root.mediaSortDescending = !root.mediaSortDescending
         PanelToolTip { visible: mediaSortButton.hovered; text: mediaSortButton.Accessible.name }
       }
@@ -1114,21 +1115,21 @@ FocusScope {
       selectByMouse: true
       leftPadding: Style.space(25)
       rightPadding: controller.locationValidationBusy ? Style.space(66) : Style.space(8)
-      color: Color.bar.text
-      selectionColor: Util.alpha(Color.accent, 0.38)
-      selectedTextColor: Color.bar.text
+      color: Commons.Color.bar.text
+      selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+      selectedTextColor: Commons.Color.bar.text
       placeholderText: "/path/to/folder"
-      placeholderTextColor: Color.muted
+      placeholderTextColor: Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
 
       background: Rectangle {
-        color: Util.alpha(Color.bar.text, locationField.activeFocus ? 0.10 : 0.06)
+        color: Util.alpha(Commons.Color.bar.text, locationField.activeFocus ? 0.10 : 0.06)
         radius: Math.min(Style.cornerRadius, Style.space(4))
         border.width: 1
         border.color: controller.locationValidationError
-          ? Color.urgent
-          : (locationField.activeFocus ? Color.accent : Util.alpha(Color.bar.text, 0.18))
+          ? Commons.Color.urgent
+          : (locationField.activeFocus ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.18))
       }
 
       Text {
@@ -1137,7 +1138,7 @@ FocusScope {
         anchors.leftMargin: Style.space(8)
         anchors.verticalCenter: parent.verticalCenter
         text: ""
-        color: controller.locationValidationError ? Color.urgent : Color.muted
+        color: controller.locationValidationError ? Commons.Color.urgent : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }
@@ -1149,7 +1150,7 @@ FocusScope {
         anchors.verticalCenter: parent.verticalCenter
         visible: controller.locationValidationBusy
         text: "checking…"
-        color: Color.muted
+        color: Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }
@@ -1219,8 +1220,8 @@ FocusScope {
     }
     color: controller.locationValidationError || controller.searchError || controller.backendStalled || controller.backendVersionSkew
       || (!controller.backendReady && controller.backendError)
-      ? Color.urgent
-      : (controller.rootRecoveryNotice ? Color.accent : Color.muted)
+      ? Commons.Color.urgent
+      : (controller.rootRecoveryNotice ? Commons.Color.accent : Commons.Color.muted)
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.caption
@@ -1244,7 +1245,7 @@ FocusScope {
     anchors.bottom: parent.bottom
     height: visible ? Style.space(28) : 0
     visible: !controller.trashMode && !controller.drivesMode
-    color: Color.bar.background
+    color: Commons.Color.bar.background
     TextMetrics {
       id: footerSeparator
       font.family: Style.font.family
@@ -1266,7 +1267,7 @@ FocusScope {
         textFormat: Text.PlainText
         visible: root.footerLayout.back
         text: "‹"
-        color: rewindPointer.containsMouse ? Color.accent : Color.muted
+        color: rewindPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.weight: Font.Bold
@@ -1283,7 +1284,7 @@ FocusScope {
         id: footerCount
         textFormat: Text.PlainText
         text: root.footerLayout.shown.length > 0 ? root.footerLayout.shown[0] : ""
-        color: Color.muted
+        color: Commons.Color.muted
         elide: Text.ElideRight
         font.family: Style.font.family
         font.pixelSize: Typography.caption
@@ -1296,7 +1297,7 @@ FocusScope {
           )
         textFormat: Text.PlainText
         text: root.footerLayout.shown.slice(1).join(footerSeparator.text)
-        color: root.branchError || (mediaProvider && mediaProvider.error) ? Color.urgent : Color.muted
+        color: root.branchError || (mediaProvider && mediaProvider.error) ? Commons.Color.urgent : Commons.Color.muted
         elide: Text.ElideRight
         font.family: Style.font.family
         font.pixelSize: Typography.caption
@@ -1307,7 +1308,7 @@ FocusScope {
         textFormat: Text.PlainText
         visible: root.footerLayout.more
         text: "›"
-        color: pagerPointer.containsMouse ? Color.accent : Color.muted
+        color: pagerPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.weight: Font.Bold
@@ -1432,7 +1433,7 @@ FocusScope {
     width: Math.max(0, parent.width - Style.space(32))
     visible: controller.recentMode && !controller.recentBusy && controller.recentModel.count === 0
     text: controller.recentError || "No recently opened files yet"
-    color: controller.recentError ? Color.urgent : Color.muted
+    color: controller.recentError ? Commons.Color.urgent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family
@@ -1462,7 +1463,7 @@ FocusScope {
     anchors.bottom: parent.bottom
     width: Style.space(2)
     visible: browserHeader.addGuideVisible
-    color: Util.alpha(Color.accent, 0.7)
+    color: Util.alpha(Commons.Color.accent, 0.7)
     z: 25
   }
 
@@ -1473,7 +1474,7 @@ FocusScope {
     anchors.bottom: treeList.bottom
     flickable: root.activeList
     visible: !!root.activeList && !root.mediaActive
-    surfaceColor: Color.bar.background
+    surfaceColor: Commons.Color.bar.background
     z: 24
   }
 
@@ -1592,7 +1593,7 @@ FocusScope {
     width: Math.max(0, parent.width - Style.space(32))
     visible: !root.mediaActive && !controller.trashMode && controller.searching && !controller.searchBusy && controller.searchModel.count === 0 && !controller.searchError
     text: "No matching files or folders"
-    color: Color.muted
+    color: Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family

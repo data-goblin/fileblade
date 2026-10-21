@@ -1,6 +1,7 @@
 import QtQuick
 import "../lib/MonitorMode.js" as MonitorMode
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   required property var service
@@ -182,10 +183,10 @@ Item {
 
   function gitStatusColor(status) {
     var marker = String(status || "")
-    if (marker === "D" || marker === "U") return Color.urgent
+    if (marker === "D" || marker === "U") return Commons.Color.urgent
     if (marker === "A" || marker === "?") return "#98c379"
     if (marker === "R" || marker === "C") return "#61afef"
     if (marker === "M" || marker === "T") return "#e5c07b"
-    return Color.muted
+    return Commons.Color.muted
   }
 }

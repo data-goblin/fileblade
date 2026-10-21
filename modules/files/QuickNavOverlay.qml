@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../../ui" as PluginUi
 import "../../lib/FileIcons.js" as FileIcons
+import qs.Commons as Commons
 
 FocusScope {
   id: overlay
@@ -133,7 +134,7 @@ FocusScope {
     ]
     glyphFor: function(row) { return overlay.glyphFor(row) }
     glyphColorFor: function(row) {
-      return (row.isDir && overlay.controller.folderColor(row.path)) || (row.isDir || row.kind === "Action" ? Color.accent : card.secondaryTextColor)
+      return (row.isDir && overlay.controller.folderColor(row.path)) || (row.isDir || row.kind === "Action" ? Commons.Color.accent : card.secondaryTextColor)
     }
     onEdited: function(text) { overlay.edited(text) }
     onActivated: function(index, alternate) { overlay.activateIndex(index, alternate) }

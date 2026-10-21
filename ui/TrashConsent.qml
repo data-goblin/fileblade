@@ -3,6 +3,7 @@ import QtQuick.Controls as Controls
 import qs.Commons
 import qs.Ui
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: dialog
@@ -43,7 +44,7 @@ FocusScope {
   }
   Keys.onReleased: function(event) { event.accepted = true }
 
-  Rectangle { anchors.fill: parent; color: Color.bar.background }
+  Rectangle { anchors.fill: parent; color: Commons.Color.bar.background }
   MouseArea { anchors.fill: parent; onClicked: dialog.forceActiveFocus(); onWheel: function(wheel) { wheel.accepted = true } }
 
   Flickable {
@@ -72,7 +73,7 @@ FocusScope {
           id: trashIcon
           text: "󰩹"
           textFormat: Text.PlainText
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           font.family: Style.font.family
           font.pixelSize: Style.font.iconLarge
         }
@@ -82,7 +83,7 @@ FocusScope {
           text: "Should FileBlade automatically empty the trash?"
           textFormat: Text.PlainText
           wrapMode: Text.Wrap
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           font.pixelSize: Typography.title
           font.family: Style.font.family
         }
@@ -92,7 +93,7 @@ FocusScope {
         text: "This permanently deletes old items from your shared desktop Trash, including items trashed by other apps, and FileBlade artifact bins."
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         font.pixelSize: Typography.body
         font.family: Style.font.family
       }
@@ -104,16 +105,16 @@ FocusScope {
           required property int index
           width: parent.width
           height: Style.space(34)
-          color: dialog.preferences.pendingTrashDays === modelData.days ? Util.alpha(Color.accent, 0.2) : "transparent"
+          color: dialog.preferences.pendingTrashDays === modelData.days ? Util.alpha(Commons.Color.accent, 0.2) : "transparent"
           border.width: 1
-          border.color: dialog.preferences.pendingTrashDays === modelData.days ? Color.accent : Util.alpha(Color.bar.text, 0.25)
+          border.color: dialog.preferences.pendingTrashDays === modelData.days ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.25)
           Text {
             anchors.left: parent.left
             anchors.leftMargin: Style.space(12)
             anchors.verticalCenter: parent.verticalCenter
             text: modelData.label
             textFormat: Text.PlainText
-            color: Color.bar.text
+            color: Commons.Color.bar.text
             font.pixelSize: Typography.body
             font.family: Style.font.family
           }
@@ -125,7 +126,7 @@ FocusScope {
         text: "You can change this later in settings 󰒓."
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         font.pixelSize: Typography.bodySmall
         font.family: Style.font.family
       }
@@ -135,7 +136,7 @@ FocusScope {
         text: dialog.preferences.error
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
-        color: Color.urgent
+        color: Commons.Color.urgent
         font.pixelSize: Typography.bodySmall
         font.family: Style.font.family
       }

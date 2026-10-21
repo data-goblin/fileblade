@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: tile
@@ -73,9 +74,9 @@ Item {
     anchors.top: parent.top
     height: tile.square
     radius: Math.min(Style.cornerRadius, Style.space(5))
-    color: Util.alpha(Color.bar.text, tile.hovered ? 0.09 : 0.05)
+    color: Util.alpha(Commons.Color.bar.text, tile.hovered ? 0.09 : 0.05)
     border.width: tile.current ? Style.space(2) : (tile.selected ? 1 : 0)
-    border.color: tile.current ? Color.accent : Util.alpha(Color.accent, 0.7)
+    border.color: tile.current ? Commons.Color.accent : Util.alpha(Commons.Color.accent, 0.7)
     clip: true
 
     Image {
@@ -101,7 +102,7 @@ Item {
       width: parent.width - Style.space(8)
       visible: tile.source === "" || picture.status === Image.Error
       text: tile.error !== "" || picture.status === Image.Error ? "󰋩" : (tile.loading ? "…" : "")
-      color: tile.error !== "" ? Color.urgent : Color.muted
+      color: tile.error !== "" ? Commons.Color.urgent : Commons.Color.muted
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       font.family: Style.font.family
@@ -119,7 +120,7 @@ Item {
     height: tile.labelHeight
     visible: tile.showLabel && tile.labelHeight > 0
     text: tile.label
-    color: tile.current ? Color.accent : Color.muted
+    color: tile.current ? Commons.Color.accent : Commons.Color.muted
     elide: Text.ElideMiddle
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family

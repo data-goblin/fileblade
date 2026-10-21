@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: popoutHost
@@ -122,7 +123,7 @@ FocusScope {
     width: parent.width - Style.space(24)
     visible: popoutHost.notice !== ""
     text: popoutHost.notice
-    color: Color.muted
+    color: Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family

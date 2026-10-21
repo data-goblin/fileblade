@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: tip
@@ -14,13 +15,13 @@ Item {
   property bool revealed: false
   property int maximumWidth: Style.space(220)
   readonly property real edgeGap: Style.space(6)
-  readonly property color panelForeground: Color.tooltip.text
-  readonly property color panelBackground: Color.tooltip.background
-  readonly property color panelBorder: Color.tooltip.border
+  readonly property color panelForeground: Commons.Color.tooltip.text
+  readonly property color panelBackground: Commons.Color.tooltip.background
+  readonly property color panelBorder: Commons.Color.tooltip.border
   readonly property string fontFamily: Style.font.family
   readonly property real fontSize: Typography.bodySmall
   readonly property var panelBorderSpec: Border.localOrSurfaceSpec(
-    "tooltip", "border", panelBorder, Color.tooltip.border, Style.normalBorderWidth)
+    "tooltip", "border", panelBorder, Commons.Color.tooltip.border, Style.normalBorderWidth)
 
   implicitWidth: content.implicitWidth
   implicitHeight: content.implicitHeight

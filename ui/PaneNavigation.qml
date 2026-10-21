@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: navigation
@@ -43,13 +44,13 @@ Item {
         enabled: spec.enabled !== false
         opacity: enabled ? 1 : 0.32
         radius: Math.min(Style.cornerRadius, Style.space(4))
-        color: spec.active === true || pointer.containsMouse ? Color.menu.selectedBackground : "transparent"
+        color: spec.active === true || pointer.containsMouse ? Commons.Color.menu.selectedBackground : "transparent"
 
         Text {
           textFormat: Text.PlainText
           anchors.centerIn: parent
           text: String(button.spec.glyph || "")
-          color: button.spec.active === true ? Color.accent : Color.bar.text
+          color: button.spec.active === true ? Commons.Color.accent : Commons.Color.bar.text
           font.family: Style.font.family
           font.pixelSize: Typography.body
         }

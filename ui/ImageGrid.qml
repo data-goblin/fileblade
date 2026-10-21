@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../lib/ImageGallery.js" as ImageGallery
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: grid
@@ -197,7 +198,7 @@ FocusScope {
         height: rowItem.row ? rowItem.row.height : 0
         visible: !!rowItem.row && rowItem.row.kind === "header"
         text: rowItem.row && rowItem.row.kind === "header" ? String(rowItem.row.label).toUpperCase() : ""
-        color: rowItem.row && rowItem.row.section === grid.cursorSection ? Color.accent : Color.muted
+        color: rowItem.row && rowItem.row.section === grid.cursorSection ? Commons.Color.accent : Commons.Color.muted
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
         font.family: Style.font.family
@@ -258,7 +259,7 @@ FocusScope {
   ScrollEdgeFade {
     anchors.fill: list
     flickable: list
-    surfaceColor: Qt.lighter(Color.bar.background, 1.035)
+    surfaceColor: Qt.lighter(Commons.Color.bar.background, 1.035)
     fadeHeight: Style.space(28)
   }
 
@@ -281,7 +282,7 @@ FocusScope {
     width: list.width - Style.space(24)
     visible: grid.count === 0
     text: grid.filterInvalid !== "" ? "Invalid pattern" : (grid.query !== "" ? "No matches" : "No images")
-    color: Color.muted
+    color: Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family

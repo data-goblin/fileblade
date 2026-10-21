@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Column {
   id: section
@@ -73,14 +74,14 @@ Column {
     width: parent ? parent.width : 0
     height: 1
     visible: section.dividerShown
-    color: Util.alpha(Color.bar.text, 0.12)
+    color: Util.alpha(Commons.Color.bar.text, 0.12)
   }
 
   Text {
     textFormat: Text.PlainText
     width: parent ? parent.width : 0
     text: String(section.modelData.title || "").toUpperCase()
-    color: Color.muted
+    color: Commons.Color.muted
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.caption

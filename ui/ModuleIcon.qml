@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: icon
@@ -8,7 +9,7 @@ Item {
   property string iconUrl: ""
   property string glyph: ""
   property string fallbackGlyph: "󰏗"
-  property color color: Color.muted
+  property color color: Commons.Color.muted
   property real size: Typography.body
   readonly property bool pictorial: iconUrl !== ""
 

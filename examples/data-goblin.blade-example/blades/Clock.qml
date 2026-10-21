@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -50,7 +51,7 @@ FocusScope {
 
   Rectangle {
     anchors.fill: parent
-    color: Qt.lighter(Color.bar.background, 1.035)
+    color: Qt.lighter(Commons.Color.bar.background, 1.035)
   }
 
   Text {
@@ -60,7 +61,7 @@ FocusScope {
     anchors.top: parent.top
     anchors.margins: Style.space(10)
     text: "CLOCK"
-    color: module.activeFocus || clockHandle.containsMouse ? Color.accent : Color.bar.text
+    color: module.activeFocus || clockHandle.containsMouse ? Commons.Color.accent : Commons.Color.bar.text
     font.family: Style.font.family
     font.pixelSize: Style.font.bodySmall
     font.weight: Font.DemiBold
@@ -88,7 +89,7 @@ FocusScope {
       textFormat: Text.PlainText
       anchors.horizontalCenter: parent.horizontalCenter
       text: Qt.formatDateTime(module.now, module.format)
-      color: Color.bar.text
+      color: Commons.Color.bar.text
       font.family: Style.font.family
       font.pixelSize: Math.round(Style.font.title * 1.5 * module.sizeScale)
       font.weight: Font.DemiBold
@@ -98,7 +99,7 @@ FocusScope {
       textFormat: Text.PlainText
       anchors.horizontalCenter: parent.horizontalCenter
       text: module.caption !== "" ? module.caption : "from " + context.moduleId + "  ·  Space cycles the format"
-      color: Color.muted
+      color: Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Style.font.caption
     }

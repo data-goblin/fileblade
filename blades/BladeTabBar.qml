@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: bar
@@ -65,7 +66,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Qt.lighter(Color.bar.background, bar.interactive ? 1.035 : 1.08)
+    color: Qt.lighter(Commons.Color.bar.background, bar.interactive ? 1.035 : 1.08)
     opacity: bar.interactive ? 1 : 0.94
   }
 
@@ -76,7 +77,7 @@ Item {
     anchors.leftMargin: Style.space(7)
     anchors.verticalCenter: parent.verticalCenter
     text: bar.context.collapsed ? "›" : "⌄"
-    color: disclosurePointer.containsMouse ? Color.accent : Color.muted
+    color: disclosurePointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
 
@@ -115,7 +116,7 @@ Item {
       height: parent.height
       text: "<"
       textFormat: Text.PlainText
-      color: tabViewport.contentX > 0 && previousTabPointer.containsMouse ? Color.accent : Color.muted
+      color: tabViewport.contentX > 0 && previousTabPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
@@ -141,7 +142,7 @@ Item {
       text: ">"
       textFormat: Text.PlainText
       color: tabViewport.contentX < tabViewport.contentWidth - tabViewport.width && nextTabPointer.containsMouse
-        ? Color.accent : Color.muted
+        ? Commons.Color.accent : Commons.Color.muted
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
@@ -185,7 +186,7 @@ Item {
         readonly property string moduleId: bar.slot.host.slotModuleAt(bar.slot.edge, bar.slot.slotIndex, index)
         height: parent ? parent.height : 0
         width: tabContent.implicitWidth + Style.space(16)
-        color: current ? Qt.lighter(Color.bar.background, 1.06) : "transparent"
+        color: current ? Qt.lighter(Commons.Color.bar.background, 1.06) : "transparent"
         opacity: bar.tabDragged(index) ? 0.45 : 1
 
         Rectangle {
@@ -194,7 +195,7 @@ Item {
           anchors.right: parent.right
           height: 2
           visible: tab.current
-          color: bar.slot.activeFocus ? Color.accent : Color.muted
+          color: bar.slot.activeFocus ? Commons.Color.accent : Commons.Color.muted
         }
 
         Row {
@@ -209,8 +210,8 @@ Item {
             id: label
             text: bar.slot.host.tabTitle(bar.slot.edge, bar.slot.slotIndex, tab.index).toUpperCase()
             color: tab.current
-              ? (bar.slot.activeFocus ? Color.accent : Color.muted)
-              : (pointer.containsMouse ? Color.bar.text : Color.muted)
+              ? (bar.slot.activeFocus ? Commons.Color.accent : Commons.Color.muted)
+              : (pointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted)
             font.family: Style.font.family
             font.pixelSize: Typography.caption
             font.weight: Font.DemiBold
@@ -224,7 +225,7 @@ Item {
             readonly property bool revealed: bar.interactive && (pointer.containsMouse || closePointer.containsMouse)
             opacity: revealed ? 1 : 0
             text: "×"
-            color: closePointer.containsMouse ? Color.urgent : Color.muted
+            color: closePointer.containsMouse ? Commons.Color.urgent : Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
 
@@ -288,7 +289,7 @@ Item {
         textFormat: Text.PlainText
         anchors.centerIn: parent
         text: "+"
-        color: addPointer.containsMouse ? Color.accent : Color.muted
+        color: addPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.body
       }
@@ -438,9 +439,9 @@ Item {
     width: Style.space(140)
     height: parent.height - Style.space(6)
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: Util.alpha(Color.bar.text, 0.10)
+    color: Util.alpha(Commons.Color.bar.text, 0.10)
     border.width: 1
-    border.color: Color.accent
+    border.color: Commons.Color.accent
     z: 7
 
     TextInput {
@@ -449,9 +450,9 @@ Item {
       anchors.leftMargin: Style.space(8)
       anchors.rightMargin: Style.space(8)
       verticalAlignment: TextInput.AlignVCenter
-      color: Color.bar.text
-      selectionColor: Util.alpha(Color.accent, 0.38)
-      selectedTextColor: Color.bar.text
+      color: Commons.Color.bar.text
+      selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+      selectedTextColor: Commons.Color.bar.text
       selectByMouse: true
       clip: true
       font.family: Style.font.family
@@ -474,7 +475,7 @@ Item {
     width: 2
     height: parent.height - Style.space(8)
     radius: 1
-    color: Color.accent
+    color: Commons.Color.accent
     z: 5
   }
 

@@ -5,6 +5,7 @@ import "../lib/DragPlan.js" as DragPlan
 import "../lib/MediaDates.js" as MediaDates
 import "../lib/MediaBins.js" as MediaBins
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: media
@@ -227,7 +228,7 @@ FocusScope {
     width: Math.max(0, parent.width - Style.space(24))
     visible: media.count === 0
     text: media.message || (media.busy ? "Looking for media…" : "No media in this folder")
-    color: Color.muted
+    color: Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family

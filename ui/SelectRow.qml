@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../lib/SettingsForm.js" as Form
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: control
@@ -20,7 +21,7 @@ Item {
     anchors.rightMargin: Style.space(8)
     anchors.verticalCenter: parent.verticalCenter
     text: String(control.row.label || "")
-    color: Color.bar.text
+    color: Commons.Color.bar.text
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
@@ -33,7 +34,7 @@ Item {
     width: Math.min(valueLabel.implicitWidth + Style.space(30), Math.floor(control.width * 0.6))
     height: Style.space(22)
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: Util.alpha(Color.bar.text, valuePointer.containsMouse || menu.visible ? 0.12 : 0.06)
+    color: Util.alpha(Commons.Color.bar.text, valuePointer.containsMouse || menu.visible ? 0.12 : 0.06)
 
     Text {
       id: valueLabel
@@ -44,7 +45,7 @@ Item {
       anchors.rightMargin: valuePointer.glyphWidth + Style.space(6) + Style.space(4)
       anchors.verticalCenter: parent.verticalCenter
       text: control.current
-      color: Color.bar.text
+      color: Commons.Color.bar.text
       elide: Text.ElideRight
       font.family: Style.font.family
       font.pixelSize: Typography.caption

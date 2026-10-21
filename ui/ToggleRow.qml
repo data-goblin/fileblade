@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: row
@@ -22,7 +23,7 @@ Item {
     anchors.right: detailText.visible ? detailText.left : toggle.left
     anchors.rightMargin: Style.space(8)
     text: (row.glyph !== "" ? row.glyph + "  " : "") + row.label
-    color: row.heading ? Color.muted : Color.bar.text
+    color: row.heading ? Commons.Color.muted : Commons.Color.bar.text
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: row.heading ? Typography.caption : Typography.bodySmall
@@ -37,7 +38,7 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     visible: row.detail !== ""
     text: row.detail
-    color: Color.muted
+    color: Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
   }
@@ -49,7 +50,7 @@ Item {
     width: Style.space(30)
     height: Style.space(16)
     radius: height / 2
-    color: row.checked ? Util.alpha(Color.accent, 0.78) : Util.alpha(Color.bar.text, 0.18)
+    color: row.checked ? Util.alpha(Commons.Color.accent, 0.78) : Util.alpha(Commons.Color.bar.text, 0.18)
 
     Rectangle {
       anchors.verticalCenter: parent.verticalCenter
@@ -57,7 +58,7 @@ Item {
       width: Style.space(12)
       height: width
       radius: width / 2
-      color: row.checked ? Color.background : Color.bar.text
+      color: row.checked ? Commons.Color.background : Commons.Color.bar.text
     }
   }
 

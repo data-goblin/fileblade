@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Column {
   id: section
@@ -91,7 +92,7 @@ Column {
         textFormat: Text.PlainText
         width: parent.width
         text: section.rowText(rowColumn.modelData.role, rowColumn.modelData.detail)
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.caption

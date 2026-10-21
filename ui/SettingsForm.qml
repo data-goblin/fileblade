@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../lib/SettingsForm.js" as Form
 import "../theme"
+import qs.Commons as Commons
 
 Column {
   id: form
@@ -115,7 +116,7 @@ Column {
         width: parent.width
         visible: entry.detail !== ""
         text: entry.detail
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.caption

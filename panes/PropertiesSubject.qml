@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: view
@@ -10,7 +11,7 @@ FocusScope {
   property var properties: null
   property var files: null
   property var targetScreen: null
-  property color surfaceColor: Color.bar.background
+  property color surfaceColor: Commons.Color.bar.background
   property int cursor: -1
   property int copiedIndex: -1
   property string subjectKey: ""
@@ -46,10 +47,10 @@ FocusScope {
 
   function tint(value) {
     var token = String(value || "")
-    if (token === "muted") return Color.muted
-    if (token === "urgent") return Color.urgent
-    if (token === "text") return Color.bar.text
-    return token.charAt(0) === "#" ? token : Color.accent
+    if (token === "muted") return Commons.Color.muted
+    if (token === "urgent") return Commons.Color.urgent
+    if (token === "text") return Commons.Color.bar.text
+    return token.charAt(0) === "#" ? token : Commons.Color.accent
   }
 
   function itemAt(index) {
@@ -166,7 +167,7 @@ FocusScope {
       width: parent.width
       textFormat: Text.PlainText
       text: visible ? String(valueItem.field.value) : ""
-      color: valueItem.field.kind === "link" ? (linkPointer.containsMouse ? Qt.lighter(Color.accent, 1.15) : Color.accent) : Color.bar.text
+      color: valueItem.field.kind === "link" ? (linkPointer.containsMouse ? Qt.lighter(Commons.Color.accent, 1.15) : Commons.Color.accent) : Commons.Color.bar.text
       font.underline: valueItem.field.kind === "link" && linkPointer.containsMouse
       wrapMode: valueItem.field.kind === "link" ? Text.WrapAnywhere : Text.Wrap
       font.family: Style.font.family
@@ -192,9 +193,9 @@ FocusScope {
       visible: valueItem.field.kind === "code"
       width: parent.width
       height: visible ? codeText.implicitHeight + Style.space(10) : 0
-      color: codePointer.containsMouse ? Style.hoverFillFor(Color.bar.text, Color.accent) : Util.alpha(Color.bar.text, 0.06)
+      color: codePointer.containsMouse ? Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent) : Util.alpha(Commons.Color.bar.text, 0.06)
       border.width: 1
-      border.color: valueItem.copied ? Color.accent : Util.alpha(Color.bar.text, 0.12)
+      border.color: valueItem.copied ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.12)
 
       Text {
         id: codeText
@@ -203,7 +204,7 @@ FocusScope {
         width: parent.width - Style.space(12) - (valueItem.copied ? copiedLabel.implicitWidth + Style.space(6) : 0)
         textFormat: Text.PlainText
         text: valueItem.field.kind === "code" ? String(valueItem.field.value) : ""
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         wrapMode: Text.WrapAnywhere
         font.family: "monospace"
         font.pixelSize: Typography.bodySmall
@@ -217,7 +218,7 @@ FocusScope {
         visible: valueItem.copied
         textFormat: Text.PlainText
         text: "Copied"
-        color: Color.accent
+        color: Commons.Color.accent
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }
@@ -250,16 +251,16 @@ FocusScope {
           required property var modelData
           implicitWidth: chipText.implicitWidth + Style.space(12)
           implicitHeight: chipText.implicitHeight + Style.space(4)
-          color: Util.alpha(Color.accent, 0.12)
+          color: Util.alpha(Commons.Color.accent, 0.12)
           border.width: 1
-          border.color: Util.alpha(Color.accent, 0.35)
+          border.color: Util.alpha(Commons.Color.accent, 0.35)
 
           Text {
             id: chipText
             anchors.centerIn: parent
             textFormat: Text.PlainText
             text: String(parent.modelData)
-            color: Color.bar.text
+            color: Commons.Color.bar.text
             font.family: Style.font.family
             font.pixelSize: Typography.caption
           }
@@ -314,7 +315,7 @@ FocusScope {
           anchors.verticalCenter: parent.verticalCenter
           textFormat: Text.PlainText
           text: view.subject ? view.subject.title : ""
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           wrapMode: Text.Wrap
           maximumLineCount: 3
           elide: Text.ElideRight
@@ -329,7 +330,7 @@ FocusScope {
         visible: text !== ""
         textFormat: Text.PlainText
         text: view.subject ? view.subject.subtitle : ""
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.Wrap
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
@@ -371,7 +372,7 @@ FocusScope {
             readonly property string glyph: view.files && view.files.propertyIcons ? String(view.kindGlyphs[modelData.kind] || "󰋽") : ""
             width: fieldGrid.columns > 1 && modelData.kind === "text" && String(modelData.value).length <= 40 ? fieldGrid.cell : fieldGrid.width
             height: fieldColumn.implicitHeight + Style.space(4)
-            color: current ? Util.alpha(Color.accent, 0.10) : "transparent"
+            color: current ? Util.alpha(Commons.Color.accent, 0.10) : "transparent"
 
             MouseArea {
               anchors.fill: parent
@@ -394,7 +395,7 @@ FocusScope {
                   width: visible ? Style.space(14) : 0
                   textFormat: Text.PlainText
                   text: fieldRow.glyph
-                  color: Util.alpha(Color.muted, 0.8)
+                  color: Util.alpha(Commons.Color.muted, 0.8)
                   horizontalAlignment: Text.AlignHCenter
                   font.family: Style.font.family
                   font.pixelSize: Typography.caption
@@ -403,7 +404,7 @@ FocusScope {
                 Text {
                   textFormat: Text.PlainText
                   text: String(fieldRow.modelData.label).toUpperCase()
-                  color: fieldRow.current ? Color.accent : Color.muted
+                  color: fieldRow.current ? Commons.Color.accent : Commons.Color.muted
                   font.family: Style.font.family
                   font.pixelSize: Typography.caption
                   font.letterSpacing: 0.4
@@ -425,7 +426,7 @@ FocusScope {
         visible: !!view.subject && view.subject.truncated
         textFormat: Text.PlainText
         text: "Some properties were left out because the module sent more than FileBlade shows."
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.Wrap
         font.family: Style.font.family
         font.pixelSize: Typography.caption

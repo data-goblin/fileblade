@@ -3,6 +3,7 @@ import QtQuick.Controls
 import qs.Commons
 import qs.Ui
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -245,7 +246,7 @@ FocusScope {
         z: 2
         opacity: trashRow.hovered ? 1 : 0
         visible: opacity > 0
-        color: Color.bar.background
+        color: Commons.Color.bar.background
 
         Behavior on opacity {
           NumberAnimation { duration: root.animationsEnabled ? 90 : 0 }
@@ -273,14 +274,14 @@ FocusScope {
               radius: Math.min(Style.cornerRadius, Style.space(4))
               opacity: spec.enabled ? 1 : 0.35
               color: actionPointer.containsMouse && spec.enabled
-                ? Util.alpha(spec.danger ? Color.urgent : Color.accent, 0.20)
-                : Util.alpha(Color.bar.text, 0.05)
+                ? Util.alpha(spec.danger ? Commons.Color.urgent : Commons.Color.accent, 0.20)
+                : Util.alpha(Commons.Color.bar.text, 0.05)
 
               Text {
                 textFormat: Text.PlainText
                 anchors.centerIn: parent
                 text: String(actionButton.spec.glyph || "")
-                color: actionButton.spec.danger && actionPointer.containsMouse ? Color.urgent : Color.muted
+                color: actionButton.spec.danger && actionPointer.containsMouse ? Commons.Color.urgent : Commons.Color.muted
                 font.family: Style.font.family
                 font.pixelSize: Typography.caption
               }
@@ -354,7 +355,7 @@ FocusScope {
     width: Math.max(0, parent.width - Style.space(40))
     visible: !controller.trashBusy && controller.trashCount === 0 && !controller.trashError
     text: "Trash is empty"
-    color: Color.muted
+    color: Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     font.family: Style.font.family
     font.pixelSize: Typography.body
@@ -369,7 +370,7 @@ FocusScope {
     z: 5
     opacity: root.statusActive ? 1 : 0
     visible: opacity > 0
-    color: Qt.lighter(Color.bar.background, 1.035)
+    color: Qt.lighter(Commons.Color.bar.background, 1.035)
 
     Behavior on opacity {
       NumberAnimation { duration: root.animationsEnabled ? 140 : 0 }
@@ -384,7 +385,7 @@ FocusScope {
       text: controller.trashOperationBusy
         ? root.operationStatus()
         : (controller.trashError || root.displayedNotice || "Reading Trash…")
-      color: controller.trashError ? Color.urgent : (root.displayedNotice !== "" ? Color.accent : Color.muted)
+      color: controller.trashError ? Commons.Color.urgent : (root.displayedNotice !== "" ? Commons.Color.accent : Commons.Color.muted)
       elide: Text.ElideRight
       font.family: Style.font.family
       font.pixelSize: Typography.caption
@@ -397,7 +398,7 @@ FocusScope {
     visible: root.dialogMode !== ""
     focus: visible
     z: 80
-    color: Util.alpha(Color.background, 0.70)
+    color: Util.alpha(Commons.Color.background, 0.70)
 
     Keys.priority: Keys.BeforeItem
     Keys.onPressed: function(event) { root.handleDialogKey(event) }
@@ -408,10 +409,10 @@ FocusScope {
       anchors.centerIn: parent
       width: Math.min(parent.width - Style.space(28), Style.space(390))
       implicitHeight: dialogContent.implicitHeight + Style.space(28)
-      color: Color.popups.background
+      color: Commons.Color.popups.background
       radius: Style.cornerRadius
       border.width: 1
-      border.color: Color.popups.border
+      border.color: Commons.Color.popups.border
 
       Column {
         id: dialogContent
@@ -427,7 +428,7 @@ FocusScope {
           text: root.dialogMode === "empty"
             ? "Empty Trash?"
             : (root.dialogMode === "delete" ? "Delete permanently?" : "Restore to another folder")
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           wrapMode: Text.WordWrap
           font.family: Style.font.family
           font.pixelSize: Typography.body
@@ -442,7 +443,7 @@ FocusScope {
             : (root.dialogMode === "delete"
               ? "Permanently delete “" + root.dialogEntryName + "”. This cannot be undone."
               : "Choose the destination folder for “" + root.dialogEntryName + "”. An existing item is never overwritten.")
-          color: root.dialogMode === "restore-to" ? Color.muted : Color.urgent
+          color: root.dialogMode === "restore-to" ? Commons.Color.muted : Commons.Color.urgent
           wrapMode: Text.WordWrap
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
@@ -455,16 +456,16 @@ FocusScope {
           visible: root.dialogMode === "restore-to"
           onActiveFocusChanged: if (activeFocus) root.dialogFocusIndex = -1
           placeholderText: "/destination/folder"
-          color: Color.popups.text
-          selectedTextColor: Color.popups.text
-          selectionColor: Util.alpha(Color.accent, 0.38)
+          color: Commons.Color.popups.text
+          selectedTextColor: Commons.Color.popups.text
+          selectionColor: Util.alpha(Commons.Color.accent, 0.38)
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
           background: Rectangle {
-            color: Util.alpha(Color.popups.text, restoreDestination.activeFocus ? 0.10 : 0.06)
+            color: Util.alpha(Commons.Color.popups.text, restoreDestination.activeFocus ? 0.10 : 0.06)
             radius: Math.min(Style.cornerRadius, Style.space(4))
             border.width: 1
-            border.color: restoreDestination.activeFocus ? Color.accent : Util.alpha(Color.popups.text, 0.18)
+            border.color: restoreDestination.activeFocus ? Commons.Color.accent : Util.alpha(Commons.Color.popups.text, 0.18)
           }
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) {
@@ -478,15 +479,15 @@ FocusScope {
           height: visible ? Style.space(28) : 0
           visible: root.dialogMode === "restore-to"
           radius: Math.min(Style.cornerRadius, Style.space(4))
-          color: recreatePointer.containsMouse ? Util.alpha(Color.accent, 0.18) : Util.alpha(Color.popups.text, 0.05)
+          color: recreatePointer.containsMouse ? Util.alpha(Commons.Color.accent, 0.18) : Util.alpha(Commons.Color.popups.text, 0.05)
           border.width: root.dialogFocusIndex === 2 && dialogOverlay.activeFocus ? 1 : 0
-          border.color: Color.accent
+          border.color: Commons.Color.accent
 
           Text {
             textFormat: Text.PlainText
             anchors.centerIn: parent
             text: "Recreate original parent and restore"
-            color: recreatePointer.containsMouse ? Color.accent : Color.muted
+            color: recreatePointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Typography.caption
           }
@@ -519,16 +520,16 @@ FocusScope {
               height: Style.space(28)
               radius: Math.min(Style.cornerRadius, Style.space(4))
               border.width: root.dialogFocusIndex === (modelData.confirm ? 1 : 0) && dialogOverlay.activeFocus ? 1 : 0
-              border.color: modelData.confirm && root.dialogMode !== "restore-to" ? Color.urgent : Color.accent
+              border.color: modelData.confirm && root.dialogMode !== "restore-to" ? Commons.Color.urgent : Commons.Color.accent
               color: dialogPointer.containsMouse
-                ? Util.alpha(modelData.confirm && root.dialogMode !== "restore-to" ? Color.urgent : Color.accent, 0.22)
-                : Util.alpha(Color.popups.text, 0.07)
+                ? Util.alpha(modelData.confirm && root.dialogMode !== "restore-to" ? Commons.Color.urgent : Commons.Color.accent, 0.22)
+                : Util.alpha(Commons.Color.popups.text, 0.07)
 
               Text {
                 textFormat: Text.PlainText
                 anchors.centerIn: parent
                 text: modelData.text
-                color: modelData.confirm && root.dialogMode !== "restore-to" ? Color.urgent : Color.popups.text
+                color: modelData.confirm && root.dialogMode !== "restore-to" ? Commons.Color.urgent : Commons.Color.popups.text
                 font.family: Style.font.family
                 font.pixelSize: Typography.caption
                 font.weight: modelData.confirm ? Font.DemiBold : Font.Normal

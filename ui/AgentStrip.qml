@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Ui
 import "../lib/Agents.js" as Agents
 import "../theme"
+import qs.Commons as Commons
 
 Row {
   id: strip
@@ -34,7 +35,7 @@ Row {
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: Agents.ALL_GLYPH
-      color: strip.allApplied ? Color.accent : (allPointer.containsMouse ? Qt.lighter(Color.muted, 1.35) : Color.muted)
+      color: strip.allApplied ? Commons.Color.accent : (allPointer.containsMouse ? Qt.lighter(Commons.Color.muted, 1.35) : Commons.Color.muted)
       font.family: Style.font.family
       font.pixelSize: Typography.title
     }

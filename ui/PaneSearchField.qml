@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 TextField {
   id: field
@@ -51,11 +52,11 @@ TextField {
   leftPadding: Style.space(28)
   rightPadding: (text !== "" ? Style.space(28) : Style.space(8)) + (showOptions ? options.width + Style.space(4) : 0)
   selectByMouse: true
-  color: Color.bar.text
-  selectionColor: Util.alpha(Color.accent, 0.38)
-  selectedTextColor: Color.bar.text
+  color: Commons.Color.bar.text
+  selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+  selectedTextColor: Commons.Color.bar.text
   placeholderText: field.prompt
-  placeholderTextColor: Color.muted
+  placeholderTextColor: Commons.Color.muted
   font.family: Style.font.family
   font.pixelSize: Typography.body
 
@@ -81,7 +82,7 @@ TextField {
   }
 
   background: Rectangle {
-    color: Util.alpha(Color.bar.text, field.activeFocus ? 0.10 : 0.06)
+    color: Util.alpha(Commons.Color.bar.text, field.activeFocus ? 0.10 : 0.06)
     radius: Math.min(Style.cornerRadius, Style.space(4))
   }
 
@@ -91,7 +92,7 @@ TextField {
     anchors.leftMargin: Style.space(9)
     anchors.verticalCenter: parent.verticalCenter
     text: field.glyph
-    color: field.activeFocus ? Color.accent : Color.muted
+    color: field.activeFocus ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
   }
@@ -114,15 +115,15 @@ TextField {
         width: toggle.modelData.key === "deep" ? Style.space(30) : Style.space(22)
         height: Style.space(20)
         radius: Math.min(Style.cornerRadius, Style.space(4))
-        color: modelData.active ? Util.alpha(Color.accent, 0.22) : (togglePointer.containsMouse ? Util.alpha(Color.bar.text, 0.10) : "transparent")
+        color: modelData.active ? Util.alpha(Commons.Color.accent, 0.22) : (togglePointer.containsMouse ? Util.alpha(Commons.Color.bar.text, 0.10) : "transparent")
         border.width: modelData.active ? 1 : 0
-        border.color: Util.alpha(Color.accent, 0.6)
+        border.color: Util.alpha(Commons.Color.accent, 0.6)
 
         Text {
           textFormat: Text.PlainText
           anchors.centerIn: parent
           text: toggle.modelData.label
-          color: toggle.modelData.active ? Color.accent : (togglePointer.containsMouse ? Color.bar.text : Color.muted)
+          color: toggle.modelData.active ? Commons.Color.accent : (togglePointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted)
           font.family: Style.font.family
           font.pixelSize: Typography.caption
           font.bold: toggle.modelData.active
@@ -158,7 +159,7 @@ TextField {
     anchors.rightMargin: Style.space(9)
     anchors.verticalCenter: parent.verticalCenter
     text: "×"
-    color: clearPointer.containsMouse || field.activeFocus ? Color.bar.text : Color.muted
+    color: clearPointer.containsMouse || field.activeFocus ? Commons.Color.bar.text : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.title
 

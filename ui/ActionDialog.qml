@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: dialog
@@ -19,7 +20,7 @@ Item {
   ActionKeyGuard { id: ownKeys; active: dialog.opened }
   readonly property string title: message.split("\n")[0] || ""
   readonly property var lines: message.split("\n").slice(1).filter(function(line) { return line.trim() !== "" })
-  readonly property color foreground: Color.bar.text
+  readonly property color foreground: Commons.Color.bar.text
   readonly property color dim: Util.alpha(foreground, 0.62)
 
   signal chosen(string key)
@@ -90,7 +91,7 @@ Item {
   }
 
   function optionColor(option) {
-    return option && option.danger === true ? Color.urgent : foreground
+    return option && option.danger === true ? Commons.Color.urgent : foreground
   }
 
   visible: opened
@@ -115,7 +116,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Util.alpha(Color.background, 0.6)
+    color: Util.alpha(Commons.Color.background, 0.6)
 
     MouseArea {
       anchors.fill: parent
@@ -131,9 +132,9 @@ Item {
     width: Math.min(parent.width - Style.space(24), Style.space(340))
     height: body.implicitHeight + body.topPadding + body.bottomPadding
     radius: 0
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
-    border.color: Color.popups.border
+    border.color: Commons.Color.popups.border
 
     MouseArea {
       anchors.fill: parent

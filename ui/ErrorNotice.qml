@@ -1,13 +1,14 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: notice
 
   property string text: ""
   property int lifetimeMs: 8000
-  property color foreground: Color.urgent
+  property color foreground: Commons.Color.urgent
 
   signal dismissed()
 
@@ -58,7 +59,7 @@ Item {
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: "󰅖"
-      color: pointer.containsMouse ? Color.accent : Util.alpha(notice.foreground, 0.7)
+      color: pointer.containsMouse ? Commons.Color.accent : Util.alpha(notice.foreground, 0.7)
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
     }

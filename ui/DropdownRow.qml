@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: row
@@ -32,7 +33,7 @@ Item {
     anchors.right: current.left
     anchors.rightMargin: Style.space(8)
     text: (row.glyph !== "" ? row.glyph + "  " : "") + row.label
-    color: Color.bar.text
+    color: Commons.Color.bar.text
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
@@ -45,7 +46,7 @@ Item {
     width: currentLabelText.implicitWidth + pointer.glyphWidth + Style.space(18)
     height: Style.space(22)
     radius: Style.space(4)
-    color: pointer.containsMouse || menu.visible ? Util.alpha(Color.accent, 0.22) : Util.alpha(Color.bar.text, 0.1)
+    color: pointer.containsMouse || menu.visible ? Util.alpha(Commons.Color.accent, 0.22) : Util.alpha(Commons.Color.bar.text, 0.1)
 
     Text {
       id: currentLabelText
@@ -54,7 +55,7 @@ Item {
       anchors.leftMargin: Style.space(7)
       anchors.verticalCenter: parent.verticalCenter
       text: row.currentLabel
-      color: Color.bar.text
+      color: Commons.Color.bar.text
       font.family: Style.font.family
       font.pixelSize: Typography.caption
     }

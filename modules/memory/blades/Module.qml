@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "KeyPlan.js" as KeyPlan
 import "../../../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -29,7 +30,7 @@ FocusScope {
   readonly property string anchorPath: inventory ? inventory.anchorPath : ""
   readonly property var projectArguments: inventory ? inventory.projectArguments : []
   readonly property bool active: !!context && context.bladeOpen !== false && context.collapsed !== true
-  readonly property color paneBackground: Qt.lighter(Color.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.background, 1.035)
 
   readonly property var items: inventory ? inventory.items : []
   readonly property string loadError: inventory ? inventory.loadError : (provider ? provider.error : "")
@@ -355,7 +356,7 @@ FocusScope {
     text: module.loadError !== ""
       ? module.loadError
       : (module.busy ? "Scanning memory…" : (module.query ? "No match" : "No memory files found"))
-    color: module.loadError !== "" ? Color.urgent : Color.muted
+    color: module.loadError !== "" ? Commons.Color.urgent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
   }

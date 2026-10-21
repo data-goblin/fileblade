@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: controls
@@ -104,7 +105,7 @@ Item {
     }
     width: 2
     height: parent.height
-    color: Color.accent
+    color: Commons.Color.accent
   }
 
 }

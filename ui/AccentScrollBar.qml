@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import qs.Commons as Commons
 
 ScrollBar {
   id: control
@@ -17,6 +18,6 @@ ScrollBar {
     implicitWidth: 1
     implicitHeight: 1
     visible: control.policy === ScrollBar.AlwaysOn || (control.policy === ScrollBar.AsNeeded && control.size < 0.995)
-    color: Color.accent
+    color: Commons.Color.accent
   }
 }

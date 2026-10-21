@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Commons
 import "../components" as Components
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -208,12 +209,12 @@ FocusScope {
     height: Style.space(24)
     visible: !!headerLoader.item && headerLoader.item.visible
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: refreshPointer.containsMouse ? Util.alpha(Color.accent, 0.22) : "transparent"
+    color: refreshPointer.containsMouse ? Util.alpha(Commons.Color.accent, 0.22) : "transparent"
 
     Components.PlainText {
       anchors.centerIn: parent
       text: root.busy || root.applying ? "…" : "↻"
-      color: refreshPointer.containsMouse ? Color.accent : Color.muted
+      color: refreshPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     }
 
     MouseArea {
@@ -377,7 +378,7 @@ FocusScope {
     width: Math.max(0, treeLoader.width - Style.space(32))
     visible: root.inventoryActive && !root.busy && root.definitions.length === 0
     text: root.loadError || "No supported MCP configuration found"
-    color: root.loadError ? Color.urgent : Color.muted
+    color: root.loadError ? Commons.Color.urgent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
   }

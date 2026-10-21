@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "KeyPlan.js" as KeyPlan
 import "../../../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -20,7 +21,7 @@ FocusScope {
   readonly property var projectArguments: inventory ? inventory.projectArguments : []
   readonly property bool collapsed: !!context && context.collapsed === true
   readonly property bool active: !!context && context.bladeOpen !== false && !collapsed
-  readonly property color paneBackground: Qt.lighter(Color.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.background, 1.035)
   readonly property string status: statusText()
 
   readonly property var items: inventory ? inventory.items : []
@@ -247,9 +248,9 @@ FocusScope {
     anchors.margins: Style.space(7)
     height: visible ? Style.space(34) : 0
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
-    border.color: Color.accent
+    border.color: Commons.Color.accent
     onVisibleChanged: if (visible) { nameField.text = module.namingText; nameField.forceActiveFocus(); nameField.selectAll() }
 
     Text {
@@ -259,7 +260,7 @@ FocusScope {
       anchors.leftMargin: Style.space(10)
       anchors.verticalCenter: parent.verticalCenter
       text: "Name"
-      color: Color.muted
+      color: Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.caption
       font.weight: Font.DemiBold
@@ -273,9 +274,9 @@ FocusScope {
       anchors.leftMargin: Style.space(10)
       anchors.rightMargin: Style.space(10)
       anchors.verticalCenter: parent.verticalCenter
-      color: Color.popups.text
-      selectionColor: Util.alpha(Color.accent, 0.35)
-      selectedTextColor: Color.popups.text
+      color: Commons.Color.popups.text
+      selectionColor: Util.alpha(Commons.Color.accent, 0.35)
+      selectedTextColor: Commons.Color.popups.text
       font.family: Style.font.family
       font.pixelSize: Typography.body
       maximumLength: 80
@@ -439,7 +440,7 @@ FocusScope {
     text: module.loadError !== ""
       ? module.loadError
       : (module.busy ? "Scanning hooks…" : (module.query ? "No match" : "No configured hooks found"))
-    color: module.loadError !== "" ? Color.urgent : Color.muted
+    color: module.loadError !== "" ? Commons.Color.urgent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
   }

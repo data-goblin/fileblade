@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../lib/ScrollMarks.js" as ScrollMarks
+import qs.Commons as Commons
 
 Item {
   id: bar
@@ -52,7 +53,7 @@ Item {
     y: bar.thumbY
     width: bar.engaged ? Style.space(3) : Style.space(1)
     height: bar.thumbLength
-    color: Color.accent
+    color: Commons.Color.accent
     opacity: bar.engaged ? 1 : 0.7
   }
 

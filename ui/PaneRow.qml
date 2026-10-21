@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Rectangle {
   id: row
@@ -13,8 +14,8 @@ Rectangle {
   property bool glyphStruck: false
   property string expander: ""
   property bool expanderReserved: false
-  property color glyphColor: Color.muted
-  property color labelColor: Color.bar.text
+  property color glyphColor: Commons.Color.muted
+  property color labelColor: Commons.Color.bar.text
   property int indent: 0
   property real barFraction: -1
   property bool barColumn: false
@@ -65,10 +66,10 @@ Rectangle {
     text: row.barColumn ? row.badge : ""
   }
   color: current
-    ? Color.menu.selectedBackground
+    ? Commons.Color.menu.selectedBackground
     : hovered
-      ? Style.hoverFillFor(Color.bar.text, Color.accent)
-      : emphasized ? Util.alpha(Color.bar.text, 0.025) : "transparent"
+      ? Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent)
+      : emphasized ? Util.alpha(Commons.Color.bar.text, 0.025) : "transparent"
 
   Text {
     textFormat: Text.PlainText
@@ -79,7 +80,7 @@ Rectangle {
     width: Style.space(10)
     visible: row.expander !== ""
     text: row.expander
-    color: Color.muted
+    color: Commons.Color.muted
     opacity: row.contentOpacity
     horizontalAlignment: Text.AlignHCenter
     font.family: Style.font.family
@@ -149,7 +150,7 @@ Rectangle {
     width: Math.max(0, Math.min(implicitWidth, limit))
     visible: row.detail !== ""
     text: row.detail
-    color: Color.muted
+    color: Commons.Color.muted
     opacity: row.contentOpacity
     elide: Text.ElideLeft
     font.family: Style.font.family
@@ -164,7 +165,7 @@ Rectangle {
     anchors.verticalCenter: parent.verticalCenter
     visible: row.linked && row.linkOnRight
     text: "\uf0c1"
-    color: linkHover.hovered ? Color.accent : Color.muted
+    color: linkHover.hovered ? Commons.Color.accent : Commons.Color.muted
     opacity: row.contentOpacity
     font.family: Style.font.family
     font.pixelSize: Typography.caption
@@ -210,7 +211,7 @@ Rectangle {
 
           Rectangle {
             anchors.fill: parent
-            color: Util.alpha(Color.bar.text, 0.08)
+            color: Util.alpha(Commons.Color.bar.text, 0.08)
           }
 
           Rectangle {
@@ -218,7 +219,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: Math.round(parent.width * Math.max(0, Math.min(1, row.barFraction)))
             height: parent.height
-            color: Util.alpha(Color.accent, 0.55)
+            color: Util.alpha(Commons.Color.accent, 0.55)
           }
         }
 
@@ -240,7 +241,7 @@ Rectangle {
           horizontalAlignment: Text.AlignRight
           elide: styled ? Text.ElideRight : Text.ElideLeft
           text: styled ? row.badgeMarkup : row.metricText(cell.index)
-          color: Color.muted
+          color: Commons.Color.muted
           opacity: row.contentOpacity
           font.family: Style.font.family
           font.pixelSize: Typography.caption

@@ -9,6 +9,7 @@ import "../lib/PathText.js" as PathText
 import "../lib/DropFocusPolicy.js" as DropFocusPolicy
 import "../lib/BarPlacement.js" as BarPlacement
 import "../theme"
+import qs.Commons as Commons
 
 PanelWindow {
   id: surface
@@ -65,7 +66,7 @@ PanelWindow {
     ])
   }
   readonly property var frameSpec: Border.withWidth(
-    Border.hyprlandActiveSpec(Color.accent, host.frameWidth),
+    Border.hyprlandActiveSpec(Commons.Color.accent, host.frameWidth),
     isRight ? "0 0 0 " + host.frameWidth : "0 " + host.frameWidth + " 0 0"
   )
   readonly property bool animationsEnabled: host.animateBlades
@@ -396,7 +397,7 @@ PanelWindow {
 
     Rectangle {
       anchors.fill: parent
-      color: Color.bar.background
+      color: Commons.Color.bar.background
     }
 
     PointHandler {
@@ -490,7 +491,7 @@ PanelWindow {
       anchors.left: surface.isRight ? parent.left : undefined
       anchors.right: surface.isRight ? undefined : parent.right
       width: 1
-      color: Util.alpha(Color.bar.text, 0.20)
+      color: Util.alpha(Commons.Color.bar.text, 0.20)
     }
 
     Rectangle {
@@ -502,7 +503,7 @@ PanelWindow {
       height: surface.footerHeight
       visible: surface.bladeOpen
       z: 30
-      color: Qt.lighter(Color.bar.background, 1.035)
+      color: Qt.lighter(Commons.Color.bar.background, 1.035)
 
       Row { id: footerControls
         anchors.left: surface.isRight ? parent.left : undefined
@@ -534,7 +535,7 @@ PanelWindow {
           anchors.verticalCenter: parent.verticalCenter
           width: updateChipLabel.implicitWidth + Style.space(14)
           height: Style.space(20)
-          readonly property color tone: updates && updates.available ? Color.accent : Color.muted
+          readonly property color tone: updates && updates.available ? Commons.Color.accent : Commons.Color.muted
           color: updateChipPointer.containsMouse ? Util.alpha(tone, 0.28) : Util.alpha(tone, 0.16)
           border.width: 1
           border.color: Util.alpha(tone, 0.6)
@@ -577,7 +578,7 @@ PanelWindow {
         anchors.rightMargin: Style.space(12)
         anchors.verticalCenter: parent.verticalCenter
         text: files ? "\ue6ae " + files.editorMode : ""
-        color: files ? files.editorModeColor : Color.muted
+        color: files ? files.editorModeColor : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
@@ -595,7 +596,7 @@ PanelWindow {
         horizontalAlignment: surface.isRight ? Text.AlignRight : Text.AlignLeft
         elide: Text.ElideLeft
         text: surface.host.services && surface.host.services.files ? PathText.name(surface.host.services.files.contextPath) : ""
-        color: contextPointer.containsMouse ? Color.bar.text : Color.muted
+        color: contextPointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.letterSpacing: 0.4
@@ -652,7 +653,7 @@ PanelWindow {
               width: Style.space(2)
               height: width
               radius: width / 2
-              color: resizeMouse.containsMouse || resizeMouse.pressed ? Color.accent : Color.muted
+              color: resizeMouse.containsMouse || resizeMouse.pressed ? Commons.Color.accent : Commons.Color.muted
             }
           }
         }

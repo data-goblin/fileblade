@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Ui
 import "../../ui" as PluginUi
 import "../../theme"
+import qs.Commons as Commons
 
 Rectangle {
   id: tabs
@@ -16,7 +17,7 @@ Rectangle {
   property int pendingVisibleIndex: -1
 
   height: Style.space(32)
-  color: Qt.lighter(Color.bar.background, 1.035)
+  color: Qt.lighter(Commons.Color.bar.background, 1.035)
 
   function tabItem(index) {
     return index >= 0 && index < repeater.count ? repeater.itemAt(index) : null
@@ -81,7 +82,7 @@ Rectangle {
     height: parent.height
     text: "<"
     textFormat: Text.PlainText
-    color: viewport.contentX > 0 && previousPointer.containsMouse ? Color.accent : Color.muted
+    color: viewport.contentX > 0 && previousPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
@@ -107,7 +108,7 @@ Rectangle {
     height: parent.height
     text: ">"
     textFormat: Text.PlainText
-    color: viewport.contentX < viewport.contentWidth - viewport.width && nextPointer.containsMouse ? Color.accent : Color.muted
+    color: viewport.contentX < viewport.contentWidth - viewport.width && nextPointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
@@ -152,7 +153,7 @@ Rectangle {
           readonly property bool current: index === tabs.activeIndex
           width: Math.min(Style.space(140), Math.max(Style.space(64), contents.implicitWidth + Style.space(16)))
           height: tabRow.height
-          color: current ? Qt.lighter(Color.bar.background, 1.08) : "transparent"
+          color: current ? Qt.lighter(Commons.Color.bar.background, 1.08) : "transparent"
 
           Rectangle {
             anchors.bottom: parent.bottom
@@ -160,7 +161,7 @@ Rectangle {
             anchors.right: parent.right
             height: 2
             visible: tab.current
-            color: moduleRoot.activeFocus ? Color.accent : Color.muted
+            color: moduleRoot.activeFocus ? Commons.Color.accent : Commons.Color.muted
           }
 
           MouseArea {
@@ -192,8 +193,8 @@ Rectangle {
               textFormat: Text.PlainText
               elide: Text.ElideRight
               color: tab.current
-                ? (moduleRoot.activeFocus ? Color.accent : Color.muted)
-                : (tabPointer.containsMouse ? Color.bar.text : Color.muted)
+                ? (moduleRoot.activeFocus ? Commons.Color.accent : Commons.Color.muted)
+                : (tabPointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted)
               font.family: Style.font.family
               font.pixelSize: Typography.caption
               font.weight: Font.DemiBold
@@ -203,7 +204,7 @@ Rectangle {
               visible: tabs.items.length > 1
               text: "×"
               textFormat: Text.PlainText
-              color: closePointer.containsMouse ? Color.accent : Color.muted
+              color: closePointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
               font.family: Style.font.family
               font.pixelSize: Typography.bodySmall
 
@@ -229,7 +230,7 @@ Rectangle {
           anchors.centerIn: parent
           text: "+"
           textFormat: Text.PlainText
-          color: addPointer.containsMouse && addPointer.enabled ? Color.accent : Color.muted
+          color: addPointer.containsMouse && addPointer.enabled ? Commons.Color.accent : Commons.Color.muted
           font.family: Style.font.family
           font.pixelSize: Typography.body
         }
@@ -274,9 +275,9 @@ Rectangle {
     width: Style.space(140)
     height: parent.height - Style.space(6)
     radius: 0
-    color: Color.bar.background
+    color: Commons.Color.bar.background
     border.width: 1
-    border.color: Color.accent
+    border.color: Commons.Color.accent
     z: 7
 
     TextInput {
@@ -285,9 +286,9 @@ Rectangle {
       anchors.leftMargin: Style.space(8)
       anchors.rightMargin: Style.space(8)
       verticalAlignment: TextInput.AlignVCenter
-      color: Color.bar.text
-      selectionColor: Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.38)
-      selectedTextColor: Color.bar.text
+      color: Commons.Color.bar.text
+      selectionColor: Qt.rgba(Commons.Color.accent.r, Commons.Color.accent.g, Commons.Color.accent.b, 0.38)
+      selectedTextColor: Commons.Color.bar.text
       selectByMouse: true
       clip: true
       font.family: Style.font.family

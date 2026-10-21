@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Text {
   id: group
@@ -12,7 +13,7 @@ Text {
   width: parent ? parent.width : 0
   topPadding: Style.space(5)
   text: title.toUpperCase()
-  color: Color.muted
+  color: Commons.Color.muted
   elide: Text.ElideRight
   font.family: Style.font.family
   font.pixelSize: Typography.caption

@@ -1,11 +1,12 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: glyph
 
   property string button: "left"
-  property color color: Color.tooltip.text
+  property color color: Commons.Color.tooltip.text
   readonly property real unit: Style.space(1)
 
   implicitWidth: unit * 8

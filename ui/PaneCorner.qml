@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: corner
@@ -19,7 +20,7 @@ Item {
     textFormat: Text.PlainText
     anchors.centerIn: parent
     text: corner.glyph
-    color: corner.active || pointer.containsMouse ? Color.accent : Color.muted
+    color: corner.active || pointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
   }

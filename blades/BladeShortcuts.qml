@@ -4,6 +4,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: root
@@ -99,7 +100,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Util.alpha(Color.background, 0.48)
+    color: Util.alpha(Commons.Color.background, 0.48)
 
     MouseArea {
       anchors.fill: parent
@@ -113,9 +114,9 @@ Item {
     width: Math.min(parent.width - Style.space(32), Style.space(380))
     height: Math.min(parent.height - Style.space(64), Math.ceil(content.implicitHeight) + Style.space(24))
     radius: Style.cornerRadius
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
-    border.color: Color.popups.border
+    border.color: Commons.Color.popups.border
     clip: true
 
     MouseArea {
@@ -148,7 +149,7 @@ Item {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             text: "SHORTCUTS"
-            color: Color.bar.text
+            color: Commons.Color.bar.text
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
             font.weight: Font.DemiBold
@@ -160,7 +161,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             text: "×"
-            color: closePointer.containsMouse ? Color.bar.text : Color.muted
+            color: closePointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Typography.title
 
@@ -187,7 +188,7 @@ Item {
               textFormat: Text.PlainText
               width: parent.width
               text: String(modelData.title || "").toUpperCase()
-              color: Color.accent
+              color: Commons.Color.accent
               font.family: Style.font.family
               font.pixelSize: Typography.caption
               font.letterSpacing: 0.4

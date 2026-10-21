@@ -6,6 +6,7 @@ import "../lib/FileIcons.js" as FileIcons
 import "../lib/Highlight.js" as Highlight
 import "../lib/GitSummary.js" as GitSummary
 import "../theme"
+import qs.Commons as Commons
 
 Rectangle {
   id: row
@@ -135,7 +136,7 @@ Rectangle {
   readonly property string entryColor: gitDeleted ? "" : controller.folderColor(path)
   readonly property bool colorsName: entryColor !== "" && controller.folderColorScope !== "icon"
   readonly property bool colorsRow: entryColor !== "" && controller.folderColorScope === "row"
-  readonly property color mutedEntryColor: colorsRow ? Util.alpha(entryColor, 0.68) : Color.muted
+  readonly property color mutedEntryColor: colorsRow ? Util.alpha(entryColor, 0.68) : Commons.Color.muted
   readonly property bool showsGitIgnored: controller.gitEnabled && gitIgnored
   readonly property bool colorsGit: controller.gitEnabled && !gitDeleted && !gitIgnored && gitStatus !== ""
   readonly property bool showsRepoSummary: controller.gitEnabled && treeMode
@@ -147,21 +148,21 @@ Rectangle {
 
   function repositorySummaryMarkup(parts, separator) {
     return (parts || repositorySummary.tokens || []).map(function(part) {
-      var color = part.marker === "ahead" ? Color.accent
-        : (part.marker === "behind" ? controller.gitStatusColor("M") : (part.marker ? controller.gitStatusColor(part.marker) : Color.muted))
+      var color = part.marker === "ahead" ? Commons.Color.accent
+        : (part.marker === "behind" ? controller.gitStatusColor("M") : (part.marker ? controller.gitStatusColor(part.marker) : Commons.Color.muted))
       return '<font color="' + color + '">' + Highlight.escapeHtml(part.text) + '</font>'
     }).join(separator || " ")
   }
 
   color: dropHovered
-    ? Util.alpha(Color.accent, 0.24)
+    ? Util.alpha(Commons.Color.accent, 0.24)
     : (selected
-      ? Color.menu.selectedBackground
+      ? Commons.Color.menu.selectedBackground
       : (row.hovered
-        ? (colorsRow ? Util.alpha(entryColor, Style.hoverFillAlpha + 0.08) : Style.hoverFillFor(Color.bar.text, Color.accent))
+        ? (colorsRow ? Util.alpha(entryColor, Style.hoverFillAlpha + 0.08) : Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent))
         : (colorsRow ? Util.alpha(entryColor, 0.10) : "transparent")))
   border.width: dropHovered ? 1 : 0
-  border.color: Color.accent
+  border.color: Commons.Color.accent
   opacity: dragHandler.active ? 0.62 : (gitDeleted ? 0.78 : (selectable ? 1.0 : 0.38))
 
   function choose(modifiers) {
@@ -211,7 +212,7 @@ Rectangle {
     visible: !row.gitDeleted && !row.moreRow && !row.customInteraction
       && row.favoriteAvailable && (row.favorite || row.hovered)
     text: row.favorite ? "" : "☆"
-    color: row.favorite ? Color.accent : Color.muted
+    color: row.favorite ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Math.max(1, Math.round((Typography.bodySmall) * row.densityScale))
   }
@@ -225,7 +226,7 @@ Rectangle {
     horizontalAlignment: Text.AlignHCenter
     visible: !row.customInteraction && row.treeMode && !row.favoriteMode && row.isDir
     text: row.loading ? "󰇘" : FileIcons.expanderIcon(row.expanded)
-    color: row.error ? Color.urgent : Color.muted
+    color: row.error ? Commons.Color.urgent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Math.max(1, Math.round((Typography.body) * row.densityScale))
   }
@@ -243,16 +244,16 @@ Rectangle {
         ? "󰇘"
         : FileIcons.entryIcon(row.name, row.isDir, row.isSymlink, row.expanded && row.treeMode, row.isGitRepo, row.homeEntry))
     color: row.urgent
-      ? Color.urgent
+      ? Commons.Color.urgent
       : (row.gitDeleted
-      ? Color.urgent
+      ? Commons.Color.urgent
       : (row.showsGitIgnored
         ? row.mutedEntryColor
         : (row.colorsGit
           ? row.gitRowColor
           : (row.hiddenEntry
             ? row.mutedEntryColor
-            : (row.entryColor || (row.isDir ? Color.accent : Color.muted))))))
+            : (row.entryColor || (row.isDir ? Commons.Color.accent : Commons.Color.muted))))))
     font.family: Style.font.family
     font.pixelSize: Math.max(1, Math.round((Typography.body) * row.densityScale))
   }
@@ -282,19 +283,19 @@ Rectangle {
       width: parent.width
       textFormat: row.nameSpans !== "" ? Text.StyledText : Text.PlainText
       text: row.nameSpans !== "" && !row.homeEntry
-        ? Highlight.markup(row.name, Highlight.parseSpans(row.nameSpans), Color.accent)
+        ? Highlight.markup(row.name, Highlight.parseSpans(row.nameSpans), Commons.Color.accent)
         : row.displayName
       color: row.urgent
-        ? Color.urgent
+        ? Commons.Color.urgent
         : (row.gitDeleted
-        ? Color.urgent
+        ? Commons.Color.urgent
         : (row.moreRow || row.showsGitIgnored
           ? row.mutedEntryColor
           : (row.colorsGit
             ? row.gitRowColor
             : (row.hiddenEntry
               ? row.mutedEntryColor
-              : (row.colorsName ? row.entryColor : (row.selected && row.isDir ? Color.accent : Color.bar.text))))))
+              : (row.colorsName ? row.entryColor : (row.selected && row.isDir ? Commons.Color.accent : Commons.Color.bar.text))))))
       elide: Text.ElideRight
       font.family: Style.font.family
       font.pixelSize: Math.max(1, Math.round((Typography.body) * row.densityScale))
@@ -307,7 +308,7 @@ Rectangle {
       visible: row.pathVisible
       textFormat: row.relativeSpans !== "" ? Text.StyledText : Text.PlainText
       text: row.relativeSpans !== ""
-        ? Highlight.markup(row.relative, Highlight.parseSpans(row.relativeSpans), Color.accent)
+        ? Highlight.markup(row.relative, Highlight.parseSpans(row.relativeSpans), Commons.Color.accent)
         : row.relative
       color: row.mutedEntryColor
       elide: Text.ElideMiddle
@@ -338,7 +339,7 @@ Rectangle {
         textFormat: Text.PlainText
         width: pane.priorityColumnWidth(row.width, key)
         text: row.priorityText(key, width)
-        color: row.colorsRow ? row.mutedEntryColor : (row.selected ? Color.bar.text : Color.muted)
+        color: row.colorsRow ? row.mutedEntryColor : (row.selected ? Commons.Color.bar.text : Commons.Color.muted)
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
@@ -388,7 +389,7 @@ Rectangle {
       visible: row.showsGitIgnored || row.error !== "" || controller.gitStatusDetails.length === 0 || !row.hasGitDetailText()
       textFormat: Text.PlainText
       text: row.error ? "" : (row.showsGitIgnored ? "" : row.gitStatus)
-      color: row.error ? Color.urgent : (row.showsGitIgnored ? row.mutedEntryColor : controller.gitStatusColor(row.gitStatus))
+      color: row.error ? Commons.Color.urgent : (row.showsGitIgnored ? row.mutedEntryColor : controller.gitStatusColor(row.gitStatus))
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
@@ -430,7 +431,7 @@ Rectangle {
       anchors.verticalCenter: parent.verticalCenter
       textFormat: Text.PlainText
       text: row.repositorySummary.identity || ""
-      color: branchPointer.containsMouse ? Color.bar.text : Color.accent
+      color: branchPointer.containsMouse ? Commons.Color.bar.text : Commons.Color.accent
       font.family: Style.font.family
       font.pixelSize: Math.max(1, Math.round((Typography.caption) * row.densityScale))
       elide: Text.ElideMiddle

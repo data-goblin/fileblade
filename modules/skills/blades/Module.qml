@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "KeyMap.js" as KeyMap
 import "../../../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -20,7 +21,7 @@ FocusScope {
   readonly property string anchorPath: inventory ? inventory.anchorPath : ""
   readonly property var projectArguments: inventory ? inventory.projectArguments : []
   readonly property bool suspended: !context || context.collapsed === true || context.bladeOpen === false
-  readonly property color paneBackground: Qt.lighter(Color.bar.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.bar.background, 1.035)
 
   readonly property var items: inventory ? inventory.items.map(skillRow).filter(Boolean) : []
   readonly property string loadError: viewError || (inventory ? inventory.loadError : (provider ? provider.error : ""))
@@ -577,7 +578,7 @@ FocusScope {
     text: module.loadError ? module.loadError
       : (module.busy ? "Scanning skills…"
       : (module.query ? "No match for the current filter" : "No skills found"))
-    color: module.loadError ? Color.urgent : Color.muted
+    color: module.loadError ? Commons.Color.urgent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
   }

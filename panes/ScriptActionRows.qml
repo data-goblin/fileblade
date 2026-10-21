@@ -4,6 +4,7 @@ import qs.Ui
 import "../lib/ActionRows.js" as ActionRows
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Column {
   id: strip
@@ -52,14 +53,14 @@ Column {
   Rectangle {
     width: parent.width
     height: 1
-    color: Util.alpha(Color.menu.text, 0.14)
+    color: Util.alpha(Commons.Color.menu.text, 0.14)
   }
 
   Text {
     textFormat: Text.PlainText
     width: parent.width
     text: "SCRIPTS"
-    color: Color.muted
+    color: Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
     font.weight: Font.DemiBold
@@ -88,7 +89,7 @@ Column {
   PluginUi.ErrorNotice {
     width: parent.width
     text: strip.resultText
-    foreground: Color.muted
+    foreground: Commons.Color.muted
     onDismissed: strip.resultText = ""
   }
 

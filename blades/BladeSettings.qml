@@ -5,6 +5,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: root
@@ -231,7 +232,7 @@ Item {
   component SectionLabel: Text {
     textFormat: Text.PlainText
     width: parent ? parent.width : 0
-    color: Color.muted
+    color: Commons.Color.muted
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.caption
@@ -241,7 +242,7 @@ Item {
   component Divider: Rectangle {
     width: parent ? parent.width : 0
     height: 1
-    color: Util.alpha(Color.bar.text, 0.12)
+    color: Util.alpha(Commons.Color.bar.text, 0.12)
   }
 
   component IconAction: Item {
@@ -259,7 +260,7 @@ Item {
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: action.glyph
-      color: action.danger && actionPointer.containsMouse ? Color.urgent : (actionPointer.containsMouse ? Color.bar.text : Color.muted)
+      color: action.danger && actionPointer.containsMouse ? Commons.Color.urgent : (actionPointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted)
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
     }
@@ -284,7 +285,7 @@ Item {
     id: link
     signal clicked()
     textFormat: Text.PlainText
-    color: linkPointer.containsMouse ? Color.bar.text : Color.muted
+    color: linkPointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
 
@@ -391,7 +392,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             height: 1
-            color: Util.alpha(Color.bar.text, 0.12)
+            color: Util.alpha(Commons.Color.bar.text, 0.12)
           }
         }
 
@@ -410,7 +411,7 @@ Item {
             visible: root.matches(section.tabLabel(slotGroup.index, index))
             radius: Math.min(Style.cornerRadius, Style.space(4))
             opacity: lifted ? 0.35 : 1
-            color: rowHover.containsMouse || lifted ? Util.alpha(Color.bar.text, 0.06) : Util.alpha(Color.bar.text, 0.03)
+            color: rowHover.containsMouse || lifted ? Util.alpha(Commons.Color.bar.text, 0.06) : Util.alpha(Commons.Color.bar.text, 0.03)
 
             MouseArea {
               id: rowHover
@@ -427,7 +428,7 @@ Item {
               anchors.verticalCenter: parent.verticalCenter
               width: Style.space(14)
               text: "󰇝"
-              color: handlePointer.containsMouse || tabRow.lifted ? Color.accent : Color.muted
+              color: handlePointer.containsMouse || tabRow.lifted ? Commons.Color.accent : Commons.Color.muted
               horizontalAlignment: Text.AlignHCenter
               font.family: Style.font.family
               font.pixelSize: Typography.body
@@ -464,7 +465,7 @@ Item {
               height: Style.space(18)
               glyph: root.moduleGlyph(tabRow.moduleId)
               iconUrl: root.moduleIconUrl(tabRow.moduleId)
-              color: Color.accent
+              color: Commons.Color.accent
               size: Typography.body
             }
 
@@ -476,7 +477,7 @@ Item {
               anchors.rightMargin: Style.space(6)
               anchors.verticalCenter: parent.verticalCenter
               text: root.moduleLabel(tabRow.moduleId)
-              color: Color.bar.text
+              color: Commons.Color.bar.text
               elide: Text.ElideRight
               font.family: Style.font.family
               font.pixelSize: Typography.bodySmall
@@ -559,7 +560,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Util.alpha(Color.background, 0.48)
+    color: Util.alpha(Commons.Color.background, 0.48)
 
     MouseArea {
       anchors.fill: parent
@@ -579,9 +580,9 @@ Item {
     width: Math.min(parent.width - Style.space(16), Style.space(520))
     height: Math.min(parent.height - Style.space(50), chrome.height + Math.ceil(settingsContent.implicitHeight) + pad * 2)
     radius: Style.cornerRadius
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
-    border.color: Color.popups.border
+    border.color: Commons.Color.popups.border
     clip: true
 
     MouseArea {
@@ -607,7 +608,7 @@ Item {
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
           text: "SETTINGS"
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
           font.weight: Font.DemiBold
@@ -619,7 +620,7 @@ Item {
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
           text: "×"
-          color: closePointer.containsMouse ? Color.bar.text : Color.muted
+          color: closePointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
           font.family: Style.font.family
           font.pixelSize: Typography.title
 
@@ -639,7 +640,7 @@ Item {
         width: parent.width
         height: Style.space(30)
         prompt: "Search settings"
-        textColor: Color.bar.text
+        textColor: Commons.Color.bar.text
         onTextChanged: root.query = text
         onDismissed: {
           if (text !== "") text = ""
@@ -702,7 +703,7 @@ Item {
             y: 0
             width: 1
             height: bladesBlock.height
-            color: Util.alpha(Color.bar.text, 0.12)
+            color: Util.alpha(Commons.Color.bar.text, 0.12)
           }
 
           BladeColumn {
@@ -828,7 +829,7 @@ Item {
             visible: footer.shortcutsShown
             shortcut: "?"
             text: "Shortcuts"
-            foreground: shortcutsPointer.containsMouse ? Color.accent : Color.bar.text
+            foreground: shortcutsPointer.containsMouse ? Commons.Color.accent : Commons.Color.bar.text
 
             MouseArea {
               id: shortcutsPointer
@@ -851,7 +852,7 @@ Item {
           width: parent.width
           visible: root.filtering && !bladesBlock.shown && !general.shown && !desktop.shown && root.moduleShown === 0 && !footer.shown
           text: "No setting matches \"" + root.query.trim() + "\""
-          color: Color.muted
+          color: Commons.Color.muted
           elide: Text.ElideRight
           font.family: Style.font.family
           font.pixelSize: Typography.caption
@@ -871,7 +872,7 @@ Item {
       y: root.dropTarget ? root.dropTarget.y - 1 : 0
       width: root.dropTarget ? root.dropTarget.width : 0
       height: 2
-      color: Color.accent
+      color: Commons.Color.accent
       z: 5
 
       Text {
@@ -881,7 +882,7 @@ Item {
         anchors.bottom: parent.top
         anchors.bottomMargin: Style.space(1)
         text: "new slot"
-        color: Color.accent
+        color: Commons.Color.accent
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }
@@ -894,9 +895,9 @@ Item {
       width: root.drag ? root.drag.width : 0
       height: Style.space(28)
       radius: Math.min(Style.cornerRadius, Style.space(4))
-      color: Color.popups.background
+      color: Commons.Color.popups.background
       border.width: 1
-      border.color: Color.accent
+      border.color: Commons.Color.accent
       opacity: 0.92
       z: 6
 
@@ -906,7 +907,7 @@ Item {
         anchors.leftMargin: Style.space(8)
         anchors.verticalCenter: parent.verticalCenter
         text: (root.drag ? root.drag.glyph + "  " + root.drag.title : "")
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
       }

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 
 ShellRoot {
   id: root
@@ -119,10 +120,10 @@ ShellRoot {
       return JSON.stringify({
         loaded: service.status === Loader.Ready,
         sourceDir: root.sourceDir,
-        theme: Color.currentThemePath,
-        background: String(Color.background),
-        foreground: String(Color.foreground),
-        accent: String(Color.accent),
+        theme: Commons.Color.currentThemePath,
+        background: String(Commons.Color.background),
+        foreground: String(Commons.Color.foreground),
+        accent: String(Commons.Color.accent),
         barSize: root.bar.barSize,
         barPosition: root.barConfig.position,
         fontSize: Style.font.body,

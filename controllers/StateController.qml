@@ -8,6 +8,7 @@ import "../lib/FolderPalette.js" as FolderPalette
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: controller
@@ -834,7 +835,7 @@ Item {
     themeReadQueued = false
     themeReadGeneration++
     var requestGeneration = themeReadGeneration
-    themeReadRequestId = service.backendRequest("read-text", ["--path", Color.currentThemePath + "/colors.toml", "--limit", "262144"], requestGeneration, function(response) {
+    themeReadRequestId = service.backendRequest("read-text", ["--path", Commons.Color.currentThemePath + "/colors.toml", "--limit", "262144"], requestGeneration, function(response) {
       if (requestGeneration !== controller.themeReadGeneration) return
       controller.themeReadRequestId = ""
       controller.loadThemeFolderPalette(response && response.ok ? response.text : "")
@@ -865,7 +866,7 @@ Item {
   FileView {
     id: themeFolderPaletteFile
     preload: false
-    path: Color.currentThemePath + "/colors.toml"
+    path: Commons.Color.currentThemePath + "/colors.toml"
     watchChanges: true
     printErrors: false
     onPathChanged: controller.requestThemeRead()
@@ -873,7 +874,7 @@ Item {
   }
 
   FileView {
-    path: Color.currentThemePath + ".name"
+    path: Commons.Color.currentThemePath + ".name"
     preload: false
     watchChanges: true
     printErrors: false

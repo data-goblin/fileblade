@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import qs.Commons
 import "../lib/FileIcons.js" as FileIcons
 import "../theme"
+import qs.Commons as Commons
 
 PanelWindow {
   id: overlay
@@ -214,9 +215,9 @@ PanelWindow {
     Rectangle {
       anchors.fill: parent
       radius: Style.cornerRadius
-      color: overlay.alpha(Color.popups.background, 0.92)
+      color: overlay.alpha(Commons.Color.popups.background, 0.92)
       border.width: ghost.armed ? 2 : 1
-      border.color: ghost.armed ? Color.accent : Color.popups.border
+      border.color: ghost.armed ? Commons.Color.accent : Commons.Color.popups.border
     }
 
     Text {
@@ -226,7 +227,7 @@ PanelWindow {
       anchors.leftMargin: Style.space(10)
       anchors.verticalCenter: parent.verticalCenter
       text: overlay.entryGlyph(ghost.entry)
-      color: Color.accent
+      color: Commons.Color.accent
       font.family: Style.font.family
       font.pixelSize: Typography.body + 3
     }
@@ -240,7 +241,7 @@ PanelWindow {
       anchors.rightMargin: Style.space(9)
       anchors.verticalCenter: parent.verticalCenter
       text: String(ghost.entry.name || "")
-      color: Color.bar.text
+      color: Commons.Color.bar.text
       elide: Text.ElideMiddle
       font.family: Style.font.family
       font.pixelSize: Typography.body
@@ -256,16 +257,16 @@ PanelWindow {
       width: Math.max(Style.space(18), badge.implicitWidth + Style.space(8))
       height: Style.space(18)
       radius: height / 2
-      color: Color.accent
+      color: Commons.Color.accent
       border.width: 1
-      border.color: Color.popups.background
+      border.color: Commons.Color.popups.background
 
       Text {
         id: badge
         textFormat: Text.PlainText
         anchors.centerIn: parent
         text: String(overlay.controller.count)
-        color: Color.popups.background
+        color: Commons.Color.popups.background
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.weight: Font.Bold
@@ -285,14 +286,14 @@ PanelWindow {
       context.arc(cx, cy, outer, start, end, false)
       context.arc(cx, cy, inner, end, start, true)
       context.closePath()
-      context.fillStyle = overlay.alpha(Color.popups.background, 0.94)
+      context.fillStyle = overlay.alpha(Commons.Color.popups.background, 0.94)
       context.fill()
       if (active) {
-        context.fillStyle = overlay.alpha(Color.accent, 0.30)
+        context.fillStyle = overlay.alpha(Commons.Color.accent, 0.30)
         context.fill()
       }
       context.lineWidth = 1
-      context.strokeStyle = overlay.alpha(Color.accent, active ? 0.85 : 0.42)
+      context.strokeStyle = overlay.alpha(Commons.Color.accent, active ? 0.85 : 0.42)
       context.stroke()
     }
 
@@ -344,10 +345,10 @@ PanelWindow {
       cutSeparators(context, cx, cy, control.subInnerRadius, control.subOuterRadius, subEdges, width)
       context.beginPath()
       context.arc(cx, cy, control.hubRadius, 0, 2 * Math.PI, false)
-      context.fillStyle = Color.popups.background
+      context.fillStyle = Commons.Color.popups.background
       context.fill()
       context.lineWidth = 2
-      context.strokeStyle = Color.accent
+      context.strokeStyle = Commons.Color.accent
       context.stroke()
     }
   }
@@ -380,10 +381,10 @@ PanelWindow {
         trustedIconSource: wedge.applicationIcon.icon_source
         monochrome: !wedge.active || monochromeMask !== "alpha"
         monochromeMask: String(wedge.modelData.icon_mask || "alpha")
-        iconColor: wedge.modelData.enabled === false ? Color.muted : wedge.active ? Qt.lighter(Color.accent, 1.5) : Color.accent
+        iconColor: wedge.modelData.enabled === false ? Commons.Color.muted : wedge.active ? Qt.lighter(Commons.Color.accent, 1.5) : Commons.Color.accent
         iconSize: Typography.body + 8
         fallbackGlyph: String(wedge.applicationIcon.glyph || "") || String(wedge.modelData.key || "").toUpperCase()
-        fallbackColor: wedge.modelData.enabled === false ? Color.muted : Color.accent
+        fallbackColor: wedge.modelData.enabled === false ? Commons.Color.muted : Commons.Color.accent
         fallbackSize: Typography.body + 6
       }
 
@@ -402,7 +403,7 @@ PanelWindow {
         rotation: wedge.angle * 180 / Math.PI
         opacity: wedge.active ? 1 : 0.8
         text: "󰅂"
-        color: Color.popups.text
+        color: Commons.Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
       }
@@ -438,10 +439,10 @@ PanelWindow {
         trustedIconSource: child.applicationIcon.icon_source
         monochrome: !child.active || monochromeMask !== "alpha"
         monochromeMask: String(child.modelData.icon_mask || "alpha")
-        iconColor: Qt.lighter(Color.accent, child.active ? 1.75 : 1.45)
+        iconColor: Qt.lighter(Commons.Color.accent, child.active ? 1.75 : 1.45)
         iconSize: Typography.body + 7
         fallbackGlyph: String(child.applicationIcon.glyph || "") || String(child.modelData.key || "").toUpperCase()
-        fallbackColor: Qt.lighter(Color.accent, 1.45)
+        fallbackColor: Qt.lighter(Commons.Color.accent, 1.45)
         fallbackSize: Typography.body + 4
       }
 
@@ -453,7 +454,7 @@ PanelWindow {
         y: at.y - child.y - height / 2
         rotation: child.angle * 180 / Math.PI
         text: "󰅂"
-        color: Color.popups.text
+        color: Commons.Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
       }
@@ -479,7 +480,7 @@ PanelWindow {
       width: parent.width
       horizontalAlignment: Text.AlignHCenter
       text: overlay.controller.loading ? "…" : String(overlay.controller.count)
-      color: Color.accent
+      color: Commons.Color.accent
       font.family: Style.font.family
       font.pixelSize: Typography.body + 2
       font.weight: Font.Bold
@@ -490,7 +491,7 @@ PanelWindow {
       width: parent.width
       horizontalAlignment: Text.AlignHCenter
       text: overlay.controller.count === 1 ? "item" : "items"
-      color: Color.muted
+      color: Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.caption
     }
@@ -504,10 +505,10 @@ PanelWindow {
     x: Math.max(Style.space(4), Math.min(overlay.screenWidth - width - Style.space(4), overlay.controller.wheelX - width / 2))
     y: Math.min(overlay.screenHeight - height - Style.space(4), overlay.controller.wheelY + (overlay.wheelHere ? overlay.controller.extent + Style.space(10) : Style.space(18)))
     radius: Style.cornerRadius
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
     readonly property bool failed: overlay.wheelHere ? overlay.controller.error !== "" : overlay.controller.toastError
-    border.color: failed ? Color.urgent : Color.popups.border
+    border.color: failed ? Commons.Color.urgent : Commons.Color.popups.border
 
     readonly property var highlightedItem: overlay.controller.subHighlighted >= 0
       ? overlay.controller.subItems[overlay.controller.subHighlighted]
@@ -539,7 +540,7 @@ PanelWindow {
       Text {
         textFormat: Text.PlainText
         text: caption.headline
-        color: caption.failed ? Color.urgent : Color.popups.text
+        color: caption.failed ? Commons.Color.urgent : Commons.Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
         font.weight: Font.DemiBold
@@ -549,7 +550,7 @@ PanelWindow {
         textFormat: Text.PlainText
         visible: text !== ""
         text: caption.detail
-        color: Color.muted
+        color: Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }
@@ -562,7 +563,7 @@ PanelWindow {
         wrapMode: Text.Wrap
         maximumLineCount: 3
         elide: Text.ElideRight
-        color: Color.urgent
+        color: Commons.Color.urgent
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }

@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../lib/SettingsForm.js" as Form
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: control
@@ -49,14 +50,14 @@ Item {
 
     Rectangle {
       anchors.fill: parent
-      color: buttonPointer.containsMouse && button.enabled ? Util.alpha(Color.bar.text, 0.12) : Util.alpha(Color.bar.text, 0.06)
+      color: buttonPointer.containsMouse && button.enabled ? Util.alpha(Commons.Color.bar.text, 0.12) : Util.alpha(Commons.Color.bar.text, 0.06)
     }
 
     Text {
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: button.glyph
-      color: buttonPointer.containsMouse && button.enabled ? Color.bar.text : Color.muted
+      color: buttonPointer.containsMouse && button.enabled ? Commons.Color.bar.text : Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
     }
@@ -78,7 +79,7 @@ Item {
     anchors.rightMargin: Style.space(8)
     anchors.verticalCenter: parent.verticalCenter
     text: (control.row.glyph ? control.row.glyph + "  " : "") + String(control.row.label || "")
-    color: Color.bar.text
+    color: Commons.Color.bar.text
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
@@ -92,7 +93,7 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     visible: control.range !== ""
     text: control.range
-    color: Color.muted
+    color: Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
   }
@@ -115,9 +116,9 @@ Item {
     width: Style.space(58)
     height: Style.space(22)
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: Util.alpha(Color.bar.text, field.activeFocus ? 0.10 : 0.06)
+    color: Util.alpha(Commons.Color.bar.text, field.activeFocus ? 0.10 : 0.06)
     border.width: field.activeFocus ? 1 : 0
-    border.color: Util.alpha(Color.accent, 0.6)
+    border.color: Util.alpha(Commons.Color.accent, 0.6)
 
     TextInput {
       id: field
@@ -129,9 +130,9 @@ Item {
       text: control.shown
       maximumLength: Form.MAXIMUM_FIELD_LENGTH
       inputMethodHints: Qt.ImhFormattedNumbersOnly
-      color: Color.bar.text
-      selectionColor: Util.alpha(Color.accent, 0.38)
-      selectedTextColor: Color.bar.text
+      color: Commons.Color.bar.text
+      selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+      selectedTextColor: Commons.Color.bar.text
       selectByMouse: true
       clip: true
       font.family: Style.font.family

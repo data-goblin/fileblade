@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
+import qs.Commons as Commons
 
 Item {
   id: drivesSection
@@ -50,8 +51,8 @@ Item {
       width: drivesList.width
       label: driveRow.name
       glyph: driveRow.volumeGlyph
-      glyphColor: driveRow.mounted ? Color.accent : Color.muted
-      labelColor: driveRow.mounted ? Color.bar.text : Util.alpha(Color.bar.text, 0.75)
+      glyphColor: driveRow.mounted ? Commons.Color.accent : Commons.Color.muted
+      labelColor: driveRow.mounted ? Commons.Color.bar.text : Util.alpha(Commons.Color.bar.text, 0.75)
       badge: drivesSection.badgeFor(driveRow)
       barColumn: driveRow.mounted
       barFraction: driveRow.mounted ? driveRow.usedFraction : -1
@@ -100,6 +101,6 @@ Item {
     anchors.right: parent.right
     anchors.bottom: parent.bottom
     height: 1
-    color: Util.alpha(Color.bar.text, 0.08)
+    color: Util.alpha(Commons.Color.bar.text, 0.08)
   }
 }

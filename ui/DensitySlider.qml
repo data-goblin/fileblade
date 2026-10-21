@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: control
@@ -52,7 +53,7 @@ FocusScope {
     text: "−"
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
-    color: control.clamped > 0 ? Color.bar.text : Color.muted
+    color: control.clamped > 0 ? Commons.Color.bar.text : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
     Accessible.role: Accessible.Button
@@ -101,7 +102,7 @@ FocusScope {
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width
         height: Math.max(1, Style.space(2))
-        color: Color.muted
+        color: Commons.Color.muted
       }
 
       Repeater {
@@ -113,7 +114,7 @@ FocusScope {
           anchors.verticalCenter: parent.verticalCenter
           width: Math.max(1, Style.space(1))
           height: Style.space(6)
-          color: Color.muted
+          color: Commons.Color.muted
         }
       }
     }
@@ -128,14 +129,14 @@ FocusScope {
         anchors.centerIn: parent
         width: Style.space(16)
         height: width
-        color: Color.bar.background
+        color: Commons.Color.bar.background
       }
 
       Text {
         anchors.centerIn: parent
         textFormat: Text.PlainText
         text: "\ue900"
-        color: Color.accent
+        color: Commons.Color.accent
         font.family: "omarchy"
         font.pixelSize: Style.space(16)
       }
@@ -151,7 +152,7 @@ FocusScope {
     text: "+"
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
-    color: control.clamped < control.steps - 1 ? Color.bar.text : Color.muted
+    color: control.clamped < control.steps - 1 ? Commons.Color.bar.text : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
     Accessible.role: Accessible.Button
@@ -174,7 +175,7 @@ FocusScope {
     text: control.valueLabel
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
-    color: valuePointer.containsMouse && control.editableValue ? Color.bar.text : Color.muted
+    color: valuePointer.containsMouse && control.editableValue ? Commons.Color.bar.text : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
     Accessible.ignored: true
@@ -203,8 +204,8 @@ FocusScope {
     text: ""
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
-    color: Color.bar.text
-    selectionColor: Util.alpha(Color.accent, 0.38)
+    color: Commons.Color.bar.text
+    selectionColor: Util.alpha(Commons.Color.accent, 0.38)
     selectByMouse: true
     maximumLength: 6
     font.family: Style.font.family

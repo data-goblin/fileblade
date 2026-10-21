@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 PanelWindow {
   id: overlay
@@ -51,9 +52,9 @@ PanelWindow {
     width: content.implicitWidth + Style.space(24)
     height: content.implicitHeight + Style.space(16)
     radius: Style.cornerRadius
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
-    border.color: overlay.host.dropEdge !== "" && !overlay.host.dropNoop ? Color.accent : Color.popups.border
+    border.color: overlay.host.dropEdge !== "" && !overlay.host.dropNoop ? Commons.Color.accent : Commons.Color.popups.border
 
     Column {
       id: content
@@ -66,7 +67,7 @@ PanelWindow {
         Text {
           textFormat: Text.PlainText
           text: overlay.host.dragGlyph
-          color: Color.accent
+          color: Commons.Color.accent
           font.family: Style.font.family
           font.pixelSize: Typography.body
         }
@@ -74,7 +75,7 @@ PanelWindow {
         Text {
           textFormat: Text.PlainText
           text: overlay.host.dragTitle
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
           font.weight: Font.DemiBold
@@ -85,7 +86,7 @@ PanelWindow {
       Text {
         textFormat: Text.PlainText
         text: overlay.host.dropLabel
-        color: overlay.host.dropEdge !== "" && !overlay.host.dropNoop ? Color.accent : Color.muted
+        color: overlay.host.dropEdge !== "" && !overlay.host.dropNoop ? Commons.Color.accent : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }

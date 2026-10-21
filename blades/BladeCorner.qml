@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Ui
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: corner
@@ -21,7 +22,7 @@ Item {
     textFormat: Text.PlainText
     anchors.centerIn: parent
     text: corner.glyph
-    color: pointer.containsMouse ? Color.accent : Color.muted
+    color: pointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.caption
   }

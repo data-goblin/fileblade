@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -35,7 +36,7 @@ FocusScope {
       textFormat: Text.PlainText
       id: label
       text: control.text
-      color: control.primary ? Color.background : Color.bar.text
+      color: control.primary ? Commons.Color.background : Commons.Color.bar.text
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
@@ -45,17 +46,17 @@ FocusScope {
     background: Rectangle {
       color: control.primary
         ? (control.hovered
-          ? (control.danger ? Color.urgent : Color.accent)
-          : Util.alpha(control.danger ? Color.urgent : Color.accent, 0.84))
-        : (control.hovered || control.activeFocus ? Style.hoverFillFor(Color.bar.text, Color.accent) : Util.alpha(Color.bar.text, 0.06))
+          ? (control.danger ? Commons.Color.urgent : Commons.Color.accent)
+          : Util.alpha(control.danger ? Commons.Color.urgent : Commons.Color.accent, 0.84))
+        : (control.hovered || control.activeFocus ? Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent) : Util.alpha(Commons.Color.bar.text, 0.06))
       border.width: control.primary ? 0 : 1
-      border.color: control.activeFocus ? Color.accent : Util.alpha(Color.bar.text, 0.18)
+      border.color: control.activeFocus ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.18)
     }
   }
 
   Rectangle {
     anchors.fill: parent
-    color: Qt.lighter(Color.bar.background, 1.035)
+    color: Qt.lighter(Commons.Color.bar.background, 1.035)
   }
 
   Rectangle {
@@ -63,7 +64,7 @@ FocusScope {
     anchors.left: parent.left
     anchors.right: parent.right
     height: 1
-    color: Util.alpha(Color.bar.text, 0.22)
+    color: Util.alpha(Commons.Color.bar.text, 0.22)
   }
 
   Column {
@@ -86,7 +87,7 @@ FocusScope {
           textFormat: Text.PlainText
           width: parent.width
           text: controller.pickerTitle
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           elide: Text.ElideRight
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
@@ -104,7 +105,7 @@ FocusScope {
             if (controller.pickerMode === "folder") return "Choose one or more folders"
             return controller.selectedCount + " selected"
           }
-          color: controller.operationError || controller.pickerOverwriteArmed ? Color.urgent : Color.muted
+          color: controller.operationError || controller.pickerOverwriteArmed ? Commons.Color.urgent : Commons.Color.muted
           elide: Text.ElideRight
           font.family: Style.font.family
           font.pixelSize: Typography.caption
@@ -145,17 +146,17 @@ FocusScope {
       selectByMouse: true
       text: controller.pickerFileName
       placeholderText: "File name"
-      placeholderTextColor: Color.muted
-      color: Color.bar.text
-      selectionColor: Util.alpha(Color.accent, 0.38)
-      selectedTextColor: Color.bar.text
+      placeholderTextColor: Commons.Color.muted
+      color: Commons.Color.bar.text
+      selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+      selectedTextColor: Commons.Color.bar.text
       font.family: Style.font.family
       font.pixelSize: Typography.body
       background: Rectangle {
         radius: Math.min(Style.cornerRadius, Style.space(4))
-        color: Util.alpha(Color.bar.text, nameField.activeFocus ? 0.10 : 0.06)
+        color: Util.alpha(Commons.Color.bar.text, nameField.activeFocus ? 0.10 : 0.06)
         border.width: 1
-        border.color: nameField.activeFocus ? Color.accent : Util.alpha(Color.bar.text, 0.18)
+        border.color: nameField.activeFocus ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.18)
       }
       onTextEdited: controller.pickerFileName = text
       onAccepted: controller.confirmPicker()

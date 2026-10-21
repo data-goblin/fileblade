@@ -5,6 +5,7 @@ import qs.Ui
 import "../../ui" as PluginUi
 import "WelcomePlan.js" as WelcomePlan
 import "../../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -80,9 +81,9 @@ FocusScope {
     }
     background: Rectangle {
       radius: 0
-      color: action.hovered || action.activeFocus ? Util.alpha(Color.accent, 0.15) : "transparent"
+      color: action.hovered || action.activeFocus ? Util.alpha(Commons.Color.accent, 0.15) : "transparent"
       border.width: action.activeFocus ? 1 : 0
-      border.color: Color.accent
+      border.color: Commons.Color.accent
     }
     contentItem: Row {
       spacing: Style.space(8)
@@ -92,7 +93,7 @@ FocusScope {
         glyph: action.glyph
         iconUrl: action.iconUrl
         visible: glyph !== "" || iconUrl !== ""
-        color: Color.accent
+        color: Commons.Color.accent
       }
       Column {
         id: body
@@ -109,7 +110,7 @@ FocusScope {
             textFormat: Text.PlainText
             text: action.text
             elide: action.inline ? Text.ElideRight : Text.ElideNone
-            color: action.enabled ? Color.bar.text : Color.muted
+            color: action.enabled ? Commons.Color.bar.text : Commons.Color.muted
             wrapMode: action.inline ? Text.NoWrap : Text.WordWrap
             font.family: Style.font.family
             font.pixelSize: Typography.body
@@ -121,7 +122,7 @@ FocusScope {
             visible: action.inline && action.detail !== ""
             textFormat: Text.PlainText
             text: action.detail
-            color: Color.muted
+            color: Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
           }
@@ -131,7 +132,7 @@ FocusScope {
           visible: !action.inline && action.detail !== ""
           textFormat: Text.PlainText
           text: action.detail
-          color: Color.muted
+          color: Commons.Color.muted
           wrapMode: Text.WordWrap
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
@@ -140,7 +141,7 @@ FocusScope {
     }
   }
 
-  Rectangle { anchors.fill: parent; color: Qt.lighter(Color.background, 1.035) }
+  Rectangle { anchors.fill: parent; color: Qt.lighter(Commons.Color.background, 1.035) }
   Flickable {
     id: scroll
     anchors.fill: parent
@@ -158,7 +159,7 @@ FocusScope {
         width: parent.width
         textFormat: Text.PlainText
         text: WelcomePlan.HEADING
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         font.family: Style.font.family
         font.pixelSize: Typography.body
         font.weight: Font.DemiBold
@@ -167,7 +168,7 @@ FocusScope {
         width: parent.width
         textFormat: Text.PlainText
         text: WelcomePlan.BODY
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
@@ -178,7 +179,7 @@ FocusScope {
         visible: module.updated
         textFormat: Text.PlainText
         text: "FileBlade was updated to " + module.appVersion + "."
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
@@ -232,7 +233,7 @@ FocusScope {
         visible: module.catalog.entries.length === 0
         textFormat: Text.PlainText
         text: "Extensions can add more blades. No optional extensions are listed here yet. Installed blades remain available from +."
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
@@ -256,7 +257,7 @@ FocusScope {
         visible: text !== ""
         textFormat: Text.PlainText
         text: module.error
-        color: Color.urgent
+        color: Commons.Color.urgent
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
@@ -273,7 +274,7 @@ FocusScope {
         width: parent.width
         textFormat: Text.PlainText
         text: "Reopen Welcome with + in a blade."
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall

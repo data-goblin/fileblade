@@ -3,6 +3,7 @@ import qs.Commons
 import qs.Ui
 import "../lib/SettingsForm.js" as Form
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: control
@@ -46,7 +47,7 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     width: Math.min(implicitWidth, Math.floor(parent.width * 0.4))
     text: String(control.row.label || "")
-    color: Color.bar.text
+    color: Commons.Color.bar.text
     elide: Text.ElideRight
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
@@ -61,9 +62,9 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     height: Style.space(22)
     radius: Math.min(Style.cornerRadius, Style.space(4))
-    color: Util.alpha(Color.bar.text, field.activeFocus ? 0.10 : 0.06)
+    color: Util.alpha(Commons.Color.bar.text, field.activeFocus ? 0.10 : 0.06)
     border.width: field.activeFocus ? 1 : 0
-    border.color: Util.alpha(Color.accent, 0.6)
+    border.color: Util.alpha(Commons.Color.accent, 0.6)
 
     Text {
       textFormat: Text.PlainText
@@ -71,7 +72,7 @@ Item {
       verticalAlignment: Text.AlignVCenter
       visible: field.text === "" && !field.activeFocus
       text: String(control.row.placeholder || "")
-      color: Color.muted
+      color: Commons.Color.muted
       elide: Text.ElideRight
       font.family: Style.font.family
       font.pixelSize: Typography.caption
@@ -85,9 +86,9 @@ Item {
       verticalAlignment: TextInput.AlignVCenter
       text: control.current
       maximumLength: control.limit
-      color: Color.bar.text
-      selectionColor: Util.alpha(Color.accent, 0.38)
-      selectedTextColor: Color.bar.text
+      color: Commons.Color.bar.text
+      selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+      selectedTextColor: Commons.Color.bar.text
       selectByMouse: true
       clip: true
       font.family: Style.font.family
@@ -115,7 +116,7 @@ Item {
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: "󰈔"
-      color: usePointer.containsMouse && useButton.enabled ? Color.accent : Color.muted
+      color: usePointer.containsMouse && useButton.enabled ? Commons.Color.accent : Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
     }

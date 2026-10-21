@@ -4,6 +4,7 @@ import qs.Commons
 import qs.Ui
 import "../lib/Agents.js" as Agents
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: icon
@@ -15,8 +16,8 @@ Item {
   readonly property string label: Agents.label(agentId)
   readonly property bool hasMark: !!agent && !!agent.svg && mark.status === Image.Ready
   readonly property bool hot: pointer.containsMouse
-  readonly property color appliedColor: Color.accent
-  readonly property color inactiveColor: Color.muted
+  readonly property color appliedColor: Commons.Color.accent
+  readonly property color inactiveColor: Commons.Color.muted
   readonly property color tone: applied ? appliedColor : (hot ? Qt.lighter(inactiveColor, 1.35) : inactiveColor)
 
   signal clicked()

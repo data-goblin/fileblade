@@ -5,6 +5,7 @@ import qs.Ui
 import "../lib/Highlight.js" as Highlight
 import "../lib/KeyRouter.js" as KeyRouter
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: card
@@ -22,7 +23,7 @@ FocusScope {
   property alias text: input.text
   readonly property alias currentIndex: list.currentIndex
   readonly property alias count: list.count
-  readonly property color secondaryTextColor: Util.alpha(Color.bar.text, 0.72)
+  readonly property color secondaryTextColor: Util.alpha(Commons.Color.bar.text, 0.72)
 
   signal edited(string text)
   signal activated(int index, bool alternate)
@@ -60,7 +61,7 @@ FocusScope {
 
   Rectangle {
     anchors.fill: parent
-    color: Util.alpha(Color.background, 0.55)
+    color: Util.alpha(Commons.Color.background, 0.55)
 
     MouseArea {
       anchors.fill: parent
@@ -78,9 +79,9 @@ FocusScope {
     anchors.rightMargin: Style.space(10)
     height: Math.min(parent.height - Style.space(80), header.height + inputRow.height + statusLine.height + list.count * Style.space(40) + Style.space(30))
     radius: Style.cornerRadius
-    color: Color.popups.background
+    color: Commons.Color.popups.background
     border.width: 1
-    border.color: Color.popups.border
+    border.color: Commons.Color.popups.border
     clip: true
 
     MouseArea {
@@ -101,7 +102,7 @@ FocusScope {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         text: String(card.title || "").toUpperCase()
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
         font.weight: Font.DemiBold
@@ -137,17 +138,17 @@ FocusScope {
         selectByMouse: true
         placeholderText: card.placeholder
         placeholderTextColor: card.secondaryTextColor
-        color: Color.bar.text
-        selectionColor: Util.alpha(Color.accent, 0.38)
-        selectedTextColor: Color.bar.text
+        color: Commons.Color.bar.text
+        selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+        selectedTextColor: Commons.Color.bar.text
         font.family: Style.font.family
         font.pixelSize: Typography.body
 
         background: Rectangle {
           radius: Math.min(Style.cornerRadius, Style.space(4))
-          color: Util.alpha(Color.bar.text, input.activeFocus ? 0.10 : 0.06)
+          color: Util.alpha(Commons.Color.bar.text, input.activeFocus ? 0.10 : 0.06)
           border.width: 1
-          border.color: input.activeFocus ? Color.accent : Util.alpha(Color.bar.text, 0.18)
+          border.color: input.activeFocus ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.18)
         }
 
         Text {
@@ -156,7 +157,7 @@ FocusScope {
           anchors.leftMargin: Style.space(10)
           anchors.verticalCenter: parent.verticalCenter
           text: ""
-          color: input.activeFocus ? Color.accent : card.secondaryTextColor
+          color: input.activeFocus ? Commons.Color.accent : card.secondaryTextColor
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
         }
@@ -178,15 +179,15 @@ FocusScope {
               readonly property bool active: spec.active === true
               width: Style.space(22)
               height: Style.space(20)
-              color: active ? Util.alpha(Color.accent, 0.22) : (chipPointer.containsMouse ? Util.alpha(Color.bar.text, 0.10) : "transparent")
+              color: active ? Util.alpha(Commons.Color.accent, 0.22) : (chipPointer.containsMouse ? Util.alpha(Commons.Color.bar.text, 0.10) : "transparent")
               border.width: active ? 1 : 0
-              border.color: Util.alpha(Color.accent, 0.6)
+              border.color: Util.alpha(Commons.Color.accent, 0.6)
 
               Text {
                 textFormat: Text.PlainText
                 anchors.centerIn: parent
                 text: String(chip.spec.label || "")
-                color: chip.active ? Color.accent : (chipPointer.containsMouse ? Color.bar.text : card.secondaryTextColor)
+                color: chip.active ? Commons.Color.accent : (chipPointer.containsMouse ? Commons.Color.bar.text : card.secondaryTextColor)
                 font.family: Style.font.family
                 font.pixelSize: Typography.caption
                 font.bold: chip.active
@@ -251,7 +252,7 @@ FocusScope {
       height: Style.space(18)
       verticalAlignment: Text.AlignVCenter
       text: card.status
-      color: card.statusUrgent ? Color.urgent : card.secondaryTextColor
+      color: card.statusUrgent ? Commons.Color.urgent : card.secondaryTextColor
       elide: Text.ElideRight
       font.family: Style.font.family
       font.pixelSize: Typography.caption
@@ -286,8 +287,8 @@ FocusScope {
         width: ListView.view ? ListView.view.width : 0
         height: Style.space(40)
         color: current
-          ? Color.menu.selectedBackground
-          : (rowPointer.containsMouse ? Style.hoverFillFor(Color.bar.text, Color.accent) : "transparent")
+          ? Commons.Color.menu.selectedBackground
+          : (rowPointer.containsMouse ? Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent) : "transparent")
 
         Text {
           textFormat: Text.PlainText
@@ -297,7 +298,7 @@ FocusScope {
           anchors.verticalCenter: parent.verticalCenter
           width: Style.space(18)
           text: String(card.glyphFor(row.modelData) || "")
-          color: row.glyphColor !== "" ? row.glyphColor : Color.accent
+          color: row.glyphColor !== "" ? row.glyphColor : Commons.Color.accent
           horizontalAlignment: Text.AlignHCenter
           font.family: row.glyphFamily !== "" ? row.glyphFamily : Style.font.family
           font.pixelSize: Typography.body
@@ -314,8 +315,8 @@ FocusScope {
           Text {
             width: parent.width
             textFormat: Text.StyledText
-            text: Highlight.markup(row.modelData.name, Highlight.parseSpans(row.modelData.nameSpans), Color.accent)
-            color: row.current ? Color.accent : Color.bar.text
+            text: Highlight.markup(row.modelData.name, Highlight.parseSpans(row.modelData.nameSpans), Commons.Color.accent)
+            color: row.current ? Commons.Color.accent : Commons.Color.bar.text
             elide: Text.ElideRight
             font.family: Style.font.family
             font.pixelSize: Typography.body
@@ -325,7 +326,7 @@ FocusScope {
           Text {
             width: parent.width
             textFormat: Text.StyledText
-            text: Highlight.markup(row.modelData.relative, Highlight.parseSpans(row.modelData.relativeSpans), Color.accent)
+            text: Highlight.markup(row.modelData.relative, Highlight.parseSpans(row.modelData.relativeSpans), Commons.Color.accent)
             color: card.secondaryTextColor
             elide: Text.ElideLeft
             font.family: Style.font.family

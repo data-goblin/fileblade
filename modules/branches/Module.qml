@@ -4,6 +4,7 @@ import "../../lib/Format.js" as Format
 import "../../lib/GitSummary.js" as GitSummary
 import "../../lib/Highlight.js" as Highlight
 import "../../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -28,7 +29,7 @@ FocusScope {
   readonly property var files: context ? context.service("files") : null
   readonly property string anchorPath: files ? String(files.contextPath || files.rootPath || "") : ""
   readonly property bool active: !!context && context.bladeOpen !== false && context.collapsed !== true
-  readonly property color paneBackground: Qt.lighter(Color.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.background, 1.035)
 
   property var document: null
   property string loadError: ""
@@ -164,10 +165,10 @@ FocusScope {
   }
 
   function tokenColor(marker) {
-    var status = files && typeof files.gitStatusColor === "function" ? files.gitStatusColor : function() { return Color.muted }
-    if (marker === "ahead") return Color.accent
+    var status = files && typeof files.gitStatusColor === "function" ? files.gitStatusColor : function() { return Commons.Color.muted }
+    if (marker === "ahead") return Commons.Color.accent
     if (marker === "behind") return status("M")
-    return marker ? status(marker) : Color.muted
+    return marker ? status(marker) : Commons.Color.muted
   }
 
   function markupFor(tokens) {
@@ -306,7 +307,7 @@ FocusScope {
       item.view = Qt.binding(function() { return module.view })
       item.status = Qt.binding(function() { return module.error !== "" || module.switching || (tree.item && tree.item.searching) || !module.currentBranch ? module.status : module.repositoryStatus })
       item.statusGlyph = Qt.binding(function() { return module.currentBranch && !module.switching && module.error === "" ? "" : "" })
-      item.statusColor = Qt.binding(function() { return module.error !== "" ? Color.urgent : Color.muted })
+      item.statusColor = Qt.binding(function() { return module.error !== "" ? Commons.Color.urgent : Commons.Color.muted })
     }
   }
 
@@ -377,7 +378,7 @@ FocusScope {
       item.metricMarkup = function(entry, key) { return module.statusMarkup(entry, key) }
       item.groupsFor = function(entry) { return entry.groups }
       item.leafGlyph = function(entry) { return module.glyphFor(entry) }
-      item.leafGlyphColor = function(entry) { return entry && entry.kind !== "remote" ? Color.accent : Color.muted }
+      item.leafGlyphColor = function(entry) { return entry && entry.kind !== "remote" ? Commons.Color.accent : Commons.Color.muted }
       item.leafLabel = function(entry) { return entry.name + (entry.current ? " 󰄬" : "") }
       item.rowMark = function(entry) { return "" }
       item.searchText = function(entry) { return module.searchText(entry) }
@@ -410,7 +411,7 @@ FocusScope {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     text: module.loadError !== "" ? module.loadError : (module.busy ? "Loading branches…" : (module.query ? "No match" : "No branches found"))
-    color: module.loadError !== "" ? Color.urgent : Color.muted
+    color: module.loadError !== "" ? Commons.Color.urgent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
   }

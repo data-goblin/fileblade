@@ -3,6 +3,7 @@ import QtQuick.Controls as QQC
 import qs.Commons
 import qs.Ui
 import "../theme"
+import qs.Commons as Commons
 
 QQC.Popup {
   id: popup
@@ -85,8 +86,8 @@ QQC.Popup {
   closePolicy: QQC.Popup.CloseOnEscape | QQC.Popup.CloseOnPressOutside
 
   background: BorderSurface {
-    color: Color.popups.background
-    borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Style.normalBorderWidth)
+    color: Commons.Color.popups.background
+    borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
     radius: Style.cornerRadius
   }
 
@@ -106,7 +107,7 @@ QQC.Popup {
         anchors.leftMargin: Style.space(10)
         anchors.verticalCenter: parent.verticalCenter
         text: popup.heading
-        color: Color.bar.text
+        color: Commons.Color.bar.text
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
         font.weight: Font.DemiBold
@@ -119,7 +120,7 @@ QQC.Popup {
         anchors.rightMargin: Style.space(10)
         anchors.verticalCenter: parent.verticalCenter
         text: "×"
-        color: closePointer.containsMouse ? Color.bar.text : Color.muted
+        color: closePointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.body
 
@@ -176,7 +177,7 @@ QQC.Popup {
         width: list.width
         height: separator ? (labeled ? Style.space(22) : Style.space(9)) : Style.space(31)
         color: index === list.currentIndex
-          ? Style.hoverFillFor(Color.popups.text, Color.accent)
+          ? Style.hoverFillFor(Commons.Color.popups.text, Commons.Color.accent)
           : "transparent"
 
         Rectangle {
@@ -187,7 +188,7 @@ QQC.Popup {
           anchors.verticalCenter: parent.verticalCenter
           height: 1
           visible: optionRow.separator && !optionRow.labeled
-          color: Util.alpha(Color.popups.text, 0.14)
+          color: Util.alpha(Commons.Color.popups.text, 0.14)
         }
 
         Text {
@@ -200,7 +201,7 @@ QQC.Popup {
           textFormat: Text.PlainText
           visible: optionRow.labeled
           text: optionRow.labeled ? String(optionRow.modelData.label).toUpperCase() : ""
-          color: Color.muted
+          color: Commons.Color.muted
           elide: Text.ElideRight
           font.family: Style.font.family
           font.pixelSize: Typography.caption
@@ -218,7 +219,7 @@ QQC.Popup {
           glyph: optionRow.separator ? "" : String(optionRow.modelData.glyph || "")
           fallbackGlyph: ""
           iconUrl: optionRow.separator ? "" : String(optionRow.modelData.iconUrl || "")
-          color: optionRow.modelData.danger ? Color.urgent : (optionRow.enabled ? Color.muted : Util.alpha(Color.popups.text, 0.3))
+          color: optionRow.modelData.danger ? Commons.Color.urgent : (optionRow.enabled ? Commons.Color.muted : Util.alpha(Commons.Color.popups.text, 0.3))
           size: Typography.bodySmall
         }
 
@@ -231,7 +232,7 @@ QQC.Popup {
           textFormat: Text.PlainText
           visible: !optionRow.separator
           text: optionRow.separator ? "" : String(optionRow.modelData.label)
-          color: optionRow.modelData.danger && optionRow.enabled ? Color.urgent : (optionRow.enabled ? Color.popups.text : Util.alpha(Color.popups.text, 0.4))
+          color: optionRow.modelData.danger && optionRow.enabled ? Commons.Color.urgent : (optionRow.enabled ? Commons.Color.popups.text : Util.alpha(Commons.Color.popups.text, 0.4))
           elide: Text.ElideRight
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
@@ -244,7 +245,7 @@ QQC.Popup {
           anchors.verticalCenter: parent.verticalCenter
           textFormat: Text.PlainText
           text: optionRow.separator ? "" : (optionRow.modelData.checked ? "✓" : String(optionRow.modelData.hint || ""))
-          color: optionRow.modelData.checked ? Color.accent : Color.muted
+          color: optionRow.modelData.checked ? Commons.Color.accent : Commons.Color.muted
           font.family: Style.font.family
           font.pixelSize: Typography.caption
         }

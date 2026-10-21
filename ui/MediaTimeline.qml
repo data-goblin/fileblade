@@ -3,6 +3,7 @@ import qs.Commons
 import "../lib/MediaBins.js" as Bins
 import "../lib/MediaDates.js" as Dates
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: timeline
@@ -212,7 +213,7 @@ FocusScope {
       anchors.verticalCenter: parent.verticalCenter
       textFormat: Text.PlainText
       text: timeline.periodLabel + " · " + timeline.levelLabel
-      color: Color.muted
+      color: Commons.Color.muted
       elide: Text.ElideRight
       font.family: Style.font.family
       font.pixelSize: Typography.caption
@@ -234,7 +235,7 @@ FocusScope {
           activeFocusOnTab: enabled
           color: "transparent"
           border.width: activeFocus ? 1 : 0
-          border.color: Color.accent
+          border.color: Commons.Color.accent
           Accessible.role: Accessible.Button
           Accessible.name: index === 0 ? "Show coarser dates" : "Show finer dates for " + timeline.periodLabel
           Accessible.onPressAction: activate()
@@ -247,7 +248,7 @@ FocusScope {
           Text {
             anchors.centerIn: parent
             text: button.index === 0 ? "▴" : "▾"
-            color: button.enabled ? Color.bar.text : Color.muted
+            color: button.enabled ? Commons.Color.bar.text : Commons.Color.muted
             opacity: button.enabled ? 1 : 0.45
             font.pixelSize: Typography.body
           }
@@ -288,7 +289,7 @@ FocusScope {
         width: timeline.sparseRows ? parent.width : Style.space(43)
         textFormat: Text.PlainText
         text: timeline.label(mark.modelData, !timeline.sparseRows)
-        color: timeline.sparseRows && timeline.activePeriod === mark.index ? timeline.lightBlue : Color.muted
+        color: timeline.sparseRows && timeline.activePeriod === mark.index ? timeline.lightBlue : Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         elide: Text.ElideRight
@@ -309,7 +310,7 @@ FocusScope {
             x: index * Style.space(4)
             width: 1
             height: countMark.height
-            color: Color.bar.background
+            color: Commons.Color.bar.background
           }
         }
       }
@@ -321,7 +322,7 @@ FocusScope {
         width: Style.space(22)
         textFormat: Text.PlainText
         text: mark.modelData.count >= 1000 ? (mark.modelData.count / 1000).toFixed(1) + "k" : mark.modelData.count
-        color: mark.inViewport ? timeline.lightBlue : Color.muted
+        color: mark.inViewport ? timeline.lightBlue : Commons.Color.muted
         horizontalAlignment: Text.AlignRight
         font.family: Style.font.family
         font.pixelSize: Typography.caption

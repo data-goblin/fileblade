@@ -4,6 +4,7 @@ import Quickshell
 import qs.Commons
 import "../lib/FileIcons.js" as FileIcons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: root
@@ -14,7 +15,7 @@ Item {
   property string monochromeMask: "alpha"
   property color iconColor: fallbackColor
   property string fallbackGlyph: ""
-  property color fallbackColor: Color.accent
+  property color fallbackColor: Commons.Color.accent
   property real fallbackSize: Typography.body
   property real iconSize: Style.space(18)
   property string desktopId: ""

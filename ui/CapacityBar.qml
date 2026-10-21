@@ -1,12 +1,13 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: bar
 
   property real fraction: -1
-  property color fillColor: Color.accent
-  property color trackColor: Util.alpha(Color.bar.text, 0.10)
+  property color fillColor: Commons.Color.accent
+  property color trackColor: Util.alpha(Commons.Color.bar.text, 0.10)
   property string tipTitle: ""
   property var tipContext: []
   property var tipActions: []

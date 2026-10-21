@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: row
@@ -24,7 +25,7 @@ Item {
     anchors.topMargin: row.stacked ? Style.space(4) : 0
     anchors.verticalCenter: row.stacked ? undefined : parent.verticalCenter
     text: (row.glyph !== "" ? row.glyph + "  " : "") + row.label
-    color: Color.bar.text
+    color: Commons.Color.bar.text
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
   }
@@ -58,7 +59,7 @@ Item {
       readonly property bool active: key === row.value
       textFormat: Text.PlainText
       text: String(modelData.label !== undefined ? modelData.label : modelData)
-      color: active ? Color.accent : (optionPointer.containsMouse ? Color.bar.text : Color.muted)
+      color: active ? Commons.Color.accent : (optionPointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted)
       font.family: Style.font.family
       font.pixelSize: Typography.caption
       font.weight: active ? Font.DemiBold : Font.Normal

@@ -10,6 +10,7 @@ import "../lib/Highlight.js" as Highlight
 import "../lib/PathText.js" as PathText
 import "../modules/files/MediaModel.js" as MediaModel
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -170,7 +171,7 @@ FocusScope {
   readonly property string imagePreviewKey: imagePreviewAllowed
     ? [String(entry.path || ""), String(entry.stat_fingerprint || ""), imageMime, String(entry.size)].join("\n")
     : ""
-  readonly property color paneBackground: Qt.lighter(Color.bar.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.bar.background, 1.035)
   property string previewSource: ""
   property string thumbnailRequestId: ""
   property int thumbnailGeneration: 0
@@ -274,9 +275,9 @@ FocusScope {
     var palette = controller.themeFolderPalette || ({})
     var named = palette[names[index % 8]]
     if (typeof named === "string" && named) return named
-    if (index % 8 === 1) return String(Color.urgent)
-    if ([4, 5, 6].indexOf(index % 8) >= 0) return String(Color.accent)
-    return String(Color.bar.text)
+    if (index % 8 === 1) return String(Commons.Color.urgent)
+    if ([4, 5, 6].indexOf(index % 8) >= 0) return String(Commons.Color.accent)
+    return String(Commons.Color.bar.text)
   }
 
   function renderPreview(lines) {
@@ -360,8 +361,8 @@ FocusScope {
   }
 
   function entryGlyphColor() {
-    if (!entry) return Color.muted
-    return controller.folderColor(String(entry.path || "")) || (entry.is_dir ? Color.accent : Color.muted)
+    if (!entry) return Commons.Color.muted
+    return controller.folderColor(String(entry.path || "")) || (entry.is_dir ? Commons.Color.accent : Commons.Color.muted)
   }
 
   readonly property var propertyGlyphs: ({
@@ -391,7 +392,7 @@ FocusScope {
         visible: detail.glyph !== ""
         width: visible ? Style.space(14) : 0
         text: detail.glyph
-        color: Util.alpha(Color.muted, 0.8)
+        color: Util.alpha(Commons.Color.muted, 0.8)
         horizontalAlignment: Text.AlignHCenter
         font.family: Style.font.family
         font.pixelSize: Typography.caption
@@ -400,7 +401,7 @@ FocusScope {
       Text {
         textFormat: Text.PlainText
         text: detail.label.toUpperCase()
-        color: Color.muted
+        color: Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.letterSpacing: 0.4
@@ -411,7 +412,7 @@ FocusScope {
       textFormat: Text.PlainText
       width: parent.width
       text: detail.value
-      color: detail.label === "Branch" ? Color.muted : Color.bar.text
+      color: detail.label === "Branch" ? Commons.Color.muted : Commons.Color.bar.text
       wrapMode: detail.label === "Path" || detail.label === "Target" ? Text.WrapAnywhere : Text.Wrap
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
@@ -451,7 +452,7 @@ FocusScope {
     anchors.fill: emptyLogo
     visible: !root.hasSelection && !root.subjectActive && emptyLogo.status === Image.Ready
     colorization: 1
-    colorizationColor: Color.muted
+    colorizationColor: Commons.Color.muted
   }
 
   Flickable {
@@ -483,7 +484,7 @@ FocusScope {
         width: parent.width
         visible: !root.hasSelection
         text: "Select a file or folder to inspect it."
-        color: Color.muted
+        color: Commons.Color.muted
         wrapMode: Text.WordWrap
         font.family: Style.font.family
         font.pixelSize: Typography.body
@@ -517,7 +518,7 @@ FocusScope {
           text: root.multiple
             ? controller.selectedCount + " items selected"
             : (root.entry ? String(root.entry.name || "") : "")
-          color: Color.bar.text
+          color: Commons.Color.bar.text
           elide: Text.ElideRight
           font.family: Style.font.family
           font.pixelSize: Typography.title
@@ -531,7 +532,7 @@ FocusScope {
         visible: root.multiple
         text: controller.humanSize(controller.selectedTotalSize) + " across "
           + controller.selectedCount + " items"
-        color: Color.muted
+        color: Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.bodySmall
       }
@@ -565,7 +566,7 @@ FocusScope {
         width: parent.width
         visible: controller.operationNotice !== ""
         text: controller.operationNotice
-        color: Color.muted
+        color: Commons.Color.muted
         elide: Text.ElideRight
         font.family: Style.font.family
         font.pixelSize: Typography.caption

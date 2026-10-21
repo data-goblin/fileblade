@@ -4,6 +4,7 @@ import qs.Commons
 import qs.Ui
 import "../lib/Format.js" as Format
 import "../theme"
+import qs.Commons as Commons
 
 QQC.Popup {
   id: popup
@@ -93,8 +94,8 @@ QQC.Popup {
   }
 
   background: BorderSurface {
-    color: Color.popups.background
-    borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Style.normalBorderWidth)
+    color: Commons.Color.popups.background
+    borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
     radius: Style.cornerRadius
   }
 
@@ -105,15 +106,15 @@ QQC.Popup {
     leftPadding: Style.space(7)
     rightPadding: Style.space(7)
     selectByMouse: true
-    color: Color.popups.text
-    placeholderTextColor: Util.alpha(Color.popups.text, 0.4)
+    color: Commons.Color.popups.text
+    placeholderTextColor: Util.alpha(Commons.Color.popups.text, 0.4)
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
     background: Rectangle {
-      color: Util.alpha(Color.popups.text, input.activeFocus ? 0.10 : 0.06)
+      color: Util.alpha(Commons.Color.popups.text, input.activeFocus ? 0.10 : 0.06)
       radius: Math.min(Style.cornerRadius, Style.space(4))
       border.width: input.problem ? 1 : 0
-      border.color: Color.urgent
+      border.color: Commons.Color.urgent
     }
     Keys.onReturnPressed: popup.apply()
     Keys.onEnterPressed: popup.apply()
@@ -127,15 +128,15 @@ QQC.Popup {
     width: actionLabel.implicitWidth + Style.space(18)
     height: Style.space(26)
     color: primary
-      ? (actionPointer.containsMouse ? Color.accent : Util.alpha(Color.accent, 0.82))
-      : Util.alpha(Color.popups.text, actionPointer.containsMouse ? 0.12 : 0.06)
+      ? (actionPointer.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.accent, 0.82))
+      : Util.alpha(Commons.Color.popups.text, actionPointer.containsMouse ? 0.12 : 0.06)
 
     Text {
       id: actionLabel
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: action.label
-      color: action.primary ? Color.background : Color.popups.text
+      color: action.primary ? Commons.Color.background : Commons.Color.popups.text
       font.family: Style.font.family
       font.pixelSize: Typography.bodySmall
       font.weight: action.primary ? Font.DemiBold : Font.Normal
@@ -163,7 +164,7 @@ QQC.Popup {
       Text {
         textFormat: Text.PlainText
         text: "FILTER"
-        color: Color.popups.text
+        color: Commons.Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
@@ -176,7 +177,7 @@ QQC.Popup {
         visible: popup.sections.length === 0
         text: "No filterable metrics"
         wrapMode: Text.WordWrap
-        color: Color.muted
+        color: Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
       }
@@ -196,7 +197,7 @@ QQC.Popup {
           Text {
             textFormat: Text.PlainText
             text: section.modelData.label
-            color: Color.popups.text
+            color: Commons.Color.popups.text
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
             font.weight: Font.DemiBold
@@ -238,14 +239,14 @@ QQC.Popup {
                 width: chipLabel.implicitWidth + Style.space(12)
                 height: Style.space(20)
                 radius: height / 2
-                color: active ? Util.alpha(Color.accent, 0.28) : Util.alpha(Color.popups.text, chipPointer.containsMouse ? 0.12 : 0.06)
+                color: active ? Util.alpha(Commons.Color.accent, 0.28) : Util.alpha(Commons.Color.popups.text, chipPointer.containsMouse ? 0.12 : 0.06)
 
                 Text {
                   id: chipLabel
                   textFormat: Text.PlainText
                   anchors.centerIn: parent
                   text: chip.modelData.label
-                  color: chip.active ? Color.accent : Color.popups.text
+                  color: chip.active ? Commons.Color.accent : Commons.Color.popups.text
                   font.family: Style.font.family
                   font.pixelSize: Typography.caption
                 }

@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../lib/MediaDates.js" as Dates
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: heatmap
@@ -77,7 +78,7 @@ Item {
     if (!usage || day < usage.coverage) return "transparent"
     var uses = countsFor(day)[0], limits = usage.thresholds
     var level = uses <= 0 ? 0 : (uses <= limits[0] ? 1 : (uses <= limits[1] ? 2 : (uses <= limits[2] ? 3 : 4)))
-    return level === 0 ? Util.alpha(Color.bar.text, 0.06) : Util.alpha(Color.accent, [0.30, 0.50, 0.75, 1.0][level - 1])
+    return level === 0 ? Util.alpha(Commons.Color.bar.text, 0.06) : Util.alpha(Commons.Color.accent, [0.30, 0.50, 0.75, 1.0][level - 1])
   }
 
   function dateLabel(day) {
@@ -147,7 +148,7 @@ Item {
       color: heatmap.fill(day)
       opacity: heatmap.selectedDay === "" || heatmap.selectedDay === Dates.dayKey(day) ? 1 : 0.25
       border.width: heatmap.selectedDay === Dates.dayKey(day) ? 1 : 0
-      border.color: Color.bar.text
+      border.color: Commons.Color.bar.text
     }
   }
 
@@ -160,7 +161,7 @@ Item {
     visible: heatmap.activeFocus
     color: "transparent"
     border.width: 1
-    border.color: Color.accent
+    border.color: Commons.Color.accent
   }
 
   Item {

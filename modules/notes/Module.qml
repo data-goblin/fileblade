@@ -5,6 +5,7 @@ import "../../ui" as PluginUi
 import "NotesState.js" as NotesState
 import "KeyPlan.js" as KeyPlan
 import "../../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -23,7 +24,7 @@ FocusScope {
       ]
     }
   ]
-  readonly property color paneBackground: Qt.lighter(Color.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.background, 1.035)
   readonly property bool collapsed: !!context && context.collapsed === true
   readonly property bool active: !!context && context.bladeOpen !== false && !collapsed
   readonly property int maximumNotes: NotesState.MAX_NOTES
@@ -311,7 +312,7 @@ FocusScope {
     anchors.right: parent.right
     height: visible ? warning.implicitHeight + Style.space(8) : 0
     visible: module.overCap || module.clamped || module.saveFailed || !!module.incomingConflict || module.temporary
-    color: Qt.rgba(Color.urgent.r, Color.urgent.g, Color.urgent.b, 0.12)
+    color: Qt.rgba(Commons.Color.urgent.r, Commons.Color.urgent.g, Commons.Color.urgent.b, 0.12)
 
     Text {
       id: warning
@@ -331,7 +332,7 @@ FocusScope {
         : module.overCap
         ? "These notes are larger than 64 KiB in total. Saving is paused until they are trimmed."
         : "64 KiB total limit reached. Text beyond the limit was not kept."
-      color: Color.urgent
+      color: Commons.Color.urgent
       font.family: Style.font.family
       font.pixelSize: Typography.caption
     }
@@ -361,10 +362,10 @@ FocusScope {
       selectByMouse: true
       persistentSelection: true
       placeholderText: "Type a note"
-      placeholderTextColor: Color.muted
-      color: Color.foreground
-      selectionColor: Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.38)
-      selectedTextColor: Color.foreground
+      placeholderTextColor: Commons.Color.muted
+      color: Commons.Color.foreground
+      selectionColor: Qt.rgba(Commons.Color.accent.r, Commons.Color.accent.g, Commons.Color.accent.b, 0.38)
+      selectedTextColor: Commons.Color.foreground
       font.family: Style.font.family
       font.pixelSize: Typography.body
       background: null
@@ -408,7 +409,7 @@ FocusScope {
       activeFocusOnPress: false
       textFormat: TextEdit.PlainText
       wrapMode: TextEdit.WordWrap
-      color: Color.muted
+      color: Commons.Color.muted
       font: footerFont.font
       FontMetrics {
         id: footerFont
@@ -425,7 +426,7 @@ FocusScope {
         visible: module.saveFailed && !module.incomingConflict
         enabled: !module.saving
         onClicked: module.flush()
-        background: Rectangle { color: Color.bar.background; border.color: Color.accent; border.width: 1 }
+        background: Rectangle { color: Commons.Color.bar.background; border.color: Commons.Color.accent; border.width: 1 }
       }
       Button {
         text: "Keep local edits"
@@ -434,7 +435,7 @@ FocusScope {
         visible: !!module.incomingConflict
         enabled: !module.saving
         onClicked: module.resolveConflict(true)
-        background: Rectangle { color: Color.bar.background; border.color: Color.accent; border.width: 1 }
+        background: Rectangle { color: Commons.Color.bar.background; border.color: Commons.Color.accent; border.width: 1 }
       }
       Button {
         text: "Load incoming"
@@ -443,7 +444,7 @@ FocusScope {
         visible: !!module.incomingConflict
         enabled: !module.saving
         onClicked: module.resolveConflict(false)
-        background: Rectangle { color: Color.bar.background; border.color: Color.accent; border.width: 1 }
+        background: Rectangle { color: Commons.Color.bar.background; border.color: Commons.Color.accent; border.width: 1 }
       }
     }
   }

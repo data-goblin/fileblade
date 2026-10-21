@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
+import qs.Commons as Commons
 
 Item {
   id: probe
@@ -163,8 +164,8 @@ Item {
       property string position: "top"
       property int barSize: Style.bar.sizeHorizontal
       property string fontFamily: Style.font.family
-      property color barForeground: Color.foreground
-      property color urgent: Color.urgent
+      property color barForeground: Commons.Color.foreground
+      property color urgent: Commons.Color.urgent
       property bool foregroundAnimationEnabled: true
       property var activePopout: null
       property var clickTargets: []

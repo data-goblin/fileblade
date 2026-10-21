@@ -4,6 +4,7 @@ import Quickshell
 import qs.Commons
 import "../../panes" as Panes
 import "../../ui" as PluginUi
+import qs.Commons as Commons
 
 FloatingWindow {
   id: window
@@ -16,7 +17,7 @@ FloatingWindow {
   implicitWidth: 900
   implicitHeight: 720
   minimumSize: Qt.size(480, 360)
-  color: Color.bar.background
+  color: Commons.Color.bar.background
   onClosed: session.cancel()
 
   function focusPart(part) { if (content.item) content.item.focusPart(part) }
@@ -37,12 +38,12 @@ FloatingWindow {
         }
         ComboBox {
           id: filters
-          palette.button: Color.bar.background
-          palette.buttonText: Color.bar.text
-          palette.base: Color.bar.background
-          palette.text: Color.bar.text
-          palette.highlight: Color.accent
-          palette.highlightedText: Color.background
+          palette.button: Commons.Color.bar.background
+          palette.buttonText: Commons.Color.bar.text
+          palette.base: Commons.Color.bar.background
+          palette.text: Commons.Color.bar.text
+          palette.highlight: Commons.Color.accent
+          palette.highlightedText: Commons.Color.background
           anchors { left: parent.left; right: parent.right; bottom: footer.top }
           visible: session.filters.length > 0
           height: visible ? implicitHeight : 0

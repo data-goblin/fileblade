@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: grid
@@ -40,7 +41,7 @@ Item {
         readonly property var modelData: cell.index < grid.actions.length && grid.actions[cell.index] ? grid.actions[cell.index] : ({})
         readonly property bool current: grid.showCurrent && grid.current === index
         readonly property bool hot: pointer.containsMouse
-        readonly property color tone: modelData.urgent ? Color.urgent : Color.accent
+        readonly property color tone: modelData.urgent ? Commons.Color.urgent : Commons.Color.accent
         readonly property color lit: pointer.pressed ? Util.alpha(cell.tone, 0.7) : cell.tone
         readonly property bool raised: cell.current || cell.hot || pointer.pressed
         readonly property var tipActions: Array.isArray(modelData.tipActions) ? modelData.tipActions : []
@@ -55,7 +56,7 @@ Item {
           horizontalAlignment: Text.AlignHCenter
           textFormat: Text.PlainText
           text: String(cell.modelData.glyph || "")
-          color: cell.raised ? cell.lit : cell.modelData.urgent ? Color.urgent : Color.muted
+          color: cell.raised ? cell.lit : cell.modelData.urgent ? Commons.Color.urgent : Commons.Color.muted
           font.family: cell.modelData.glyphFamily ? String(cell.modelData.glyphFamily) : Style.font.family
           font.pixelSize: Typography.body
         }
@@ -68,7 +69,7 @@ Item {
           anchors.verticalCenter: parent.verticalCenter
           textFormat: Text.PlainText
           text: String(cell.modelData.text || "")
-          color: cell.raised ? cell.lit : Color.bar.text
+          color: cell.raised ? cell.lit : Commons.Color.bar.text
           elide: Text.ElideRight
           maximumLineCount: 1
           font.family: Style.font.family

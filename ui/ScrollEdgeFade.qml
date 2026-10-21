@@ -2,12 +2,13 @@ import QtQuick
 import qs.Commons
 import qs.Ui
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: root
 
   property var flickable: null
-  property color surfaceColor: Color.bar.background
+  property color surfaceColor: Commons.Color.bar.background
   property int fadeHeight: Style.space(48)
   property real threshold: 1
   readonly property real beginningY: flickable ? Number(flickable.originY) || 0 : 0
@@ -50,7 +51,7 @@ Item {
       anchors.top: parent.top
       anchors.topMargin: Style.space(5)
       text: "⌃"
-      color: topPointer.containsMouse ? Color.accent : Color.bar.text
+      color: topPointer.containsMouse ? Commons.Color.accent : Commons.Color.bar.text
       font.family: Style.font.family
       font.pixelSize: Typography.title
       font.weight: Font.DemiBold
@@ -95,7 +96,7 @@ Item {
       anchors.bottom: parent.bottom
       anchors.bottomMargin: Style.space(5)
       text: "⌄"
-      color: bottomPointer.containsMouse ? Color.accent : Color.bar.text
+      color: bottomPointer.containsMouse ? Commons.Color.accent : Commons.Color.bar.text
       font.family: Style.font.family
       font.pixelSize: Typography.title
       font.weight: Font.DemiBold

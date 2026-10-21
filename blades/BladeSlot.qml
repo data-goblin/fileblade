@@ -3,6 +3,7 @@ import "../lib/TabIdentity.js" as TabIdentity
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: slot
@@ -305,7 +306,7 @@ FocusScope {
   Rectangle {
     anchors.fill: parent
     visible: !slot.entryUrl || slot.loadFailed || slot.contractIncompatible || slot.providerError !== ""
-    color: Qt.lighter(Color.bar.background, 1.02)
+    color: Qt.lighter(Commons.Color.bar.background, 1.02)
 
     Column {
       anchors.centerIn: parent
@@ -316,7 +317,7 @@ FocusScope {
         textFormat: Text.PlainText
         width: parent.width
         text: slot.loadFailed || slot.contractIncompatible || slot.providerError !== "" ? "󰅚" : "󰐕"
-        color: slot.loadFailed || slot.contractIncompatible || slot.providerError !== "" ? Color.urgent : Color.muted
+        color: slot.loadFailed || slot.contractIncompatible || slot.providerError !== "" ? Commons.Color.urgent : Commons.Color.muted
         horizontalAlignment: Text.AlignHCenter
         font.family: Style.font.family
         font.pixelSize: Typography.title * 1.6
@@ -336,7 +337,7 @@ FocusScope {
           : slot.moduleDisabled
           ? "Module " + slot.moduleId + " is installed but disabled"
           : (slot.moduleId ? "Unknown module " + slot.moduleId : "Empty slot")
-        color: slot.loadFailed || slot.contractIncompatible ? Color.urgent : Color.bar.text
+        color: slot.loadFailed || slot.contractIncompatible ? Commons.Color.urgent : Commons.Color.bar.text
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         font.family: Style.font.family
@@ -357,7 +358,7 @@ FocusScope {
           : slot.moduleDisabled
           ? "Enable its Omarchy plugin, then reopen this blade or choose another module."
           : "Pick a module for this slot in blade settings."
-        color: Color.muted
+        color: Commons.Color.muted
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         font.family: Style.font.family
@@ -369,14 +370,14 @@ FocusScope {
         width: chooseLabel.implicitWidth + Style.space(20)
         height: Style.space(28)
         radius: Math.min(Style.cornerRadius, Style.space(4))
-        color: choosePointer.containsMouse ? Color.accent : Util.alpha(Color.accent, 0.82)
+        color: choosePointer.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.accent, 0.82)
 
         Text {
           textFormat: Text.PlainText
           id: chooseLabel
           anchors.centerIn: parent
           text: "Choose module"
-          color: Color.background
+          color: Commons.Color.background
           font.family: Style.font.family
           font.pixelSize: Typography.bodySmall
           font.weight: Font.DemiBold

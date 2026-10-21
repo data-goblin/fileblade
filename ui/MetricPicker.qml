@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: picker
@@ -218,8 +219,8 @@ Item {
     textFormat: Text.PlainText
     text: picker.triggerText()
     color: (picker.sortedByCurrent || (picker.filterActive && picker.columnIndex === 0 && !picker.pinned)) && !picker.adder
-      ? Color.accent
-      : (pointer.containsMouse || picker.activeFocus || picker.dragging ? Color.muted : Util.alpha(Color.bar.text, 0.34))
+      ? Commons.Color.accent
+      : (pointer.containsMouse || picker.activeFocus || picker.dragging ? Commons.Color.muted : Util.alpha(Commons.Color.bar.text, 0.34))
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
@@ -240,7 +241,7 @@ Item {
     height: parent.height
     textFormat: Text.PlainText
     text: "×"
-    color: removePointer.containsMouse ? Color.urgent : Color.muted
+    color: removePointer.containsMouse ? Commons.Color.urgent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family

@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../panes" as PluginPanes
+import qs.Commons as Commons
 
 Item {
   id: stack
@@ -182,7 +183,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         height: 2
         visible: handle.active
-        color: Color.accent
+        color: Commons.Color.accent
       }
 
       Row {
@@ -197,7 +198,7 @@ Item {
             width: Style.space(2)
             height: width
             radius: width / 2
-            color: Color.muted
+            color: Commons.Color.muted
           }
         }
       }
@@ -238,7 +239,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     visible: stack.dropVisible
-    color: Util.alpha(Color.accent, 0.06)
+    color: Util.alpha(Commons.Color.accent, 0.06)
     z: 25
   }
 
@@ -249,9 +250,9 @@ Item {
     y: stack.slotTop(stack.dropTabSlot >= 0 ? stack.dropTabSlot : 0) + bodyTop
     width: stack.width
     height: Math.max(0, stack.slotHeight(stack.dropTabSlot >= 0 ? stack.dropTabSlot : 0) - bodyTop)
-    color: Util.alpha(Color.accent, 0.16)
+    color: Util.alpha(Commons.Color.accent, 0.16)
     border.width: 2
-    border.color: Color.accent
+    border.color: Commons.Color.accent
     radius: Style.cornerRadius
     z: 29
   }
@@ -279,7 +280,7 @@ Item {
     height: 3
     radius: 1.5
     visible: stack.dropVisible
-    color: Color.accent
+    color: Commons.Color.accent
     z: 30
   }
 }

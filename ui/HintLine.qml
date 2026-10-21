@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Item {
   id: line
@@ -9,7 +10,7 @@ Item {
   property string shortcut: ""
   property string glyph: ""
   property string text: ""
-  property color foreground: Color.bar.text
+  property color foreground: Commons.Color.bar.text
   property real leadWidth: 0
   property bool keyGlyph: false
   property bool wrap: false

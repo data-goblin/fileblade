@@ -6,6 +6,7 @@ import qs.Ui
 import "../ui" as PluginUi
 import "../lib/PathText.js" as PathText
 import "../theme"
+import qs.Commons as Commons
 
 Popup {
   id: root
@@ -258,8 +259,8 @@ Popup {
       anchors.centerIn: parent
       text: "…"
       color: more.custom || more.activeFocus || morePointer.containsMouse
-        ? (more.custom && more.swatch !== "" ? more.swatch : Color.menu.selectedText)
-        : Color.muted
+        ? (more.custom && more.swatch !== "" ? more.swatch : Commons.Color.menu.selectedText)
+        : Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.title
       font.weight: Font.DemiBold
@@ -297,16 +298,16 @@ Popup {
     implicitWidth: Style.space(19)
     implicitHeight: implicitWidth
     radius: width / 2
-    color: value !== "" ? value : Util.alpha(Color.menu.text, 0.06)
+    color: value !== "" ? value : Util.alpha(Commons.Color.menu.text, 0.06)
     border.width: selected || activeFocus ? Math.max(2, Style.space(2)) : 1
-    border.color: selected || activeFocus ? Color.menu.selectedText : Util.alpha(Color.menu.text, 0.42)
+    border.color: selected || activeFocus ? Commons.Color.menu.selectedText : Util.alpha(Commons.Color.menu.text, 0.42)
     activeFocusOnTab: visible
 
     Text {
       textFormat: Text.PlainText
       anchors.centerIn: parent
       text: dot.glyph
-      color: Color.menu.text
+      color: Commons.Color.menu.text
       font.family: Style.font.family
       font.pixelSize: Typography.caption
       font.weight: Font.DemiBold
@@ -376,9 +377,9 @@ Popup {
       id: card
       anchors.fill: parent
       radius: root.archiveMode || root.permissionsMode ? 0 : Style.cornerRadius
-      color: Color.bar.background
+      color: Commons.Color.bar.background
       border.width: 1
-      border.color: Color.menu.border
+      border.color: Commons.Color.menu.border
       clip: true
 
       HoverHandler {
@@ -422,7 +423,7 @@ Popup {
                 if (root.inputMode) return controller.actionMenuMode === "rename" ? "RENAME" : "CREATE"
                 return root.targetCount + " ITEM" + (root.targetCount === 1 ? "" : "S")
               }
-              color: Color.bar.text
+              color: Commons.Color.bar.text
               elide: Text.ElideRight
               font.family: Style.font.family
               font.pixelSize: Typography.bodySmall
@@ -436,7 +437,7 @@ Popup {
               anchors.right: parent.right
               anchors.verticalCenter: parent.verticalCenter
               text: "×"
-              color: closePointer.containsMouse ? Color.bar.text : Color.muted
+              color: closePointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
               font.family: Style.font.family
               font.pixelSize: Typography.title
 
@@ -460,7 +461,7 @@ Popup {
             visible: root.actionsMode || root.openWithMode
             focus: visible
             prompt: root.openWithMode ? "Filter applications, Enter opens" : "Filter actions, Enter runs"
-            textColor: Color.bar.text
+            textColor: Commons.Color.bar.text
             text: root.query
             onTextEdited: root.query = text
             onPicked: root.activateFirstMatch()
@@ -487,7 +488,7 @@ Popup {
               ? "Choose a new name for " + controller.rootName(root.targetPath)
                 + (PathText.nameNeedsEscaping(root.targetPath) ? "\nEscapes preserve bytes: \\xFF, \\n, \\\\." : "")
               : "Created inside " + root.targetDestination
-            color: Color.muted
+            color: Commons.Color.muted
             elide: root.archiveMode || root.permissionsMode ? Text.ElideNone : Text.ElideMiddle
             wrapMode: root.archiveMode || root.permissionsMode ? Text.WordWrap : Text.NoWrap
             font.family: Style.font.family
@@ -500,7 +501,7 @@ Popup {
             visible: root.customColorMode
             text: "Enter a six-digit hex color for " + root.targetColorableCount + " selected item"
               + (root.targetColorableCount === 1 ? "." : "s.")
-            color: Color.muted
+            color: Commons.Color.muted
             wrapMode: Text.WordWrap
             font.family: Style.font.family
             font.pixelSize: Typography.caption
@@ -541,17 +542,17 @@ Popup {
             selectByMouse: true
             text: controller.actionInput
             placeholderText: root.customColorMode ? "#7aa2f7" : ""
-            placeholderTextColor: Color.muted
-            color: Color.bar.text
-            selectionColor: Util.alpha(Color.accent, 0.38)
-            selectedTextColor: Color.bar.text
+            placeholderTextColor: Commons.Color.muted
+            color: Commons.Color.bar.text
+            selectionColor: Util.alpha(Commons.Color.accent, 0.38)
+            selectedTextColor: Commons.Color.bar.text
             font.family: Style.font.family
             font.pixelSize: Typography.body
             background: Rectangle {
               radius: root.archiveMode || root.permissionsMode ? 0 : Math.min(Style.cornerRadius, Style.space(4))
-              color: Util.alpha(Color.bar.text, actionField.activeFocus ? 0.10 : 0.06)
+              color: Util.alpha(Commons.Color.bar.text, actionField.activeFocus ? 0.10 : 0.06)
               border.width: 1
-              border.color: actionField.activeFocus ? Color.accent : Util.alpha(Color.bar.text, 0.18)
+              border.color: actionField.activeFocus ? Commons.Color.accent : Util.alpha(Commons.Color.bar.text, 0.18)
             }
             onTextEdited: controller.actionInput = text
             Keys.onEscapePressed: function(event) {
@@ -615,7 +616,7 @@ Popup {
             width: parent.width
             visible: root.cancelOperationMode
             text: "Completed items stay completed. The item currently in progress may leave a partial destination; the tree will refresh immediately so it is visible."
-            color: Color.urgent
+            color: Commons.Color.urgent
             wrapMode: Text.WordWrap
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
@@ -626,7 +627,7 @@ Popup {
             width: parent.width
             visible: root.openWithMode && controller.applicationsBusy
             text: "Finding compatible applications…"
-            color: Color.muted
+            color: Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall
           }
@@ -823,14 +824,14 @@ Popup {
             Rectangle {
               width: parent.width
               height: 1
-              color: Util.alpha(Color.menu.text, 0.14)
+              color: Util.alpha(Commons.Color.menu.text, 0.14)
             }
 
             Text {
               textFormat: Text.PlainText
               width: parent.width
               text: (root.entriesAllFolders ? "FOLDER COLOR" : "COLOR") + "   ↓ ← →  ENTER"
-              color: Color.muted
+              color: Commons.Color.muted
               font.family: Style.font.family
               font.pixelSize: Typography.caption
               font.weight: Font.DemiBold

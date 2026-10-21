@@ -11,6 +11,7 @@ import "../lib/KeyedRows.js" as KeyedRows
 import "../lib/ScrollMarks.js" as ScrollMarks
 import "../controllers" as Controllers
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: tree
@@ -23,7 +24,7 @@ FocusScope {
   property var leafLabel: function(item) { return String(item.name || "") }
   property var leafDetail: function(item) { return String(item.detail || "") }
   property var leafGlyph: function(item) { return tree.defaultGlyph(item) }
-  property var leafGlyphColor: function(item) { return item && (item.is_dir || item.isDir) ? Color.accent : Color.muted }
+  property var leafGlyphColor: function(item) { return item && (item.is_dir || item.isDir) ? Commons.Color.accent : Commons.Color.muted }
   property bool expandableItems: false
   property bool loadFolderChildren: false
   property var childrenFor: function(item) { return directories.children(tree.itemPath(item)) }
@@ -61,7 +62,7 @@ FocusScope {
   property string query: ""
   property bool caseSensitive: false
   property bool regex: false
-  property color surfaceColor: Color.bar.background
+  property color surfaceColor: Commons.Color.bar.background
   property int currentIndex: 0
   property string cursorKey: ""
   property bool syncingRows: false
@@ -152,7 +153,7 @@ FocusScope {
     return row && row.kind === "leaf" ? String(tree.rowMark(row.item) || "") : ""
   }
   function markColor(status) {
-    return files && typeof files.gitStatusColor === "function" ? files.gitStatusColor(status) : Color.accent
+    return files && typeof files.gitStatusColor === "function" ? files.gitStatusColor(status) : Commons.Color.accent
   }
   readonly property bool marksEnabled: !files || files.scrollMarks !== false
   onMarksEnabledChanged: markRefresh.restart()
@@ -810,7 +811,7 @@ FocusScope {
         : (!isGroup && ArtifactTreeFolders.isFolder(tree, entry) ? (ArtifactTreeFolders.expanded(tree, entry) ? "" : "") : "")
       glyph: folderGroup ? (String(tree.groupGlyph((tree.rowAt(index) || {}).path || []) || "") || FileIcons.folderIcon(!tree.isCollapsed(groupKey)))
         : (isGroup ? (tree.isCollapsed(groupKey) ? "›" : "⌄") : (entry ? String(tree.leafGlyph(entry) || "") : ""))
-      glyphColor: isGroup ? (folderGroup && !glyphStruck ? Color.accent : Color.muted) : tree.leafGlyphColor(entry)
+      glyphColor: isGroup ? (folderGroup && !glyphStruck ? Commons.Color.accent : Commons.Color.muted) : tree.leafGlyphColor(entry)
       label: folderGroup ? groupLabel : (isGroup ? groupLabel.toUpperCase() : (entry ? tree.leafLabel(entry) : ""))
       badge: isGroup ? tree.groupText(tree.rowAt(index)) : (showsMetrics ? tree.metricText(entry) : "")
       badgeMarkup: !isGroup && showsMetrics && entry ? String(tree.metricMarkup(entry, tree.metricKey) || "") : ""
@@ -870,7 +871,7 @@ FocusScope {
             textFormat: Text.PlainText
             anchors.centerIn: parent
             text: String(spec.glyph || "")
-            color: spec.danger ? Color.urgent : Color.accent
+            color: spec.danger ? Commons.Color.urgent : Commons.Color.accent
             opacity: actionPointer.containsMouse ? 1 : 0.8
             font.family: Style.font.family
             font.pixelSize: Typography.bodySmall

@@ -3,6 +3,7 @@ import Quickshell
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 FloatingWindow {
   id: window
@@ -75,7 +76,7 @@ FloatingWindow {
     else creationScreen = null
   }
   Component.onCompleted: if (windowMode) chooseCreationScreen()
-  color: Color.bar.background
+  color: Commons.Color.bar.background
   minimumSize: Qt.size(host.minimumWidth, Style.space(240))
   implicitWidth: bladeWidth
   implicitHeight: Style.space(900)
@@ -178,7 +179,7 @@ FloatingWindow {
     anchors.right: parent.right
     anchors.bottom: parent.bottom
     height: window.footerHeight
-    color: Qt.lighter(Color.bar.background, 1.035)
+    color: Qt.lighter(Commons.Color.bar.background, 1.035)
 
     BladeCorner {
       anchors.left: window.isRight ? undefined : parent.left
@@ -202,7 +203,7 @@ FloatingWindow {
       anchors.rightMargin: Style.space(12)
       anchors.verticalCenter: parent.verticalCenter
       text: files ? "\ue6ae " + files.editorMode : ""
-      color: files ? files.editorModeColor : Color.muted
+      color: files ? files.editorModeColor : Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Typography.caption
       font.weight: Font.DemiBold

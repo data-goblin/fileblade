@@ -1,17 +1,18 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Commons
+import qs.Commons as Commons
 
 ToolTip {
   id: root
 
-  property color panelForeground: Color.tooltip.text
-  property color panelBackground: Color.tooltip.background
-  property color panelBorder: Color.tooltip.border
+  property color panelForeground: Commons.Color.tooltip.text
+  property color panelBackground: Commons.Color.tooltip.background
+  property color panelBorder: Commons.Color.tooltip.border
   property string fontFamily: Style.font.family
   property real fontSize: Style.font.bodySmall
 
-  readonly property var panelBorderSpec: Border.localOrSurfaceSpec("tooltip", "border", panelBorder, Color.tooltip.border, Style.normalBorderWidth)
+  readonly property var panelBorderSpec: Border.localOrSurfaceSpec("tooltip", "border", panelBorder, Commons.Color.tooltip.border, Style.normalBorderWidth)
 
   delay: 400
   padding: 0

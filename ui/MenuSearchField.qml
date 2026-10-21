@@ -2,12 +2,13 @@ import QtQuick
 import QtQuick.Controls as QQC
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 QQC.TextField {
   id: field
 
   property string prompt: "Type to filter, Enter picks"
-  property color textColor: Color.popups.text
+  property color textColor: Commons.Color.popups.text
   property var actionKeys: null
 
   signal moved(int delta)
@@ -18,10 +19,10 @@ QQC.TextField {
   leftPadding: Style.space(24)
   rightPadding: Style.space(8)
   placeholderText: prompt
-  placeholderTextColor: Color.muted
+  placeholderTextColor: Commons.Color.muted
   color: textColor
   selectByMouse: true
-  selectionColor: Util.alpha(Color.accent, 0.38)
+  selectionColor: Util.alpha(Commons.Color.accent, 0.38)
   selectedTextColor: textColor
   font.family: Style.font.family
   font.pixelSize: Typography.bodySmall
@@ -54,7 +55,7 @@ QQC.TextField {
     anchors.leftMargin: Style.space(7)
     anchors.verticalCenter: parent.verticalCenter
     text: "󰍉"
-    color: field.activeFocus ? Color.accent : Color.muted
+    color: field.activeFocus ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
   }

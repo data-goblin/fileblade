@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 FocusScope {
   id: root
@@ -86,7 +87,7 @@ FocusScope {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Style.space(4)
         text: root.drives.tierLabel(parent.section)
-        color: Color.muted
+        color: Commons.Color.muted
         font.family: Style.font.family
         font.pixelSize: Typography.caption
         font.weight: Font.DemiBold
@@ -118,8 +119,8 @@ FocusScope {
       label: driveRow.name
       detail: driveRow.filesystem + "  " + (driveRow.mounted ? driveRow.mountpoint : driveRow.source)
       glyph: driveRow.volumeGlyph
-      glyphColor: driveRow.mounted ? Color.accent : Color.muted
-      labelColor: driveRow.mounted ? Color.bar.text : Util.alpha(Color.bar.text, 0.75)
+      glyphColor: driveRow.mounted ? Commons.Color.accent : Commons.Color.muted
+      labelColor: driveRow.mounted ? Commons.Color.bar.text : Util.alpha(Commons.Color.bar.text, 0.75)
       badge: driveRow.busy ? "…" : driveRow.sizeLabel
       barColumn: driveRow.mounted
       barFraction: driveRow.mounted ? driveRow.usedFraction : -1
@@ -192,7 +193,7 @@ FocusScope {
     width: Math.max(0, parent.width - Style.space(32))
     visible: drivesList.count === 0
     text: root.drives && root.drives.error ? root.drives.error : "No volumes found"
-    color: root.drives && root.drives.error ? Color.urgent : Color.muted
+    color: root.drives && root.drives.error ? Commons.Color.urgent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family

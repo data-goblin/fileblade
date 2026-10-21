@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import qs.Commons
 import "../../ui" as Ui
+import qs.Commons as Commons
 
 TestCase {
   id: test
@@ -50,22 +51,22 @@ TestCase {
     var view = create(280)
     var keys = ["2026-08-03", "2026-09-14", "2026-09-15", "2026-09-16", "2026-09-01"]
     var before = keys.map(function(key) { return String(cell(view, key).color) })
-    sameColor(cell(view, "2026-09-14").color, Util.alpha(Color.accent, 1.0))
-    sameColor(cell(view, "2026-09-15").color, Util.alpha(Color.accent, 0.75))
-    sameColor(cell(view, "2026-08-03").color, Util.alpha(Color.accent, 0.50))
-    sameColor(cell(view, "2026-09-16").color, Util.alpha(Color.bar.text, 0.06))
+    sameColor(cell(view, "2026-09-14").color, Util.alpha(Commons.Color.accent, 1.0))
+    sameColor(cell(view, "2026-09-15").color, Util.alpha(Commons.Color.accent, 0.75))
+    sameColor(cell(view, "2026-08-03").color, Util.alpha(Commons.Color.accent, 0.50))
+    sameColor(cell(view, "2026-09-16").color, Util.alpha(Commons.Color.bar.text, 0.06))
     verify(cell(view, "2026-01-07") === null)
     view.width = 1000
     waitForRendering(view)
     compare(keys.map(function(key) { return String(cell(view, key).color) }), before)
-    sameColor(cell(view, "2026-01-07").color, Util.alpha(Color.accent, 0.30))
+    sameColor(cell(view, "2026-01-07").color, Util.alpha(Commons.Color.accent, 0.30))
   }
 
   function test_days_before_coverage_have_no_fill() {
     var view = create(385)
     sameColor(cell(view, "2026-01-06").color, "transparent")
     sameColor(cell(view, "2025-12-29").color, "transparent")
-    sameColor(cell(view, "2026-01-08").color, Util.alpha(Color.bar.text, 0.06))
+    sameColor(cell(view, "2026-01-08").color, Util.alpha(Commons.Color.bar.text, 0.06))
     view.payload = Object.assign({}, payload, { coverageStart: null, days: [] })
     sameColor(cell(view, "2026-09-16").color, "transparent")
   }
@@ -136,7 +137,7 @@ TestCase {
     var other = cell(view, "2026-09-14")
     compare(selected.opacity, 1)
     compare(selected.border.width, 1)
-    sameColor(selected.border.color, Color.bar.text)
+    sameColor(selected.border.color, Commons.Color.bar.text)
     compare(selected.width, view.cell)
     compare(selected.height, view.cell)
     compare(other.opacity, 0.25)

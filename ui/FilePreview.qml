@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Rectangle {
   id: root
@@ -15,7 +16,7 @@ Rectangle {
   property string trustedTextMarkup: ""
   property bool loading: false
   property string error: ""
-  property color surfaceColor: Color.bar.background
+  property color surfaceColor: Commons.Color.bar.background
   readonly property bool hovered: previewHover.hovered
 
   function resetScroll() {
@@ -42,14 +43,14 @@ Rectangle {
     event.accepted = true
   }
 
-  readonly property color boxColor: Qt.tint(surfaceColor, Util.alpha(Color.bar.text, 0.035))
+  readonly property color boxColor: Qt.tint(surfaceColor, Util.alpha(Commons.Color.bar.text, 0.035))
 
   visible: image || textPreview
   height: visible ? Math.min(Style.space(220), Math.max(Style.space(126), width * 0.62)) : 0
   radius: Math.min(Style.cornerRadius, Style.space(5))
   color: boxColor
   border.width: 1
-  border.color: Util.alpha(Color.bar.text, 0.15)
+  border.color: Util.alpha(Commons.Color.bar.text, 0.15)
   clip: true
 
   Image {
@@ -72,7 +73,7 @@ Rectangle {
     width: parent.width - Style.space(24)
     visible: root.image && root.imageAllowed && (root.imageError !== "" || previewImage.status === Image.Error || root.imageLoading)
     text: root.imageError !== "" ? root.imageError : (root.imageLoading ? "Rendering preview…" : "Preview unavailable")
-    color: root.imageLoading ? Color.muted : Color.urgent
+    color: root.imageLoading ? Commons.Color.muted : Commons.Color.urgent
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family
@@ -85,7 +86,7 @@ Rectangle {
     width: parent.width - Style.space(24)
     visible: root.image && !root.imageAllowed
     text: root.imageMessage
-    color: Color.muted
+    color: Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family
@@ -108,7 +109,7 @@ Rectangle {
       width: textScroller.width
       textFormat: Text.RichText
       text: root.trustedTextMarkup
-      color: Color.bar.text
+      color: Commons.Color.bar.text
       font.family: Style.font.family
       font.pixelSize: Typography.caption
       wrapMode: Text.Wrap
@@ -121,7 +122,7 @@ Rectangle {
     width: parent.width - Style.space(24)
     visible: root.textPreview && (root.loading || root.error !== "" || (!root.loading && root.trustedTextMarkup === ""))
     text: root.loading ? "Loading preview…" : (root.error !== "" ? root.error : "Empty file")
-    color: root.error !== "" ? Color.urgent : Color.muted
+    color: root.error !== "" ? Commons.Color.urgent : Commons.Color.muted
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     font.family: Style.font.family

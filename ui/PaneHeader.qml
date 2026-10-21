@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import "../theme"
+import qs.Commons as Commons
 
 Rectangle {
   id: header
@@ -11,7 +12,7 @@ Rectangle {
   property string iconUrl: ""
   property string status: ""
   property string statusGlyph: ""
-  property color statusColor: Color.muted
+  property color statusColor: Commons.Color.muted
   property bool highlighted: !!context && context.slotFocused === true
   property int tabIndex: -1
   property int reservedLeft: 0
@@ -59,7 +60,7 @@ Rectangle {
   anchors.left: parent ? parent.left : undefined
   anchors.right: parent ? parent.right : undefined
   height: visible ? preferredHeight : 0
-  color: Qt.lighter(Color.bar.background, 1.035)
+  color: Qt.lighter(Commons.Color.bar.background, 1.035)
 
   onViewChanged: syncColumnGeometry()
   onEffectiveReservedRightChanged: syncColumnGeometry()
@@ -81,7 +82,7 @@ Rectangle {
     anchors.verticalCenter: parent.verticalCenter
     visible: header.collapsible && header.identityVisible
     text: header.context && header.context.collapsed ? "›" : "⌄"
-    color: disclosurePointer.containsMouse ? Color.accent : Color.muted
+    color: disclosurePointer.containsMouse ? Commons.Color.accent : Commons.Color.muted
     font.family: Style.font.family
     font.pixelSize: Typography.body
 
@@ -122,7 +123,7 @@ Rectangle {
     anchors.verticalCenter: parent.verticalCenter
     visible: header.identityVisible
     text: header.title.toUpperCase()
-    color: header.highlighted ? Color.accent : (handle.containsMouse ? Color.bar.text : Color.muted)
+    color: header.highlighted ? Commons.Color.accent : (handle.containsMouse ? Commons.Color.bar.text : Commons.Color.muted)
     font.family: Style.font.family
     font.pixelSize: Typography.bodySmall
     font.weight: Font.DemiBold
@@ -197,7 +198,7 @@ Rectangle {
       height: Style.space(24)
       visible: header.columnsCollapsed
       text: "..."
-      color: Color.muted
+      color: Commons.Color.muted
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       font.family: Style.font.family
@@ -239,7 +240,7 @@ Rectangle {
       : 0)
     radius: width / 2
     visible: header.addGuideVisible
-    color: Util.alpha(Color.accent, 0.7)
+    color: Util.alpha(Commons.Color.accent, 0.7)
     z: 20
   }
 

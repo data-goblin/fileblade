@@ -2,6 +2,7 @@ import QtQuick
 import qs.Commons
 import "../ui" as PluginUi
 import "../theme"
+import qs.Commons as Commons
 
 Rectangle {
   id: control
@@ -20,10 +21,10 @@ Rectangle {
   width: parent ? parent.width : implicitWidth
   implicitHeight: Style.space(29)
   color: control.primary
-    ? (pointer.containsMouse ? Color.accent : Util.alpha(Color.accent, 0.84))
-    : (control.menuHighlighted ? Color.menu.selectedBackground : "transparent")
+    ? (pointer.containsMouse ? Commons.Color.accent : Util.alpha(Commons.Color.accent, 0.84))
+    : (control.menuHighlighted ? Commons.Color.menu.selectedBackground : "transparent")
   border.width: !control.primary && control.activeFocus ? 1 : 0
-  border.color: Color.menu.selectedBorder
+  border.color: Commons.Color.menu.selectedBorder
   opacity: enabled ? 1.0 : 0.42
   activeFocusOnTab: visible && enabled
 
@@ -35,9 +36,9 @@ Rectangle {
     anchors.rightMargin: Style.space(10)
     height: parent.height
     text: control.text
-    color: control.primary ? Color.background
-      : (control.danger ? Color.urgent
-        : (control.menuHighlighted ? Color.menu.selectedText : Color.menu.text))
+    color: control.primary ? Commons.Color.background
+      : (control.danger ? Commons.Color.urgent
+        : (control.menuHighlighted ? Commons.Color.menu.selectedText : Commons.Color.menu.text))
     elide: Text.ElideRight
     verticalAlignment: Text.AlignVCenter
     font.family: Style.font.family
@@ -53,7 +54,7 @@ Rectangle {
     anchors.rightMargin: Style.space(10)
     anchors.verticalCenter: parent.verticalCenter
     text: control.shortcut
-    color: control.menuHighlighted ? Color.menu.selectedText : Util.alpha(Color.menu.text, 0.55)
+    color: control.menuHighlighted ? Commons.Color.menu.selectedText : Util.alpha(Commons.Color.menu.text, 0.55)
     font.family: Style.font.family
     font.pixelSize: Typography.caption
   }
@@ -66,7 +67,7 @@ Rectangle {
     iconName: control.appIcon
     desktopId: control.appDesktopId
     fallbackGlyph: "󰏗"
-    fallbackColor: control.menuHighlighted ? Color.bar.text : Color.accent
+    fallbackColor: control.menuHighlighted ? Commons.Color.bar.text : Commons.Color.accent
   }
 
   Rectangle {
@@ -79,7 +80,7 @@ Rectangle {
     radius: width / 2
     color: control.swatch || "transparent"
     border.width: 1
-    border.color: Util.alpha(Color.bar.text, 0.34)
+    border.color: Util.alpha(Commons.Color.bar.text, 0.34)
   }
 
   MouseArea {
