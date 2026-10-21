@@ -34,7 +34,7 @@ fn command_json(program: &str, arguments: &[&str]) -> Option<Value> {
     let program = which(program)?;
     let output = CommandSpec::new(program)
         .args(arguments)
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(STATUS_DEADLINE)
         .limits(STATUS_STDOUT_LIMIT, STATUS_STDERR_LIMIT)
         .run()

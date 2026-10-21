@@ -61,7 +61,7 @@ fn git(
         .env("GIT_TERMINAL_PROMPT", "0")
         .env("GIT_ASKPASS", "")
         .env("GIT_SSH_COMMAND", "ssh -o BatchMode=yes")
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(timeout)
         .limits(OUTPUT_LIMIT, 16 * 1024)
         .stop_on_output_limit()

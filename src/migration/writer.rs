@@ -188,7 +188,7 @@ fn ipc_status() -> Result<bool, String> {
         .args(["ipc", "-n", "-p"])
         .args([config])
         .args(["call", "--", "data-goblin.fileblade", "status"])
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(Duration::from_secs(2))
         .limits(64 * 1024, 4096)
         .run()

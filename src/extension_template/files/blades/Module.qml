@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 FocusScope {
   id: module
@@ -17,7 +18,7 @@ FocusScope {
   readonly property string caption: String(setting("caption", ""))
   readonly property bool showSelection: setting("showSelection", true) === true
   readonly property bool active: !!context && context.bladeOpen !== false && context.collapsed !== true
-  readonly property color paneBackground: Qt.lighter(Color.bar.background, 1.035)
+  readonly property color paneBackground: Qt.lighter(Commons.Color.bar.background, 1.035)
   readonly property var shortcuts: [
     {
       title: "{{PLUGIN_NAME}}",
@@ -78,7 +79,7 @@ FocusScope {
     anchors.top: parent.top
     anchors.margins: Style.space(10)
     text: module.title.toUpperCase()
-    color: module.activeFocus || handle.containsMouse ? Color.accent : Color.bar.text
+    color: module.activeFocus || handle.containsMouse ? Commons.Color.accent : Commons.Color.bar.text
     font.family: Style.font.family
     font.pixelSize: Style.font.bodySmall
     font.weight: Font.DemiBold
@@ -112,7 +113,7 @@ FocusScope {
       elide: Text.ElideMiddle
       visible: module.showSelection
       text: module.selectedName !== "" ? module.selectedName : "Nothing selected"
-      color: module.selectedName !== "" ? Color.bar.text : Color.muted
+      color: module.selectedName !== "" ? Commons.Color.bar.text : Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Style.font.body
     }
@@ -123,7 +124,7 @@ FocusScope {
       textFormat: Text.PlainText
       elide: Text.ElideRight
       text: module.providerStatus
-      color: Color.muted
+      color: Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Style.font.caption
     }
@@ -134,7 +135,7 @@ FocusScope {
       textFormat: Text.PlainText
       wrapMode: Text.WordWrap
       text: module.caption !== "" ? module.caption : "Enter opens the selection, e edits it, ? lists the keys"
-      color: Color.muted
+      color: Commons.Color.muted
       font.family: Style.font.family
       font.pixelSize: Style.font.caption
     }

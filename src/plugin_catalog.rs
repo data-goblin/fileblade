@@ -451,7 +451,7 @@ fn enabled_ids_for(config_home: &std::path::Path) -> (BTreeMap<String, bool>, &'
     let output = CommandSpec::new(program)
         .args(["plugin", "list", "--json"])
         .env("XDG_CONFIG_HOME", config_home)
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(CLI_TIMEOUT)
         .limits(CLI_STDOUT_LIMIT, CLI_STDERR_LIMIT)
         .run();

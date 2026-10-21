@@ -60,7 +60,7 @@ pub(super) fn applications_for(path: &str, hint: &str) -> Vec<DesktopEntry> {
     };
     let output = CommandSpec::new(gio)
         .args(["mime", mime.as_str()])
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(CONTROL_TIMEOUT)
         .limits(256 * 1024, 64 * 1024)
         .run();

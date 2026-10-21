@@ -99,7 +99,7 @@ fn gio(arguments: &[&str], cancelled: &AtomicBool) -> AppResult<String> {
     let program = which("gio").ok_or_else(|| AppError::command("GIO is not installed"))?;
     let output = CommandSpec::new(program)
         .args(arguments.iter().copied())
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(Duration::from_secs(30))
         .limits(8 * 1024 * 1024, 16384)
         .stop_on_output_limit()

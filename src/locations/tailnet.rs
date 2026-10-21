@@ -137,7 +137,7 @@ pub(super) fn configured_ssh(host: &str) -> (String, String) {
     };
     let Ok(output) = CommandSpec::new(program)
         .args(["-G", "--", alias])
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(Duration::from_secs(2))
         .limits(256 * 1024, 4096)
         .stop_on_output_limit()

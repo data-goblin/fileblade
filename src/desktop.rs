@@ -167,7 +167,7 @@ pub fn applications_for_cancellable(
     };
     let output = CommandSpec::new(gio)
         .args(["mime".to_string(), mime.clone()])
-        .env("LC_ALL", "C")
+        .env("LC_ALL", "C.UTF-8")
         .timeout(CONTROL_TIMEOUT)
         .limits(MAX_APPLICATION_OUTPUT_BYTES, 64 * 1024)
         .run_cancellable(cancelled);

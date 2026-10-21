@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
 import "HostGuard.js" as HostGuard
+import qs.Commons as Commons
 
 Item {
   id: guard
@@ -88,8 +89,8 @@ Item {
         width: Style.space(440)
         height: column.implicitHeight + Style.space(40)
         radius: Style.cornerRadius
-        color: Color.popups.background
-        border.color: Color.popups.border
+        color: Commons.Color.popups.background
+        border.color: Commons.Color.popups.border
         border.width: 1
         focus: true
         Keys.onEscapePressed: guard.dismissed = true
@@ -103,7 +104,7 @@ Item {
           anchors.topMargin: Style.space(8)
           anchors.rightMargin: Style.space(12)
           text: "×"
-          color: closePointer.containsMouse ? Color.bar.text : Color.muted
+          color: closePointer.containsMouse ? Commons.Color.bar.text : Commons.Color.muted
           font.family: Style.font.family
           font.pixelSize: Style.font.title
 
@@ -137,7 +138,7 @@ Item {
             id: logoFill
             width: logo.width
             height: logo.height
-            color: Color.accent
+            color: Commons.Color.accent
             visible: false
           }
 
@@ -155,7 +156,7 @@ Item {
             textFormat: Text.PlainText
             wrapMode: Text.WordWrap
             text: guard.plan.message
-            color: Color.popups.text
+            color: Commons.Color.popups.text
             font.family: Style.font.family
             font.pixelSize: Style.font.body
           }
@@ -165,7 +166,7 @@ Item {
             textFormat: Text.PlainText
             wrapMode: Text.WordWrap
             text: "Waiting for FileBlade: " + guard.plan.names.join(", ")
-            color: Color.muted
+            color: Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
           }
@@ -176,7 +177,7 @@ Item {
             wrapMode: Text.WordWrap
             visible: guard.observation && guard.observation.state === "missing"
             text: HostGuard.HOST_REPOSITORY
-            color: Color.muted
+            color: Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
           }
@@ -187,7 +188,7 @@ Item {
             wrapMode: Text.WordWrap
             visible: guard.plan.removal !== ""
             text: "To remove this extension instead, run:\n" + guard.plan.removal
-            color: Color.muted
+            color: Commons.Color.muted
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
           }
@@ -198,14 +199,14 @@ Item {
             width: installLabel.implicitWidth + Style.space(24)
             height: Style.space(26)
             radius: 0
-            color: guard.installing ? Util.alpha(Color.muted, 0.25) : (installPointer.containsMouse ? Qt.lighter(Color.accent, 1.1) : Color.accent)
+            color: guard.installing ? Util.alpha(Commons.Color.muted, 0.25) : (installPointer.containsMouse ? Qt.lighter(Commons.Color.accent, 1.1) : Commons.Color.accent)
 
             Text {
               id: installLabel
               textFormat: Text.PlainText
               anchors.centerIn: parent
               text: guard.installing ? "Enabling…" : guard.plan.action
-              color: guard.installing ? Color.muted : Color.background
+              color: guard.installing ? Commons.Color.muted : Commons.Color.background
               font.family: Style.font.family
               font.pixelSize: Style.font.body
               font.weight: Font.DemiBold
