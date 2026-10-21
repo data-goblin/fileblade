@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # FileBlade release notes
 
-## 0.3.2 (unreleased)
+## 0.3.2
 
 - Blades render their theme colours again on Quickshell builds where QtQuick's own `Color` type hid the shell palette, which left panes black.
 - State migration and keybindings no longer refuse to load when Quickshell prints a locale warning, so layouts, notes and shortcuts are writable again.
