@@ -361,7 +361,7 @@ VM scenario passed separately; the complete GUI scenario suite was not run.
 Run the self-contained backend benchmark with:
 
 ```bash
-python3 tests/inventory_performance.py ./fileblade-bin
+python3 tests/inventory_performance.py ./fileblade-bin-$(uname -m)
 python3 tests/inventory_performance.py /path/to/previous/fileblade-bin --legacy
 ```
 

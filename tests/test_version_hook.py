@@ -1,5 +1,6 @@
 import json
 import os
+import platform
 from pathlib import Path
 import shutil
 import subprocess
@@ -9,7 +10,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 HOOK = ROOT / "tools/hooks/pre-commit"
-SOURCES = ["manifest.json", "Cargo.toml", "Cargo.lock", "features/release/release-notes.md", "fileblade-bin"]
+BINARY = f"fileblade-bin-{platform.machine()}"
+SOURCES = ["manifest.json", "Cargo.toml", "Cargo.lock", "features/release/release-notes.md", BINARY]
 
 
 class VersionHookTests(unittest.TestCase):
@@ -49,8 +51,8 @@ class VersionHookTests(unittest.TestCase):
         (self.repo / name).write_text(content)
 
     def write_binary(self, body):
-        self.write("fileblade-bin", f"#!/usr/bin/env bash\n{body}\n")
-        (self.repo / "fileblade-bin").chmod(0o755)
+        self.write(BINARY, f"#!/usr/bin/env bash\n{body}\n")
+        (self.repo / BINARY).chmod(0o755)
 
     def hook(self, success=True, contains=""):
         result = subprocess.run([sys.executable, str(HOOK)], cwd=self.repo, env=self.env,
@@ -178,32 +180,32 @@ class VersionHookTests(unittest.TestCase):
                 self.hook(False, "regular file")
                 (self.repo / name).unlink()
                 (self.repo / name).write_bytes(original)
-                if name == "fileblade-bin":
+                if name == BINARY:
                     (self.repo / name).chmod(0o755)
                 self.git("add", "--", name)
 
     def test_nonexecutable_staged_binary_is_rejected(self):
-        self.git("update-index", "--chmod=-x", "fileblade-bin")
+        self.git("update-index", "--chmod=-x", BINARY)
         self.hook(False, "executable mode 100755")
-        self.assertTrue(os.access(self.repo / "fileblade-bin", os.X_OK))
+        self.assertTrue(os.access(self.repo / BINARY, os.X_OK))
 
     def test_binary_failures_and_versions(self):
         for body in ["exit 1", "exit 0", "echo broken", "echo fileblade 0.9.9", "echo other 0.1.3", "echo fileblade 0.1.3; echo extra"]:
             with self.subTest(body=body):
                 self.write_binary(body)
-                self.git("add", "fileblade-bin")
+                self.git("add", BINARY)
                 self.write_binary('echo fileblade 0.1.3')
                 self.hook(False)
 
     def test_binary_output_is_bounded(self):
         self.write_binary('printf "%5000s" x')
-        self.git("add", "fileblade-bin")
+        self.git("add", BINARY)
         self.hook(False, "exceeds 4096 bytes")
 
     def test_binary_deadline_stops_the_process_group(self):
         pid_path = self.repo / "sleep.pid"
         self.write_binary('sleep 30 &\necho $! > sleep.pid\nwait')
-        self.git("add", "fileblade-bin")
+        self.git("add", BINARY)
         self.hook(False, "5-second version deadline")
         pid = int(pid_path.read_text())
         status = Path(f"/proc/{pid}/stat")

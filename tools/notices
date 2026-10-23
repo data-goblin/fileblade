@@ -2,17 +2,21 @@
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 notices_mode=${1:-verify}
-notices_target=${2:-x86_64-unknown-linux-musl}
-notices_output=${3:-THIRD_PARTY_NOTICES.html}
-[[ ( $# -le 1 || $# == 3 ) && $notices_mode =~ ^(build|verify)$ ]] || {
-  printf '%s\n' 'Usage: tools/notices [build|verify] [TARGET OUTPUT_FILE]' >&2
+notices_static=(x86_64-unknown-linux-musl aarch64-unknown-linux-musl)
+notices_output=${2:-THIRD_PARTY_NOTICES.html}
+notices_targets=("${@:3}")
+(( ${#notices_targets[@]} > 0 )) || notices_targets=("${notices_static[@]}")
+[[ ( $# -le 1 || $# -ge 3 ) && $notices_mode =~ ^(build|verify)$ ]] || {
+  printf '%s\n' 'Usage: tools/notices [build|verify] [OUTPUT_FILE TARGET...]' >&2
   exit 2
 }
-case $notices_target in
-  x86_64-unknown-linux-musl|x86_64-unknown-linux-gnu) ;;
-  *) printf 'notices: unsupported target: %s\n' "$notices_target" >&2; exit 2 ;;
-esac
-if [[ $# == 3 && $notices_target != x86_64-unknown-linux-musl && $(realpath -m -- "$notices_output") == "$PWD/THIRD_PARTY_NOTICES.html" ]]; then
+for notices_target in "${notices_targets[@]}"; do
+  case $notices_target in
+    x86_64-unknown-linux-musl|x86_64-unknown-linux-gnu|aarch64-unknown-linux-musl|aarch64-unknown-linux-gnu) ;;
+    *) printf 'notices: unsupported target: %s\n' "$notices_target" >&2; exit 2 ;;
+  esac
+done
+if [[ "${notices_targets[*]}" != "${notices_static[*]}" && $(realpath -m -- "$notices_output") == "$PWD/THIRD_PARTY_NOTICES.html" ]]; then
   printf '%s\n' 'notices: keep other targets outside the committed notice path' >&2
   exit 2
 fi
@@ -20,15 +24,17 @@ notices_version=$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' rust-toolchain.toml)
 notices_sysroot=$(rustup run "$notices_version" rustc --print sysroot)
 notices_work=$(mktemp -d)
 trap 'rm -rf -- "$notices_work"' EXIT
-notices_args=(metadata --locked --format-version 1 --filter-platform "$notices_target")
-[[ ${FILEBLADE_OFFLINE:-0} != 1 ]] || notices_args+=(--offline)
-rustup run "$notices_version" cargo "${notices_args[@]}" > "$notices_work/metadata.json"
-jq -er '.resolve.nodes | length > 0' "$notices_work/metadata.json" >/dev/null
-jq -r '. as $m | [.resolve.nodes[].id] as $ids |
-  .packages | sort_by(.name, .version)[] |
-  select(.source != null and (.id as $id | $ids | index($id))) |
-  [.name, .version, (.license // "See license text"), .manifest_path] | @tsv' \
-  "$notices_work/metadata.json" > "$notices_work/packages.tsv"
+for notices_target in "${notices_targets[@]}"; do
+  notices_args=(metadata --locked --format-version 1 --filter-platform "$notices_target")
+  [[ ${FILEBLADE_OFFLINE:-0} != 1 ]] || notices_args+=(--offline)
+  rustup run "$notices_version" cargo "${notices_args[@]}" > "$notices_work/metadata.json"
+  jq -er '.resolve.nodes | length > 0' "$notices_work/metadata.json" >/dev/null
+  jq -r '. as $m | [.resolve.nodes[].id] as $ids |
+    .packages[] |
+    select(.source != null and (.id as $id | $ids | index($id))) |
+    [.name, .version, (.license // "See license text"), .manifest_path] | @tsv' \
+    "$notices_work/metadata.json"
+done | LC_ALL=C sort -u -t $'\t' -k1,1 -k2,2 > "$notices_work/packages.tsv"
 
 escape_html() { sed -e 's/\&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'; }
 
@@ -37,7 +43,7 @@ escape_html() { sed -e 's/\&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"
     '<title>FileBlade third-party notices</title>' \
     '<style>body{max-width:78ch;margin:2rem auto;padding:0 1rem}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>' \
     '<body><h1>FileBlade third-party notices</h1>'
-  printf '<p>These are the upstream notices for the locked Rust dependencies selected for %s, followed by the Rust standard-library notices (including musl). Not every listed component is linked into the executable.</p>\n' "$notices_target"
+  printf '<p>These are the upstream notices for the locked Rust dependencies selected for %s, followed by the Rust standard-library notices (including musl). Not every listed component is linked into the executables.</p>\n' "$(printf '%s, ' "${notices_targets[@]}" | sed 's/, $//')"
   printf '%s\n' \
     '<p>Dependency sources are unmodified. Each source link downloads the exact crate version from crates.io; Cargo.lock records its checksum. MPL-2.0 source remains available under the Mozilla Public License 2.0. FileBlade itself is covered by LICENSE.</p>'
   while IFS=$'\t' read -r name version license manifest; do

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
+import platform
 import re
 import selectors
 import signal
@@ -16,13 +17,14 @@ VERSION = re.compile(
     rf"{NUMBER}\.{NUMBER}\.{NUMBER}(?:-{IDENTIFIER}(?:\.{IDENTIFIER})*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
 )
+BINARY = f"fileblade-bin-{platform.machine()}"
 RELEASE_BRANCH = re.compile(rf"({NUMBER}\.{NUMBER}\.{NUMBER})(?:n|p)?")
 LIMITS = {
     "manifest.json": 64 * 1024,
     "Cargo.toml": 64 * 1024,
     "Cargo.lock": 4 * 1024 * 1024,
     "features/release/release-notes.md": 256 * 1024,
-    "fileblade-bin": 64 * 1024 * 1024,
+    BINARY: 64 * 1024 * 1024,
 }
 
 
@@ -46,9 +48,9 @@ def staged(path):
     if len(records) != 1:
         fail(f"{path} must have exactly one resolved entry in the index")
     mode, oid, stage = records[0].split(b"\t", 1)[0].split()
-    allowed_modes = [b"100755"] if path == "fileblade-bin" else [b"100644", b"100755"]
+    allowed_modes = [b"100755"] if path == BINARY else [b"100644", b"100755"]
     if stage != b"0" or mode not in allowed_modes:
-        fail(f"{path} must be staged as a regular file" + (" with executable mode 100755" if path == "fileblade-bin" else ""))
+        fail(f"{path} must be staged as a regular file" + (" with executable mode 100755" if path == BINARY else ""))
     if int(git("cat-file", "-s", oid.decode())) > LIMITS[path]:
         fail(f"{path} in the index exceeds {LIMITS[path]} bytes")
     return git("cat-file", "blob", oid.decode())
@@ -134,7 +136,7 @@ def released_versions(headings):
 def binary_version(blob):
     directory = os.fsdecode(git("rev-parse", "--absolute-git-dir").removesuffix(b"\n"))
     with tempfile.TemporaryDirectory(prefix="fileblade-version-", dir=directory) as staging:
-        path = os.path.join(staging, "fileblade-bin")
+        path = os.path.join(staging, BINARY)
         with open(path, "wb") as handle:
             handle.write(blob)
         os.chmod(path, 0o700)
@@ -149,13 +151,13 @@ def binary_version(blob):
                         while True:
                             remaining = deadline - time.monotonic()
                             if remaining <= 0 or not selector.select(remaining):
-                                fail("the staged fileblade-bin exceeded the 5-second version deadline")
+                                fail(f"the staged {BINARY} exceeded the 5-second version deadline")
                             chunk = os.read(process.stdout.fileno(), 4097 - len(output))
                             if not chunk:
                                 break
                             output.extend(chunk)
                             if len(output) > 4096:
-                                fail("the staged fileblade-bin version response exceeds 4096 bytes")
+                                fail(f"the staged {BINARY} version response exceeds 4096 bytes")
                     status = process.wait(timeout=max(0.01, deadline - time.monotonic()))
                 finally:
                     try:
@@ -164,16 +166,16 @@ def binary_version(blob):
                         pass
                     process.wait()
         except (OSError, subprocess.SubprocessError) as error:
-            fail(f"the staged fileblade-bin could not report its version: {error}")
+            fail(f"the staged {BINARY} could not report its version: {error}")
     if status:
-        fail(f"the staged fileblade-bin exited {status} for --version")
+        fail(f"the staged {BINARY} exited {status} for --version")
     match = re.fullmatch(rb"fileblade ([^\s]+)\n?", output)
     if not match:
-        fail("the staged fileblade-bin did not answer --version as 'fileblade <version>'")
+        fail(f"the staged {BINARY} did not answer --version as 'fileblade <version>'")
     try:
-        return version(match[1].decode("ascii"), "fileblade-bin")
+        return version(match[1].decode("ascii"), BINARY)
     except UnicodeDecodeError:
-        fail("the staged fileblade-bin did not report an ASCII version")
+        fail(f"the staged {BINARY} did not report an ASCII version")
 
 
 def main():
@@ -196,9 +198,9 @@ def main():
     match = RELEASE_BRANCH.fullmatch(branch)
     if match and match[1] != expected:
         fail(f"branch {branch} builds {match[1]} but the staged version is {expected}")
-    binary = binary_version(staged("fileblade-bin"))
+    binary = binary_version(staged(BINARY))
     if binary != expected:
-        fail(f"manifest.json is {expected} but staged fileblade-bin is {binary}; run tools/bundle build")
+        fail(f"manifest.json is {expected} but staged {BINARY} is {binary}; run tools/bundle build")
 
 
 if __name__ == "__main__":

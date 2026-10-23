@@ -30,8 +30,8 @@ Review the [feature guides](features/index.md) for details.
 ## Installation / Quick-start
 
 
-FileBlade ships a bundled x86-64 Linux binary, so no Rust toolchain or separate
-binary download is needed. Use an up-to-date Omarchy installation with
+FileBlade ships bundled x86-64 and aarch64 Linux binaries, so no Rust toolchain
+or separate binary download is needed. Use an up-to-date Omarchy installation with
 Quickshell 0.3.1+, Qt 6.11.2+ and the dependencies in
 [the runtime contract](packaging/runtime.json).
 
@@ -49,11 +49,11 @@ advertised version, verifies the payload inventory, and installs to
 See [build provenance](docs/agent-written/build-provenance.md) for independent
 artifact verification. Set `FILEBLADE_INSTALL_MANIFEST` to use a mirror or a local file.
 
-**From a release package:** download the x86-64 package from
+**From a release package:** download the package for your architecture from
 [Releases](https://github.com/data-goblin/fileblade/releases), then install it:
 
 ```bash
-sudo pacman -U ./fileblade-native-0.3.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ./fileblade-native-0.3.3-1-$(uname -m).pkg.tar.zst
 ```
 
 For the **native app**, run `fileblade` to open it. Desktop roles start disabled;

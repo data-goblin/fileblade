@@ -5,7 +5,9 @@ This file was written by an agent.
 [Build backend provenance](../../.github/workflows/bundle-provenance.yml) is a
 manually dispatched delivery build. It runs the existing `tools/bundle build`
 recipe on GitHub, requires its output to equal the committed bundle, and signs
-the backend's digest with GitHub Actions build provenance. The test suite still
+the digests of both backends with GitHub Actions build provenance. Before
+signing, a job on a GitHub `ubuntu-24.04-arm` runner runs the committed aarch64
+backend through the launcher and requires the manifest version. The test suite still
 runs locally; this workflow does not run `tests/run`, create commits, publish a
 release or change tags.
 
@@ -58,9 +60,11 @@ gh workflow run bundle-provenance.yml --repo data-goblin/fileblade \
 
 4. Wait for both jobs to succeed. Download the final
    `fileblade-backend-<SHA>-<run-attempt>` artifact, not the intermediate
-   `fileblade-build-...` artifact. The final artifact contains `fileblade-bin`,
-   its checksum and source fingerprint, third-party notices, `source-commit.txt`,
-   `fileblade-bin.sigstore.json` and the verification result.
+   `fileblade-build-...` artifact. The final artifact contains `fileblade-bin-x86_64`,
+   `fileblade-bin-aarch64`, their checksums and source fingerprint, third-party notices, `source-commit.txt`,
+   `fileblade-bin.sigstore.json` and a verification result per backend. A
+   failed build still uploads the intermediate artifact, so the bytes the runner
+   built can be compared with the committed ones.
 5. Verify the binary using the command below, then attach the attestation bundle
    alongside those same binary bytes to the owner-managed release. Workflow
    artifacts expire after 90 days; retain the portable attestation with the
@@ -84,7 +88,7 @@ checks shown here:
 
 ```bash
 candidate=FULL_REVIEWED_40_CHARACTER_SHA
-gh attestation verify ./fileblade-bin \
+gh attestation verify "./fileblade-bin-$(uname -m)" \
   --repo data-goblin/fileblade \
   --signer-workflow data-goblin/fileblade/.github/workflows/bundle-provenance.yml \
   --source-digest "$candidate" \
@@ -106,7 +110,7 @@ default. A failed signature or identity check must not be treated as success.
 
 `tools/bundle verify` remains the independent local source-to-binary check at
 that same commit. ZIP downloads from Actions do not preserve executable modes;
-use `chmod +x fileblade-bin` before executing a downloaded backend. Changing that
+use `chmod +x fileblade-bin-*` before executing a downloaded backend. Changing that
 mode does not change its digest.
 
 ## Build and permission boundaries

@@ -171,7 +171,7 @@ fn native_release_metadata_and_bundled_install_are_documented() {
         );
     }
     assert!(
-        fs::read(root.join("fileblade-bin"))
+        fs::read(root.join("fileblade-bin-x86_64"))
             .unwrap()
             .starts_with(b"\x7fELF")
     );

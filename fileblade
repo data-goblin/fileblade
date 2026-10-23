@@ -9,10 +9,8 @@ candidates=()
 if [[ -n ${FILEBLADE_BINARY:-} ]]; then
   candidates+=("$FILEBLADE_BINARY")
 fi
-if [[ $machine == x86_64 ]]; then
-  candidates+=("$launcher_dir/fileblade-bin")
-fi
 candidates+=(
+  "$launcher_dir/fileblade-bin-$machine"
   "$launcher_dir/bin/fileblade"
   "$launcher_dir/target/release/fileblade"
   "$launcher_dir/target/debug/fileblade"
@@ -25,9 +23,12 @@ for candidate in "${candidates[@]}"; do
   fi
 done
 
-if [[ $machine != x86_64 ]]; then
-  printf 'fileblade: the bundled backend is x86-64 only and this machine is %s; build one here with cargo build --release --locked, or set FILEBLADE_BINARY to a backend for this machine\n' "$machine" >&2
-  exit 126
-fi
+case $machine in
+  x86_64|aarch64) ;;
+  *)
+    printf 'fileblade: the bundled backends are for x86_64 and aarch64 and this machine is %s; build one here with cargo build --release --locked, or set FILEBLADE_BINARY to a backend for this machine\n' "$machine" >&2
+    exit 126
+    ;;
+esac
 printf '%s\n' 'fileblade: no compatible backend found; reinstall the plugin, set FILEBLADE_BINARY, or install a package providing /usr/bin/fileblade-bin' >&2
 exit 127

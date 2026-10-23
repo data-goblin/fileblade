@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 from pathlib import Path
 import subprocess
 
@@ -34,7 +35,7 @@ def generate(destination, scenario):
                        CODEX_HOME=str(home / '.codex'), CLAUDE_CONFIG_DIR=str(home / '.claude'),
                        FILEBLADE_APP_ROOT=str(root), PYTHONDONTWRITEBYTECODE='1')
     environment.pop('FILEBLADE_NATIVE_STATE_ROOT', None)
-    environment['FILEBLADE_BINARY'] = os.environ.get('FILEBLADE_BINARY', str(root / 'fileblade-bin'))
+    environment['FILEBLADE_BINARY'] = os.environ.get('FILEBLADE_BINARY', str(root / f'fileblade-bin-{platform.machine()}'))
     modules = ('skills', 'memory', 'hooks', 'mcp')
     providers = ['data-goblin.fileblade-' + module for module in modules]
     slots = []

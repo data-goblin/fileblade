@@ -41,10 +41,10 @@ FILEBLADE_BINARY="$PWD/target/release/fileblade" ./fileblade --version
 ```
 
 Normal installation uses the bundled static backend and requires no Cargo build.
-The bundled backend is x86-64 only. On another architecture the launcher skips
-it and runs a backend built there: `target/release/fileblade` after the build
-above, or the one `FILEBLADE_BINARY` names. Releases and the native installer
-remain x86-64 only.
+The launcher runs the bundled backend for the machine, `fileblade-bin-x86_64` or
+`fileblade-bin-aarch64`. On another architecture it runs a backend built there:
+`target/release/fileblade` after the build above, or the one `FILEBLADE_BINARY`
+names.
 For development, set `FILEBLADE_BINARY`
 to test a local build, or run `tools/bundle build` to refresh the bundle before
 staging a native payload for a test VM. Use the installer to drain and replace
@@ -106,7 +106,9 @@ launch generated entries through GIO and a private D-Bus session. Set
 Keep `target/` and bundle staging on a disk-backed filesystem. Bundle builds
 otherwise use the temporary directory, which may be memory-backed and fill up.
 Remove the staging directory when finished. A native change must include the
-updated `fileblade-bin`, `fileblade-bin.sha256`, and `fileblade-bin.source`.
+updated `fileblade-bin-x86_64`, `fileblade-bin-aarch64`, `fileblade-bin.sha256`,
+and `fileblade-bin.source`. The aarch64 backend is cross-built on the x86-64 host
+with the pinned toolchain's `rust-lld`.
 
 The gate runs Rust formatting, checks, Clippy and tests, Qt 6 lint and regression
 tests, the scaffold checks, and a byte-for-byte rebuild of the bundled backend.
@@ -134,7 +136,7 @@ Set `OVM_REAL` to the external `ovm` harness executable, and use a dedicated
 Stage a native payload from a clean committed tree after the code gate passes:
 
 ```bash
-tools/native stage "$PWD" "$PWD/fileblade-bin" x86_64-unknown-linux-musl "$PWD/THIRD_PARTY_NOTICES.html" "$PWD/target/native-payload"
+tools/native stage "$PWD" "$PWD/fileblade-bin-$(uname -m)" "$(uname -m)-unknown-linux-musl" "$PWD/THIRD_PARTY_NOTICES.html" "$PWD/target/native-payload"
 export OVM="$PWD/tests/vm/native-ovm"
 FILEBLADE_NATIVE_PAYLOAD="$PWD/target/native-payload" SKIP_PUSH=0 "$OVM" push "$PWD"
 export SKIP_PUSH=1 FILEBLADE_SHAPE=native
