@@ -132,7 +132,7 @@ fn release_archives_refuse_to_mix_versions_without_changing_existing_assets() {
     for relative in runtime["required"].as_array().unwrap() {
         let relative = relative.as_str().unwrap();
         let source = root().join(if relative == "bin/fileblade" {
-            "fileblade-bin"
+            "fileblade-bin-x86_64"
         } else {
             relative
         });

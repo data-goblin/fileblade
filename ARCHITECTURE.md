@@ -47,7 +47,8 @@ live for enable/disable changes, but never changes to a different provider.
 
 ### Rust side (`fileblade`)
 
-The `fileblade` script launches the bundled static x86-64 `fileblade-bin`.
+The `fileblade` script launches the bundled static backend for the machine,
+`fileblade-bin-x86_64` or `fileblade-bin-aarch64`.
 `FILEBLADE_BINARY` overrides it for development or packaging; local Cargo
 artifacts and `/usr/bin/fileblade-bin` remain fallbacks. The binary is both
 the public CLI and the backend:

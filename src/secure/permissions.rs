@@ -1,5 +1,7 @@
 use super::*;
 
+const SYS_FCHMODAT2: libc::c_long = 452;
+
 pub fn set_permissions_matching(
     path: &Path,
     expected: EntryStat,
@@ -31,7 +33,7 @@ pub fn set_permissions_matching(
     }
     let result = unsafe {
         libc::syscall(
-            libc::SYS_fchmodat2,
+            SYS_FCHMODAT2,
             fd.as_raw_fd(),
             c"".as_ptr(),
             mode as libc::mode_t,

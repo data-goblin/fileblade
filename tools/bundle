@@ -2,26 +2,34 @@
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 bundle_root=$PWD
-bundle_target=${2:-x86_64-unknown-linux-musl}
+bundle_static=(x86_64-unknown-linux-musl aarch64-unknown-linux-musl)
 bundle_output=$bundle_root
 bundle_version=$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' rust-toolchain.toml)
 bundle_mode=${1:-verify}
-[[ ( $# -le 1 || $# == 3 ) && $bundle_mode =~ ^(build|verify)$ ]] || {
-  printf '%s\n' 'Usage: tools/bundle [build|verify] [TARGET EXISTING_OUTPUT_DIRECTORY]' >&2
+bundle_targets=("${@:3}")
+(( ${#bundle_targets[@]} > 0 )) || bundle_targets=("${bundle_static[@]}")
+[[ ( $# -le 1 || $# -ge 3 ) && $bundle_mode =~ ^(build|verify)$ ]] || {
+  printf '%s\n' 'Usage: tools/bundle [build|verify] [EXISTING_OUTPUT_DIRECTORY TARGET...]' >&2
   exit 2
 }
 
-case $bundle_target in
-  x86_64-unknown-linux-musl) bundle_machine='Advanced Micro Devices X86-64' ;;
-  *) printf 'bundle: unsupported static target: %s\n' "$bundle_target" >&2; exit 2 ;;
-esac
-if [[ $# == 3 ]]; then
-  bundle_output=$(realpath -e -- "$3")
+bundle_machine() {
+  case $1 in
+    x86_64-unknown-linux-musl) printf '%s\n' 'Advanced Micro Devices X86-64' ;;
+    aarch64-unknown-linux-musl) printf '%s\n' 'AArch64' ;;
+    *) printf 'bundle: unsupported static target: %s\n' "$1" >&2; exit 2 ;;
+  esac
+}
+for bundle_target in "${bundle_targets[@]}"; do bundle_machine "$bundle_target" >/dev/null; done
+if [[ $# -ge 3 ]]; then
+  bundle_output=$(realpath -e -- "$2")
   [[ -d $bundle_output && $bundle_output != "$bundle_root" ]] || {
     printf '%s\n' 'bundle: explicit target output must be an existing directory separate from the committed bundle root' >&2
     exit 2
   }
 fi
+bundle_files=()
+for bundle_target in "${bundle_targets[@]}"; do bundle_files+=("fileblade-bin-${bundle_target%%-*}"); done
 
 source_id() {
   {
@@ -34,7 +42,11 @@ fail() { printf 'bundle: %s\n' "$*" >&2; exit 1; }
 
 bundle_source=$(source_id)
 if [[ $bundle_mode == verify ]]; then
-  [[ -x $bundle_output/fileblade-bin && -f $bundle_output/fileblade-bin.sha256 && -f $bundle_output/fileblade-bin.source ]] || fail 'missing bundle; run tools/bundle build'
+  for bundle_file in "${bundle_files[@]}"; do
+    [[ -x $bundle_output/$bundle_file ]] || fail 'missing bundle; run tools/bundle build'
+  done
+  [[ -f $bundle_output/fileblade-bin.sha256 && -f $bundle_output/fileblade-bin.source ]] || fail 'missing bundle; run tools/bundle build'
+  [[ $(cut -d ' ' -f 3- "$bundle_output/fileblade-bin.sha256") == "$(printf '%s\n' "${bundle_files[@]}")" ]] || fail 'bundled checksums do not list exactly the bundled targets'
   (cd -- "$bundle_output" && sha256sum --strict --check fileblade-bin.sha256) || fail 'bundled binary checksum differs'
   [[ $(<"$bundle_output/fileblade-bin.source") == "$bundle_source" ]] || fail 'native source changed; run tools/bundle build'
 fi
@@ -43,12 +55,14 @@ command -v rustup >/dev/null || fail 'maintainer builds require rustup and the p
 bundle_sysroot=$(rustup run "$bundle_version" rustc --print sysroot)
 bundle_host=$(rustup run "$bundle_version" rustc -vV | sed -n 's/^host: //p')
 [[ $bundle_host == x86_64-unknown-linux-gnu ]] || fail 'build with the pinned Linux GNU host toolchain'
-[[ -d $bundle_sysroot/lib/rustlib/$bundle_target/lib ]] || fail "the pinned toolchain lacks target $bundle_target; provision it before building"
+for bundle_target in "${bundle_targets[@]}"; do
+  [[ -d $bundle_sysroot/lib/rustlib/$bundle_target/lib ]] || fail "the pinned toolchain lacks target $bundle_target; provision it before building"
+done
 bundle_linker="$bundle_sysroot/lib/rustlib/$bundle_host/bin/rust-lld"
 [[ -x $bundle_linker ]] || fail 'the pinned toolchain has no rust-lld linker'
 bundle_work=$(mktemp -d "${FILEBLADE_BUNDLE_TMPDIR:-${TMPDIR:-/tmp}}/fileblade-bundle.XXXXXX")
-bundle_staged=""
-trap 'rm -rf -- "$bundle_work"; [[ -z $bundle_staged ]] || rm -f -- "$bundle_staged"' EXIT
+bundle_staged=()
+trap 'rm -rf -- "$bundle_work"; (( ${#bundle_staged[@]} == 0 )) || rm -f -- "${bundle_staged[@]}"' EXIT
 bundle_cargo_home=${CARGO_HOME:-${HOME}/.cargo}
 bundle_flags=(
   "--remap-path-prefix=$bundle_root=fileblade"
@@ -58,37 +72,44 @@ bundle_flags=(
   '-Clink-self-contained=yes'
 )
 bundle_encoded=$(IFS=$'\x1f'; printf '%s' "${bundle_flags[*]}")
-bundle_linker_key=CARGO_TARGET_${bundle_target^^}_LINKER
-bundle_linker_key=${bundle_linker_key//-/_}
-bundle_args=(build --release --locked --target "$bundle_target" --bin fileblade)
-[[ ${FILEBLADE_OFFLINE:-0} != 1 ]] || bundle_args+=(--offline)
-env -u RUSTFLAGS -u RUSTC -u RUSTC_WRAPPER -u RUSTC_WORKSPACE_WRAPPER \
-  CARGO_TARGET_DIR="$bundle_work" CARGO_ENCODED_RUSTFLAGS="$bundle_encoded" \
-  "$bundle_linker_key=$bundle_linker" \
-  CARGO_PROFILE_RELEASE_STRIP=none \
-  rustup run "$bundle_version" cargo "${bundle_args[@]}"
-bundle_binary="$bundle_work/$bundle_target/release/fileblade"
+[[ ${FILEBLADE_OFFLINE:-0} != 1 ]] && bundle_offline=() || bundle_offline=(--offline)
+for bundle_target in "${bundle_targets[@]}"; do
+  bundle_linker_key=CARGO_TARGET_${bundle_target^^}_LINKER
+  bundle_linker_key=${bundle_linker_key//-/_}
+  env -u RUSTFLAGS -u RUSTC -u RUSTC_WRAPPER -u RUSTC_WORKSPACE_WRAPPER \
+    CARGO_TARGET_DIR="$bundle_work" CARGO_ENCODED_RUSTFLAGS="$bundle_encoded" \
+    "$bundle_linker_key=$bundle_linker" \
+    CARGO_PROFILE_RELEASE_STRIP=none \
+    rustup run "$bundle_version" cargo build --release --locked --target "$bundle_target" --bin fileblade "${bundle_offline[@]}"
+  bundle_binary="$bundle_work/$bundle_target/release/fileblade"
+  readelf -h "$bundle_binary" | grep -Fq "$(bundle_machine "$bundle_target")" || fail "not a $bundle_target ELF"
+  if readelf -l "$bundle_binary" | grep -q INTERP || readelf -d "$bundle_binary" | grep -q NEEDED; then
+    fail "$bundle_target bundle is dynamically linked"
+  fi
+  if [[ ${bundle_host%%-*} == ${bundle_target%%-*} ]]; then
+    [[ $("$bundle_binary" --version) == "fileblade $(jq -r .version manifest.json)" ]] || fail 'backend and manifest versions differ'
+  else
+    printf 'Cross-built %s; execution and backend version require qualification on that architecture\n' "$bundle_target"
+  fi
+done
 [[ $(source_id) == "$bundle_source" ]] || fail 'source changed during the build; retry after edits finish'
-readelf -h "$bundle_binary" | grep -Fq "$bundle_machine" || fail "not a $bundle_target ELF"
-if readelf -l "$bundle_binary" | grep -q INTERP || readelf -d "$bundle_binary" | grep -q NEEDED; then
-  fail 'bundle is dynamically linked'
-fi
-if [[ ${bundle_host%%-*} == ${bundle_target%%-*} ]]; then
-  [[ $("$bundle_binary" --version) == "fileblade $(jq -r .version manifest.json)" ]] || fail 'backend and manifest versions differ'
-else
-  printf 'Cross-built %s; execution and backend version require qualification on that architecture\n' "$bundle_target"
-fi
-tools/notices "$bundle_mode" "$bundle_target" "$bundle_output/THIRD_PARTY_NOTICES.html"
+tools/notices "$bundle_mode" "$bundle_output/THIRD_PARTY_NOTICES.html" "${bundle_targets[@]}"
 
 if [[ $bundle_mode == verify ]]; then
-  cmp -- "$bundle_binary" "$bundle_output/fileblade-bin" || fail 'bundle is not byte-for-byte reproducible; rebuild with the pinned toolchain'
-  printf '%s\n' 'Bundled backend: source, checksum, static linkage and reproducible build verified'
+  for bundle_target in "${bundle_targets[@]}"; do
+    cmp -- "$bundle_work/$bundle_target/release/fileblade" "$bundle_output/fileblade-bin-${bundle_target%%-*}" || fail "$bundle_target bundle is not byte-for-byte reproducible; rebuild with the pinned toolchain"
+  done
+  printf '%s\n' 'Bundled backends: source, checksums, static linkage and reproducible builds verified'
 else
-  bundle_staged=$(mktemp "$bundle_output/.fileblade-bin.XXXXXX")
-  install -m 755 -- "$bundle_binary" "$bundle_staged"
-  mv -f -- "$bundle_staged" "$bundle_output/fileblade-bin"
-  bundle_staged=""
-  (cd -- "$bundle_output" && sha256sum fileblade-bin > fileblade-bin.sha256)
+  for bundle_target in "${bundle_targets[@]}"; do
+    bundle_staged+=("$(mktemp "$bundle_output/.fileblade-bin.XXXXXX")")
+    install -m 755 -- "$bundle_work/$bundle_target/release/fileblade" "${bundle_staged[-1]}"
+  done
+  for bundle_index in "${!bundle_targets[@]}"; do
+    mv -f -- "${bundle_staged[bundle_index]}" "$bundle_output/${bundle_files[bundle_index]}"
+  done
+  bundle_staged=()
+  (cd -- "$bundle_output" && sha256sum "${bundle_files[@]}" > fileblade-bin.sha256)
   printf '%s\n' "$bundle_source" > "$bundle_output/fileblade-bin.source"
-  printf '%s\n' 'Bundled backend rebuilt; include fileblade-bin, fileblade-bin.sha256 and fileblade-bin.source with the source change'
+  printf 'Bundled backends rebuilt; include %s, fileblade-bin.sha256 and fileblade-bin.source with the source change\n' "${bundle_files[*]}"
 fi

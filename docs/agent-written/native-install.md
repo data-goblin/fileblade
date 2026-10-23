@@ -13,7 +13,8 @@ tools/native check OUTPUT
 ```
 
 Supported target identifiers are `x86_64-unknown-linux-gnu`,
-and `x86_64-unknown-linux-musl`. GNU inputs must name the corresponding glibc
+`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-gnu` and
+`aarch64-unknown-linux-musl`. GNU inputs must name the corresponding glibc
 interpreter; musl inputs must be static. `verify` checks the whole file set,
 SHA-256, modes, required files and ELF architecture/ABI without executing the
 backend. `check` additionally requires the matching machine, runtime packages

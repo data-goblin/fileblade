@@ -47,7 +47,7 @@ jobs:
         run: |
           bundle_channel=$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' rust-toolchain.toml)
           [[ "$bundle_channel" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          rustup toolchain install "$bundle_channel" --profile minimal --target x86_64-unknown-linux-musl
+          rustup toolchain install "$bundle_channel" --profile minimal --target x86_64-unknown-linux-musl --target aarch64-unknown-linux-musl
           rustup run "$bundle_channel" rustc -vV
           printf 'Runner image: %s %s\n' "$ImageOS" "$ImageVersion"
 
@@ -58,21 +58,22 @@ jobs:
         run: |
           [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
           bundle_expected=$(mktemp -d "$RUNNER_TEMP/fileblade-expected.XXXXXX")
-          bundle_files=(fileblade-bin fileblade-bin.sha256 fileblade-bin.source THIRD_PARTY_NOTICES.html)
+          bundle_files=(fileblade-bin-x86_64 fileblade-bin-aarch64 fileblade-bin.sha256 fileblade-bin.source THIRD_PARTY_NOTICES.html)
           for bundle_file in "${bundle_files[@]}"; do
             git show "$GITHUB_SHA:$bundle_file" > "$bundle_expected/$bundle_file"
           done
           tools/bundle build
+          mkdir -p target/provenance-artifact
+          cp -- "${bundle_files[@]}" target/provenance-artifact/
+          printf '%s\n' "$GITHUB_SHA" > target/provenance-artifact/source-commit.txt
           for bundle_file in "${bundle_files[@]}"; do
             cmp -- "$bundle_expected/$bundle_file" "$bundle_file"
           done
           git diff --no-ext-diff --no-textconv --exit-code "$GITHUB_SHA" --
-          mkdir -p target/provenance-artifact
-          cp -- "${bundle_files[@]}" target/provenance-artifact/
-          printf '%s\n' "$GITHUB_SHA" > target/provenance-artifact/source-commit.txt
 
       - name: Transfer the rebuilt bundle
         id: upload
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: fileblade-build-${{ github.sha }}-${{ github.run_attempt }}
@@ -80,8 +81,28 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  attest:
+  run-aarch64:
     needs: build
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Run the bundled backend on aarch64
+        run: |
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
+          [[ "$(uname -m)" == aarch64 ]]
+          sha256sum --strict --check fileblade-bin.sha256
+          [[ "$(env -u FILEBLADE_BINARY ./fileblade --version)" == "fileblade $(jq -r .version manifest.json)" ]]
+
+  attest:
+    needs: [build, run-aarch64]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -97,7 +118,8 @@ jobs:
           path: source
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /fileblade-bin
+            /fileblade-bin-x86_64
+            /fileblade-bin-aarch64
             /fileblade-bin.sha256
             /fileblade-bin.source
             /THIRD_PARTY_NOTICES.html
@@ -114,7 +136,7 @@ jobs:
         run: |
           [[ "$(git -C source rev-parse HEAD)" == "$GITHUB_SHA" ]]
           [[ "$(cat bundle/source-commit.txt)" == "$GITHUB_SHA" ]]
-          for bundle_file in fileblade-bin fileblade-bin.sha256 fileblade-bin.source THIRD_PARTY_NOTICES.html; do
+          for bundle_file in fileblade-bin-x86_64 fileblade-bin-aarch64 fileblade-bin.sha256 fileblade-bin.source THIRD_PARTY_NOTICES.html; do
             [[ -f "bundle/$bundle_file" && ! -L "bundle/$bundle_file" ]]
             cmp -- "source/$bundle_file" "bundle/$bundle_file"
           done
@@ -124,7 +146,9 @@ jobs:
         id: attest
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
         with:
-          subject-path: bundle/fileblade-bin
+          subject-path: |
+            bundle/fileblade-bin-x86_64
+            bundle/fileblade-bin-aarch64
           create-storage-record: false
 
       - name: Verify the source and signer identity
@@ -133,14 +157,16 @@ jobs:
           ATTESTATION_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
         run: |
           gh --version
-          gh attestation verify bundle/fileblade-bin \
-            --bundle "$ATTESTATION_BUNDLE" \
-            --repo "$GITHUB_REPOSITORY" \
-            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/bundle-provenance.yml" \
-            --source-digest "$GITHUB_SHA" \
-            --signer-digest "$GITHUB_SHA" \
-            --deny-self-hosted-runners \
-            --format json > bundle/verification.json
+          for bundle_file in fileblade-bin-x86_64 fileblade-bin-aarch64; do
+            gh attestation verify "bundle/$bundle_file" \
+              --bundle "$ATTESTATION_BUNDLE" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/bundle-provenance.yml" \
+              --source-digest "$GITHUB_SHA" \
+              --signer-digest "$GITHUB_SHA" \
+              --deny-self-hosted-runners \
+              --format json > "bundle/$bundle_file.verification.json"
+          done
           cp -- "$ATTESTATION_BUNDLE" bundle/fileblade-bin.sigstore.json
 
       - name: Save the backend and verification evidence

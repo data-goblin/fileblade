@@ -20,7 +20,6 @@ chmod 755 "$stage/input/payload"
 version=$(jq -r .version "$stage/input/payload/payload.json")
 architecture=$(jq -r .architecture "$stage/input/payload/payload.json")
 [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail 'Arch packaging currently requires a stable version'
-[[ $(uname -m) == "$architecture" ]] || fail 'build the Arch package on its matching architecture'
 dependencies=$(jq -er '.packages[]' "$stage/input/payload/packaging/runtime.json")
 bsdtar -cf "$stage/payload.tar" -C "$stage/input" payload
 cp -- "$native_root/packaging/launch" "$stage/launch"
@@ -34,7 +33,8 @@ hook_digest=$(sha256sum "$stage/fileblade-native.hook")
   printf ')\n'
   cat -- "$native_root/packaging/PKGBUILD"
 } > "$stage/PKGBUILD"
-(cd -- "$stage" && PKGDEST="$stage" makepkg --noconfirm --cleanbuild --config /etc/makepkg.conf)
+{ cat /etc/makepkg.conf; printf 'CARCH=%q\n' "$architecture"; } > "$stage/makepkg.conf"
+(cd -- "$stage" && PKGDEST="$stage" makepkg --noconfirm --cleanbuild --config "$stage/makepkg.conf")
 packages=("$stage"/*.pkg.tar.*)
 [[ ${#packages[@]} == 1 && -f ${packages[0]} && ${packages[0]} != *.sig ]] || fail 'makepkg did not produce one package'
 mkdir "$stage/inspect"
@@ -43,7 +43,7 @@ grep -Fx "arch = $architecture" "$stage/inspect/.PKGINFO" >/dev/null || fail 'pa
 grep -Fx "pkgver = $version-1" "$stage/inspect/.PKGINFO" >/dev/null || fail 'package version differs'
 "$native_root/tools/native" verify "$stage/inspect/usr/lib/fileblade"
 cmp -s -- "$stage/input/payload/payload.json" "$stage/inspect/usr/lib/fileblade/payload.json" || fail 'package payload identity changed'
-rm -rf -- "$stage/input" "$stage/inspect" "$stage/src" "$stage/pkg"
+rm -rf -- "$stage/input" "$stage/inspect" "$stage/src" "$stage/pkg" "$stage/makepkg.conf"
 mv -T -n -- "$stage" "$output"
 [[ ! -d $stage ]] || fail 'package destination appeared during build'
 printf '%s/%s\n' "$output" "${packages[0]##*/}"

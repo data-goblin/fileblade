@@ -71,10 +71,10 @@ tools/bundle verify
 ```
 
 That rebuilds the backend with the toolchain pinned in `rust-toolchain.toml`
-against `x86_64-unknown-linux-musl`, with locked dependencies, static linking,
+against `x86_64-unknown-linux-musl` and `aarch64-unknown-linux-musl`, with locked dependencies, static linking,
 no stripping, and the checkout, cargo home and target directories remapped out
 of the binary, then compares the result byte for byte with the committed
-`fileblade-bin` and fails if they differ. The build does not depend on where
+`fileblade-bin-x86_64` and `fileblade-bin-aarch64` and fails if they differ. The build does not depend on where
 the repository sits or which machine runs it, so a matching rebuild shows the
 shipped bytes are that commit's source. The native release archive carries this same verified backend alongside its
 runtime payload inventory.
@@ -109,7 +109,7 @@ FileBlade does not install packages or use elevated privileges. An up-to-date
 Omarchy installation supplies its desktop stack: Bash, Quickshell, Hyprland/`hyprctl`, `gio`,
 `gtk-launch`, `xdg-mime`, `xdg-terminal-exec`, `omarchy-launch-editor`,
 and Nautilus. Required runtime versions are recorded in
-[the runtime contract](packaging/runtime.json). The x86-64 backend is bundled, so
+[the runtime contract](packaging/runtime.json). The x86-64 and aarch64 backends are bundled, so
 installation and updates need no Rust toolchain. Source builds use the pinned
 maintainer toolchain; the in-app update check does not build or apply updates.
 
