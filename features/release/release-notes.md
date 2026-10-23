@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # FileBlade release notes
 
-## 0.3.3 (unreleased)
+## 0.3.3
 
 - Releases carry a static aarch64 backend beside the x86-64 one. The plugin, the native installer and the Arch package pick the backend for the machine, so FileBlade runs on ARM without building it (#7).
 
