@@ -723,7 +723,8 @@ Item {
           readonly property bool managementShown: root.matches("general manage agent files skills memory permissions")
           readonly property bool fontScaleShown: root.matches("general font size text scale typography percent")
           readonly property bool barShown: root.matches("general navbar bar below beside under full height layout")
-          readonly property bool shown: animateShown || monitorsShown || managementShown || fontScaleShown || barShown
+          readonly property bool overlayShown: root.matches("general overlay over windows reserve space tiling retile")
+          readonly property bool shown: animateShown || monitorsShown || managementShown || fontScaleShown || barShown || overlayShown
           width: parent.width
           spacing: Style.space(5)
           visible: shown
@@ -761,6 +762,15 @@ Item {
             options: [{ key: "below", label: "Below it" }, { key: "beside", label: "Full height beside it" }]
             value: root.host.barPlacement
             onChosen: function(key) { root.host.setBarPlacement(key) }
+          }
+
+          PluginUi.ToggleRow {
+            width: parent.width
+            visible: general.overlayShown
+            glyph: "󰹑"
+            label: "Overlay windows"
+            checked: root.host.overlay
+            onToggled: root.host.setOverlay(!root.host.overlay)
           }
 
           PluginUi.NumberRow {

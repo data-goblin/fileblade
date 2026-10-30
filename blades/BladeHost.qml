@@ -78,6 +78,7 @@ Item {
   property alias animateBlades: persisted.animateBlades
   property alias fontScale: persisted.fontScale
   property alias barPlacement: persisted.barPlacement
+  property alias overlay: persisted.overlay
   property alias defaultPlacements: persisted.defaultPlacements
   property bool layoutReady: false
   property bool pressActive: false
@@ -159,6 +160,7 @@ Item {
     property bool animateBlades: true
     property real fontScale: 1.0
     property string barPlacement: "below"
+    property bool overlay: false
     property var defaultPlacements: []
   }
 
@@ -254,6 +256,7 @@ Item {
   function resetLayout() {
     fontScale = Typography.clamp(config.fontScale)
     barPlacement = normalizeBarPlacement(config.barPlacement)
+    overlay = config.overlay === true
     defaultPlacements = []
     applyLayout(defaultLayout(), config.monitorMode, true, config.animateBlades)
     return true
@@ -647,6 +650,12 @@ Item {
     return barPlacement
   }
 
+  function setOverlay(value) {
+    overlay = !!value
+    scheduleSave()
+    return overlay
+  }
+
   function setFontScale(value) {
     fontScale = Typography.clamp(value)
     scheduleSave()
@@ -915,6 +924,7 @@ Item {
     if (!parsed || typeof parsed !== "object") {
       layoutWritable = !!seed
       if (!layoutReady) barPlacement = normalizeBarPlacement(config.barPlacement)
+      if (!layoutReady) overlay = config.overlay === true
       if (!layoutReady) applyLayout(defaultLayout(), config.monitorMode, layoutWritable, config.animateBlades)
       return
     }
@@ -923,6 +933,7 @@ Item {
     if (typeof parsed.monitorLock === "string") monitorLock = parsed.monitorLock
     if (typeof parsed.fontScale === "number") fontScale = Typography.clamp(parsed.fontScale)
     barPlacement = normalizeBarPlacement(typeof parsed.barPlacement === "string" ? parsed.barPlacement : config.barPlacement)
+    overlay = typeof parsed.overlay === "boolean" ? parsed.overlay : config.overlay === true
     defaultPlacements = DefaultPlacement.recorded(parsed.defaultPlacements)
     applyLayout(parsed, parsed.monitorMode || config.monitorMode, false, parsed.animations)
   }
@@ -950,10 +961,11 @@ Item {
     var desiredAnimations = typeof parsed.animations === "boolean" ? parsed.animations : animateBlades
     var desiredFontScale = typeof parsed.fontScale === "number" ? Typography.clamp(parsed.fontScale) : fontScale
     var desiredBarPlacement = typeof parsed.barPlacement === "string" ? normalizeBarPlacement(parsed.barPlacement) : barPlacement
+    var desiredOverlay = typeof parsed.overlay === "boolean" ? parsed.overlay : overlay
     var desiredPlacements = DefaultPlacement.recorded(parsed.defaultPlacements)
     var unchanged = JSON.stringify(incoming) === JSON.stringify(normalizeLayout(layout))
       && desiredMonitorMode === monitorMode && desiredMonitorLock === monitorLock && desiredAnimations === animateBlades
-      && desiredFontScale === fontScale && desiredBarPlacement === barPlacement && JSON.stringify(desiredPlacements) === JSON.stringify(DefaultPlacement.recorded(defaultPlacements))
+      && desiredFontScale === fontScale && desiredBarPlacement === barPlacement && desiredOverlay === overlay && JSON.stringify(desiredPlacements) === JSON.stringify(DefaultPlacement.recorded(defaultPlacements))
     if (unchanged) return
     defaultPlacements = desiredPlacements
     monitorMode = desiredMonitorMode
@@ -961,6 +973,7 @@ Item {
     animateBlades = desiredAnimations
     fontScale = desiredFontScale
     barPlacement = desiredBarPlacement
+    overlay = desiredOverlay
     if (typeof parsed.animations === "boolean") animationsExplicit = true
     replaceLayout(incoming, false)
     layoutApplied()

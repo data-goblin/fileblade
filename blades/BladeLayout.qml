@@ -19,6 +19,7 @@ Item {
   readonly property bool animateBlades: host.animateBlades
   readonly property real fontScale: host.fontScale
   readonly property string barPlacement: host.barPlacement
+  readonly property bool overlay: host.overlay
   readonly property var defaultPlacements: host.defaultPlacements || []
   readonly property int maximumSlots: 64
   readonly property int maximumTabsPerSlot: 32
@@ -322,7 +323,7 @@ Item {
   }
 
   function layoutWithinLimit(next) {
-    var text = serialized({ version: 1, monitorMode: monitorMode, monitorLock: monitorLock, animations: animateBlades, fontScale: fontScale, barPlacement: barPlacement, defaultPlacements: defaultPlacements, blades: next }, 2)
+    var text = serialized({ version: 1, monitorMode: monitorMode, monitorLock: monitorLock, animations: animateBlades, fontScale: fontScale, barPlacement: barPlacement, overlay: overlay, defaultPlacements: defaultPlacements, blades: next }, 2)
     return !!text && utf8Length(text + "\n") <= maximumLayoutBytes
   }
 
@@ -598,7 +599,7 @@ Item {
   }
 
   function layoutDocument() {
-    return { version: 1, monitorMode: monitorMode, monitorLock: monitorLock, animations: animateBlades, fontScale: fontScale, barPlacement: barPlacement, defaultPlacements: cloneLayout(defaultPlacements), blades: cloneLayout(layout) }
+    return { version: 1, monitorMode: monitorMode, monitorLock: monitorLock, animations: animateBlades, fontScale: fontScale, barPlacement: barPlacement, overlay: overlay, defaultPlacements: cloneLayout(defaultPlacements), blades: cloneLayout(layout) }
   }
 
   function activeSlot(edge) {

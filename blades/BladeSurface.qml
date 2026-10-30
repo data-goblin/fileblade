@@ -351,7 +351,7 @@ PanelWindow {
     screen: surface.screen
     edge: surface.edge
     beforeBar: BarPlacement.reservesBeforeBar(surface.barPlacement)
-    zone: surface.bladeOpen ? surface.bladeWidth : 0
+    zone: surface.bladeOpen && !surface.host.overlay ? surface.bladeWidth : 0
   }
 
   WlrLayershell.namespace: "omarchy-fileblade-" + edge

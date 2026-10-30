@@ -169,6 +169,7 @@ monitorLock: ""  # named output when locked
 animations: true
 fontScale: 1.0
 barPlacement: below | beside  # below the desktop bar, or full height beside it
+overlay: false  # true draws open blades over windows without reserving space
 defaultPlacements: [ data-goblin.fileblade-fabric/fabric ]  # beside-files modules already placed once; see EXTENSIONS.md
 blades:
   left:
@@ -225,7 +226,9 @@ and the namespace `omarchy-fileblade-<edge>-reserve` holds the zone.
 reserves after the bar and the sheet gets a margin of the bar's size on the
 shared edge (under a top bar, above a bottom bar, inside a side bar on its own
 edge); `beside` puts it on Bottom, so it always reserves before the bar, the
-sheet keeps the full height and the bar is shortened between the blades. The
+sheet keeps the full height and the bar is shortened between the blades.
+With `overlay` on, the reservation's zone is 0, so an open blade draws over
+the tiled windows instead of retiling them. The
 bar's edge, size and hidden state come from the shell (`shell.bar.position`,
 `barSize`, `barHidden` in the plugin; `shell.json`, the bar size token and the
 `bar-off` toggle in the native app, see `app/BarVisibility.qml`), and a hidden
@@ -541,6 +544,7 @@ dropModifier:               space      drop-wheel hold key: space, alt, ctrl, sh
 monitorMode:                active     invocation monitor; all mirrors, locked uses the saved monitorLock
 animateBlades:              true       slide blades open and closed
 barPlacement:               below      first-run blade placement against the desktop bar: below or beside
+overlay:                    false      first-run overlay: open blades cover windows instead of reserving space
 checkUpdates:               true       the six-hourly ref lookup described under Checkout update checks
 blades:                     omitted    optional full first-run left/right layout; supersedes the legacy layout keys above
 ```

@@ -46,6 +46,7 @@ QtObject {
       animations: !!(layout && layout.animations),
       fontScale: Typography.clamp(layout && layout.fontScale),
       barPlacement: String(layout && layout.barPlacement || "below"),
+      overlay: !!(layout && layout.overlay),
       defaultPlacements: layout && Array.isArray(layout.defaultPlacements) ? layout.defaultPlacements.slice() : [],
       blades: { left: publicBlade(blades.left), right: publicBlade(blades.right) }
     }
@@ -211,6 +212,7 @@ QtObject {
       bladeAnimations: bladeHost.animateBlades,
       fontScale: bladeHost.fontScale,
       barPlacement: bladeHost.barPlacement,
+      overlay: bladeHost.overlay,
       focusRestoreAddress: bladeHost.restoreFocusAddress,
       focusRestoreClass: bladeHost.restoreFocusClass,
       focusRestoreCount: bladeHost.focusRestoreCount,
@@ -846,6 +848,12 @@ QtObject {
 
   function setBarPlacement(placement: string): string {
     return bladeHost.setBarPlacement(placement)
+  }
+
+  function setOverlay(enabled: string): string {
+    var value = String(enabled).toLowerCase()
+    if (value === "toggle") return bladeHost.setOverlay(!bladeHost.overlay) ? "on" : "off"
+    return bladeHost.setOverlay(value === "true" || value === "on" || value === "1") ? "on" : "off"
   }
 
   function toggleBladeSettings(edge: string): string {

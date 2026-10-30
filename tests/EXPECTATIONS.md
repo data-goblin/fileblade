@@ -1787,6 +1787,12 @@ the placement rules.
 6. **E-61-06** `fileblade blade bar-placement below|beside|toggle` changes the
    same setting and prints the placement now in effect.
 7. **E-61-07** Searching Settings for "navbar" shows the Navbar row.
+8. **E-61-08** Turning on Settings, General, "Overlay windows" makes an open
+   blade draw over the tiled windows instead of pushing them aside; the windows
+   keep their size when a blade opens or closes. Turning it off reserves the
+   space again. The choice survives a restart and is saved as `overlay` in
+   `blades.json`, and the `setOverlay on|off|toggle` IPC changes the same
+   setting.
 
 ## 62. Keeping my layout when the shell reloads plugins
 
