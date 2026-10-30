@@ -7,6 +7,10 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "Build"
+    ignore:
+      - dependency-name: zbus
+        update-types:
+          - version-update:semver-major
     groups:
       rust-dependencies:
         patterns:
