@@ -74,7 +74,7 @@ jobs:
       - name: Transfer the rebuilt bundle
         id: upload
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: fileblade-build-${{ github.sha }}-${{ github.run_attempt }}
           path: target/provenance-artifact/
@@ -170,7 +170,7 @@ jobs:
           cp -- "$ATTESTATION_BUNDLE" bundle/fileblade-bin.sigstore.json
 
       - name: Save the backend and verification evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: fileblade-backend-${{ github.sha }}-${{ github.run_attempt }}
           path: bundle/
