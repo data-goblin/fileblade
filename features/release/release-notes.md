@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # FileBlade release notes
 
-## 0.3.4 (unreleased)
+## 0.3.4
 
 - Copying, moving and restoring files that carry extended attributes no longer runs rustix 1.1.5, whose empty attribute queries could trigger undefined behaviour ([GHSA-jh2m-fhpj-3vr7](https://github.com/bytecodealliance/rustix/security/advisories/GHSA-jh2m-fhpj-3vr7)).
 
