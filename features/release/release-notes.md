@@ -2,7 +2,7 @@ This file was written by an agent.
 
 # FileBlade release notes
 
-## 0.3.5 (unreleased)
+## 0.3.5
 
 - Copying, moving and restoring a file keeps extended attribute values and name lists larger than 4 KiB again. 0.3.4 wrote them back empty, because rustix 1.1.6 changed the size query that xattr 1.6.1 relied on; xattr 1.7.0 uses the new query.
 
