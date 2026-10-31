@@ -31,7 +31,7 @@ xattr = "1.6.1"
 
 [package]
 name = "fileblade"
-version = "0.3.3"
+version = "0.3.4"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
