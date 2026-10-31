@@ -27,7 +27,7 @@ toml = { version = "0.9.8", default-features = false, features = ["parse", "serd
 unicode-general-category = "1.1.0"
 url = "2.5.8"
 uuid = "1.26.0"
-xattr = "1.6.1"
+xattr = "1.7.0"
 
 [package]
 name = "fileblade"
