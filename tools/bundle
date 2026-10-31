@@ -54,6 +54,8 @@ fi
 command -v rustup >/dev/null || fail 'maintainer builds require rustup and the pinned rust-toolchain.toml toolchain'
 bundle_sysroot=$(rustup run "$bundle_version" rustc --print sysroot)
 bundle_host=$(rustup run "$bundle_version" rustc -vV | sed -n 's/^host: //p')
+bundle_commit=$(rustup run "$bundle_version" rustc -vV | sed -n 's/^commit-hash: //p')
+[[ $bundle_commit =~ ^[0-9a-f]{40}$ ]] || fail 'the pinned toolchain reports no commit hash'
 [[ $bundle_host == x86_64-unknown-linux-gnu ]] || fail 'build with the pinned Linux GNU host toolchain'
 for bundle_target in "${bundle_targets[@]}"; do
   [[ -d $bundle_sysroot/lib/rustlib/$bundle_target/lib ]] || fail "the pinned toolchain lacks target $bundle_target; provision it before building"
@@ -68,6 +70,7 @@ bundle_flags=(
   "--remap-path-prefix=$bundle_root=fileblade"
   "--remap-path-prefix=$bundle_cargo_home=cargo"
   "--remap-path-prefix=$bundle_work=target"
+  "--remap-path-prefix=$bundle_sysroot/lib/rustlib/src/rust=/rustc/$bundle_commit"
   '-Ctarget-feature=+crt-static'
   '-Clink-self-contained=yes'
 )
