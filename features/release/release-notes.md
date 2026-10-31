@@ -4,6 +4,8 @@ This file was written by an agent.
 
 ## 0.3.4 (unreleased)
 
+- Copying, moving and restoring files that carry extended attributes no longer runs rustix 1.1.5, whose empty attribute queries could trigger undefined behaviour ([GHSA-jh2m-fhpj-3vr7](https://github.com/bytecodealliance/rustix/security/advisories/GHSA-jh2m-fhpj-3vr7)).
+
 ## 0.3.3
 
 - Releases carry a static aarch64 backend beside the x86-64 one. The plugin, the native installer and the Arch package pick the backend for the machine, so FileBlade runs on ARM without building it (#7).
