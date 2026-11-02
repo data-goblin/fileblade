@@ -118,8 +118,8 @@ pub(super) fn start_request(
                 lock(&active).remove(&active_key);
             }
         } else if matches!(output.as_ref(), Output::Stdio(_)) {
-            let _ = emit(&output, &frame);
             lock(&active).remove(&active_key);
+            let _ = emit(&output, &frame);
         } else {
             let mut requests = lock(&active);
             let _ = emit(&output, &frame);
