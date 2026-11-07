@@ -272,7 +272,13 @@ FocusScope {
   Connections {
     target: module.files
     ignoreUnknownSignals: true
-    function onGitMetadataRefreshCountChanged() { module.refresh() }
+    function onGitMetadataRefreshCountChanged() {
+      var unchanged = module.files.gitMetadataNoopCount
+      Qt.callLater(function() {
+        if (unchanged !== undefined && module.files.gitMetadataNoopCount !== unchanged) return
+        module.refresh()
+      })
+    }
   }
 
   Loader {
