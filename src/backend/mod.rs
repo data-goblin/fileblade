@@ -195,6 +195,7 @@ fn dispatch_command(
     if cancelled.load(Ordering::Relaxed) {
         return Err(crate::AppError::Cancelled);
     }
+    let prune = matches!(command, BackendCommand::TrashPrune(_));
     let invalidates_files = mutating(&command)
         && !matches!(
             command,
@@ -613,7 +614,7 @@ fn dispatch_command(
             })
         }
     };
-    if invalidates_files {
+    if invalidates_files && !(prune && crate::audit::changed_nothing("trash-prune", &value)) {
         crate::index::invalidate_from(&value);
         crate::listing::invalidate_all();
         crate::frecency::remap_from(&value);
