@@ -15,6 +15,7 @@ Item {
   property int generation: 0
   property bool probeAgain: false
   property bool probeRunning: false
+  property int failures: 0
 
   function refresh() {
     if (!service || !service.backendReady) return
@@ -38,10 +39,17 @@ Item {
     var current = generation
     watchId = service.backendSubscribe([toggles], current,
       function(event) { if (current === root.generation) root.refresh() },
-      function(response) { if (current === root.generation) root.refresh() },
+      function(response) {
+        if (current !== root.generation) return
+        root.failures = 0
+        root.refresh()
+      },
       function(response) {
         if (current !== root.generation) return
         root.watchId = ""
+        if (response && response.cancelled) return
+        root.failures++
+        retry.interval = Math.min(30000, 1000 * Math.pow(2, root.failures - 1))
         retry.restart()
       })
   }
