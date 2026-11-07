@@ -76,6 +76,11 @@ fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
         .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
+pub fn interrupt() {
+    let _state = lock(&broker().0);
+    broker().1.notify_all();
+}
+
 fn changed() {
     lock(&broker().0).revision += 1;
     broker().1.notify_all();
@@ -157,7 +162,7 @@ fn execute(command: ChooserCommand, cancelled: &AtomicBool) -> AppResult<Value> 
             {
                 state = broker()
                     .1
-                    .wait_timeout(state, Duration::from_millis(100))
+                    .wait_timeout(state, until.saturating_duration_since(Instant::now()))
                     .unwrap_or_else(std::sync::PoisonError::into_inner)
                     .0;
             }

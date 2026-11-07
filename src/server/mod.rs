@@ -77,6 +77,9 @@ impl ActiveRequest {
         if let Some(wake) = &self.wake {
             wake.notify();
         }
+        if self.standing && self.wake.is_none() {
+            crate::chooser::transport::interrupt();
+        }
     }
 }
 
