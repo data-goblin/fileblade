@@ -359,7 +359,12 @@ TestCase {
     usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
     usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
     compare(requests.length, before)
-    tryVerify(function() { return requests.length >= before + 2 }, inventory.usageChangeDelayMs + 2000)
+    wait(inventory.usageEventDelayMs / 2)
+    usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
+    compare(requests.length, before)
+    tryVerify(function() { return requests.length >= before + 2 }, inventory.usageEventDelayMs + 1000)
+    wait(inventory.usageEventDelayMs / 2)
+    compare(requests.length, before + 2)
     compare([scopeOf(before), scopeOf(before + 1)].sort(), ["project", "user"])
     var again = rows("row", ["/plugins/inventory/skills"])
     again.usageWatchPaths = usage.paths

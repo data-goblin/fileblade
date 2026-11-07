@@ -53,6 +53,7 @@ Item {
   property string usageWatchFingerprint: ""
   property var usageWatchPaths: []
   readonly property int usageChangeDelayMs: 100
+  readonly property int usageEventDelayMs: 2000
   readonly property int usagePollIntervalMs: 60000
 
   signal mutationFinished(string method, var response, string project)
@@ -192,7 +193,7 @@ Item {
       if (event && (event.overflow || (event.events || []).some(function(name) {
         return name === "delete_self" || name === "move_self" || name === "unmount" || name === "ignored"
       }))) inventory.stopUsageWatch()
-      if (!usageChange.running) usageChange.start()
+      if (!usageEvents.running) usageEvents.start()
     }, function(response) {
       if (inventory.usageWatch === request && inventory.ready) inventory.queueCounts()
     }, function(response) {
@@ -207,6 +208,7 @@ Item {
     usageWatch = null
     usageWatchFingerprint = ""
     usageChange.stop()
+    usageEvents.stop()
     if (request) request.files.cancelBackendRequest(request.id, request.generation, dispose)
   }
 
@@ -320,11 +322,12 @@ Item {
 
   Timer { id: activityDebounce; interval: 0; onTriggered: inventory.startActivity() }
   Timer { id: usageChange; interval: inventory.usageChangeDelayMs; onTriggered: inventory.refreshUsage() }
+  Timer { id: usageEvents; interval: inventory.usageEventDelayMs; onTriggered: inventory.refreshUsage() }
   Timer {
     id: usagePoll
     interval: inventory.usagePollIntervalMs
     repeat: true
-    running: inventory.ready && inventory.usageWatchPaths.length > 0
+    running: inventory.ready && inventory.usageWatchPaths.length > 0 && inventory.usageWatch === null
     onTriggered: inventory.refreshUsage()
   }
   Timer { id: activityRetry; interval: 500; onTriggered: inventory.requestActivity() }
