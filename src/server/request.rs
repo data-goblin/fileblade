@@ -4,7 +4,7 @@ pub(super) fn start_request(
     object: &Map<String, Value>,
     max_concurrency: usize,
     output: &Arc<Output>,
-    active: &Arc<Mutex<HashMap<RequestKey, ActiveRequest>>>,
+    active: &Arc<Active>,
     seen: &mut RecentKeys,
     workers: &mut Vec<JoinHandle<()>>,
     operations: Option<&Arc<Operations>>,
@@ -47,7 +47,7 @@ pub(super) fn start_request(
     );
     let mut operation = None;
     {
-        let mut requests = lock(active);
+        let mut requests = active.lock();
         if requests.contains_key(&request.key) {
             return emit(
                 output,
@@ -73,6 +73,7 @@ pub(super) fn start_request(
             request.key.clone(),
             ActiveRequest {
                 cancelled: Arc::clone(&cancelled),
+                wake: None,
                 deadline: Some(Arc::clone(&request.deadline)),
                 deadline_exceeded: Arc::clone(&deadline_exceeded),
                 cancel_on_deadline: !mutating,
@@ -88,6 +89,7 @@ pub(super) fn start_request(
             },
         );
     }
+    active.changed();
     seen.remember(request.key.clone());
     if let Some(operation) = &operation {
         let _ = emit(
@@ -109,22 +111,23 @@ pub(super) fn start_request(
         if let Some(operation) = operation {
             frame["op"] = Value::String(operation.id.clone());
             let deliver = |target: &Output, terminal: &Value| {
-                let mut requests = lock(&active);
+                let mut requests = active.lock();
                 let result = target.machine(terminal);
                 requests.remove(&active_key);
                 result
             };
             if !operation.publish(frame, true, Some(&deliver)) {
-                lock(&active).remove(&active_key);
+                active.lock().remove(&active_key);
             }
         } else if matches!(output.as_ref(), Output::Stdio(_)) {
-            lock(&active).remove(&active_key);
+            active.lock().remove(&active_key);
             let _ = emit(&output, &frame);
         } else {
-            let mut requests = lock(&active);
+            let mut requests = active.lock();
             let _ = emit(&output, &frame);
             requests.remove(&active_key);
         }
+        active.changed();
     }));
     Ok(())
 }
@@ -224,7 +227,7 @@ pub(super) fn execute(
 pub(super) fn cancel_request(
     object: &Map<String, Value>,
     output: &Output,
-    active: &Arc<Mutex<HashMap<RequestKey, ActiveRequest>>>,
+    active: &Arc<Active>,
     operations: Option<&Arc<Operations>>,
 ) -> AppResult<()> {
     if let Some(id) = object.get("op").and_then(Value::as_str)
@@ -239,11 +242,12 @@ pub(super) fn cancel_request(
         Ok(value) => value,
         Err(error) => return emit(output, &error_frame(object, &error.to_string())),
     };
-    let accepted = lock(active)
+    let accepted = active
+        .lock()
         .get(&key)
         .filter(|request| !request.authority_owned)
         .map(|request| {
-            request.cancelled.store(true, Ordering::Relaxed);
+            request.cancel();
             true
         })
         .unwrap_or(false);
@@ -362,7 +366,7 @@ pub(super) fn request_deadline(
     Ok(Arc::new(Deadline::new(Duration::from_millis(deadline_ms))))
 }
 
-pub(super) fn live_requests(requests: &HashMap<RequestKey, ActiveRequest>) -> usize {
+pub(super) fn live_requests(requests: &Requests) -> usize {
     requests
         .values()
         .filter(|request| !request.standing && !request.deadline_exceeded.load(Ordering::Relaxed))

@@ -1,10 +1,11 @@
+use super::wake::{Stop, Wake, wait};
 use super::*;
 
 pub(super) fn start_subscription(
     object: &Map<String, Value>,
     max_concurrency: usize,
     output: &Arc<Output>,
-    active: &Arc<Mutex<HashMap<RequestKey, ActiveRequest>>>,
+    active: &Arc<Active>,
     seen: &mut RecentKeys,
     workers: &mut Vec<JoinHandle<()>>,
 ) -> AppResult<()> {
@@ -41,9 +42,13 @@ pub(super) fn start_subscription(
         Err(error) => return emit(output, &error_frame(object, &error.to_string())),
     };
     let cancelled = Arc::new(AtomicBool::new(false));
+    let wake = match Wake::new() {
+        Ok(value) => Arc::new(value),
+        Err(error) => return emit(output, &error_frame(object, &error.to_string())),
+    };
     let deadline_exceeded = Arc::new(AtomicBool::new(false));
     {
-        let mut requests = lock(active);
+        let mut requests = active.lock();
         if requests.contains_key(&key) {
             return emit(
                 output,
@@ -60,6 +65,7 @@ pub(super) fn start_subscription(
             key.clone(),
             ActiveRequest {
                 cancelled: Arc::clone(&cancelled),
+                wake: Some(Arc::clone(&wake)),
                 deadline,
                 deadline_exceeded: Arc::clone(&deadline_exceeded),
                 cancel_on_deadline: true,
@@ -69,26 +75,32 @@ pub(super) fn start_subscription(
             },
         );
     }
+    active.changed();
     seen.remember(key.clone());
     let generation = object.get("generation").cloned().unwrap_or(Value::Null);
     let include_writes = object.get("includeWrites").and_then(Value::as_bool) == Some(true);
     let output = Arc::clone(output);
     let active = Arc::clone(active);
+    let stop = Stop {
+        cancelled: Arc::clone(&cancelled),
+        wake,
+    };
     workers.push(thread::spawn(move || {
         if topic == "mounts" {
-            watch_mounts(&key, generation, &cancelled, &deadline_exceeded, &output);
+            watch_mounts(&key, generation, &stop, &deadline_exceeded, &output);
         } else {
             watch_filesystem(
                 &key,
                 generation,
                 &paths,
                 include_writes,
-                &cancelled,
+                &stop,
                 &deadline_exceeded,
                 &output,
             );
         }
-        lock(&active).remove(&key);
+        active.lock().remove(&key);
+        active.changed();
     }));
     Ok(())
 }
@@ -122,17 +134,17 @@ pub(super) fn watch_filesystem(
     generation: Value,
     paths: &[PathBuf],
     include_writes: bool,
-    cancelled: &AtomicBool,
+    stop: &Stop,
     deadline_exceeded: &AtomicBool,
     output: &Output,
 ) {
-    let result = filesystem_events(key, &generation, paths, include_writes, cancelled, output);
+    let result = filesystem_events(key, &generation, paths, include_writes, stop, output);
     let frame = closing_frame(
         key,
         generation,
         "filesystem",
         result,
-        cancelled,
+        &stop.cancelled,
         deadline_exceeded,
     );
     let _ = emit(output, &frame);
@@ -143,7 +155,7 @@ pub(super) fn filesystem_events(
     generation: &Value,
     paths: &[PathBuf],
     include_writes: bool,
-    cancelled: &AtomicBool,
+    stop: &Stop,
     output: &Output,
 ) -> AppResult<()> {
     let descriptor =
@@ -224,7 +236,7 @@ pub(super) fn filesystem_events(
     )?;
     let mut storage = [MaybeUninit::<u8>::uninit(); 64 * 1024];
     let mut reader = inotify::Reader::new(&descriptor, &mut storage);
-    while !cancelled.load(Ordering::Relaxed) {
+    while !stop.requested() {
         match reader.next() {
             Ok(event) => {
                 let flags = event.events();
@@ -266,14 +278,13 @@ pub(super) fn filesystem_events(
                 )?;
             }
             Err(Errno::AGAIN) => {
-                let mut fds = [PollFd::new(&descriptor, PollFlags::IN)];
-                if let Err(error) = poll(&mut fds, Some(&WATCH_POLL_TIMEOUT))
-                    && error != Errno::INTR
-                {
-                    return Err(AppError::command(format!(
-                        "filesystem subscription failed: {error}"
-                    )));
-                }
+                let mut fds = [
+                    PollFd::new(&descriptor, PollFlags::IN),
+                    PollFd::from_borrowed_fd(stop.wake.fd(), PollFlags::IN),
+                ];
+                wait(&mut fds, None).map_err(|error| {
+                    AppError::command(format!("filesystem subscription failed: {error}"))
+                })?;
             }
             Err(error) => {
                 return Err(AppError::command(format!(

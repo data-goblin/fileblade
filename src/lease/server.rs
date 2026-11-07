@@ -1,3 +1,4 @@
+use super::wake::{Wake, wait};
 use super::*;
 use crate::lease::Authority;
 use std::io::Read;
@@ -6,8 +7,11 @@ use std::os::fd::AsRawFd;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 
+const IDENTITY_CHECK_INTERVAL: Duration = Duration::from_secs(5);
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(2);
+
 pub(super) fn run(options: ServeArgs, authority: Arc<Authority>) -> AppResult<()> {
-    let _signals = input::InputSignals::install()?;
+    let signals = input::InputSignals::install()?;
     let socket = authority.root().join("authority.sock");
     if let Ok(metadata) = std::fs::symlink_metadata(&socket) {
         if !metadata.file_type().is_socket() {
@@ -35,29 +39,52 @@ pub(super) fn run(options: ServeArgs, authority: Arc<Authority>) -> AppResult<()
         Arc::clone(&authority),
         options.max_concurrency,
     ));
-    let mut clients = Vec::new();
+    let mut clients: Vec<(JoinHandle<()>, UnixStream)> = Vec::new();
     let stopping = Arc::new(AtomicBool::new(false));
+    let exit = Arc::new(Wake::new()?);
     let result = (|| {
+        let mut verified_at: Option<Instant> = None;
         while !input::interrupted() && !operations.closing() {
-            if authority.verify().is_err() {
-                operations.stop_after_identity_loss();
+            if verified_at.is_none_or(|at| at.elapsed() >= IDENTITY_CHECK_INTERVAL) {
+                if authority.verify().is_err() {
+                    operations.stop_after_identity_loss();
+                }
+                verified_at = Some(Instant::now());
             }
-            reap(&mut clients);
+            reap_clients(&mut clients);
             match listener.accept() {
                 Ok((stream, _)) if clients.len() < 32 => {
+                    let handle = stream.try_clone()?;
                     let operations = Arc::clone(&operations);
                     let recovered = recovered.clone();
                     let max_concurrency = options.max_concurrency;
                     let stopping = Arc::clone(&stopping);
-                    clients.push(thread::spawn(move || {
-                        let _ = session(stream, max_concurrency, &recovered, operations, stopping);
-                    }));
+                    let exit = Arc::clone(&exit);
+                    clients.push((
+                        thread::spawn(move || {
+                            let _ = session(
+                                stream,
+                                max_concurrency,
+                                &recovered,
+                                operations,
+                                stopping,
+                                &exit,
+                            );
+                        }),
+                        handle,
+                    ));
                 }
                 Ok((stream, _)) => {
                     let _ = stream.shutdown(Shutdown::Both);
                 }
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
-                    thread::sleep(Duration::from_millis(20))
+                    let mut descriptors = [
+                        PollFd::new(&listener, PollFlags::IN),
+                        PollFd::from_borrowed_fd(signals.wake().fd(), PollFlags::IN),
+                        PollFd::from_borrowed_fd(exit.fd(), PollFlags::IN),
+                    ];
+                    wait(&mut descriptors, Some(IDENTITY_CHECK_INTERVAL))?;
+                    exit.clear();
                 }
                 Err(error) => return Err(error.into()),
             }
@@ -65,7 +92,8 @@ pub(super) fn run(options: ServeArgs, authority: Arc<Authority>) -> AppResult<()
         Ok(())
     })();
     stopping.store(true, Ordering::Relaxed);
-    for client in clients {
+    for (client, stream) in clients {
+        let _ = stream.shutdown(Shutdown::Read);
         let _ = client.join();
     }
     while operations.busy() {
@@ -113,21 +141,34 @@ impl Read for SocketInput {
     }
 }
 
+fn reap_clients(clients: &mut Vec<(JoinHandle<()>, UnixStream)>) {
+    let mut pending = Vec::with_capacity(clients.len());
+    for (worker, stream) in clients.drain(..) {
+        if worker.is_finished() {
+            let _ = worker.join();
+        } else {
+            pending.push((worker, stream));
+        }
+    }
+    *clients = pending;
+}
+
 fn session(
     stream: UnixStream,
     max_concurrency: usize,
     recovered: &Value,
     operations: Arc<Operations>,
     authority_stopping: Arc<AtomicBool>,
+    exit: &Wake,
 ) -> AppResult<()> {
-    stream.set_read_timeout(Some(Duration::from_millis(50)))?;
+    stream.set_read_timeout(Some(HANDSHAKE_TIMEOUT))?;
     let output = Arc::new(Output::socket(stream.try_clone()?)?);
     let mut reader = BufReader::new(SocketInput {
         stream,
         stopping: authority_stopping,
-        handshake_deadline: Some(Instant::now() + Duration::from_secs(2)),
+        handshake_deadline: Some(Instant::now() + HANDSHAKE_TIMEOUT),
     });
-    let active: Arc<Mutex<HashMap<RequestKey, ActiveRequest>>> = Arc::default();
+    let active = Active::new()?;
     let stopping = Arc::new(AtomicBool::new(false));
     let monitor = monitor_deadlines(Arc::clone(&active), Arc::clone(&stopping));
     let mut seen = RecentKeys::default();
@@ -166,6 +207,7 @@ fn session(
             }
         }
         reader.get_mut().handshake_deadline = None;
+        reader.get_ref().stream.set_read_timeout(None)?;
         loop {
             reap(&mut workers);
             match read_bounded_line(&mut reader, MAX_LINE_BYTES)? {
@@ -176,7 +218,7 @@ fn session(
                 )?,
                 InputLine::Line(line) if line.iter().all(u8::is_ascii_whitespace) => {}
                 InputLine::Line(line)
-                    if lifecycle_request(&line, &drain_owner, &output, &operations)? => {}
+                    if lifecycle_request(&line, &drain_owner, &output, &operations, exit)? => {}
                 InputLine::Line(line) => process_line(
                     &line,
                     max_concurrency,
@@ -195,16 +237,18 @@ fn session(
     if view {
         operations.detach_view();
     }
-    for request in lock(&active)
+    for request in active
+        .lock()
         .values()
         .filter(|request| !request.authority_owned)
     {
-        request.cancelled.store(true, Ordering::Relaxed);
+        request.cancel();
     }
     for worker in workers {
         let _ = worker.join();
     }
     stopping.store(true, Ordering::Relaxed);
+    active.changed();
     let _ = monitor.join();
     result
 }
@@ -214,6 +258,7 @@ fn lifecycle_request(
     owner: &str,
     output: &Arc<Output>,
     operations: &Operations,
+    exit: &Wake,
 ) -> AppResult<bool> {
     let Ok(Value::Object(object)) = serde_json::from_slice::<Value>(line) else {
         return Ok(false);
@@ -257,7 +302,13 @@ fn lifecycle_request(
             }
         }
         "resume" => operations.resume(owner),
-        "exit" => operations.commit_exit(owner),
+        "exit" => {
+            let ready = operations.commit_exit(owner);
+            if ready {
+                exit.notify();
+            }
+            ready
+        }
         _ => false,
     };
     emit(

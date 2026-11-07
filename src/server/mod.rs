@@ -28,6 +28,7 @@ mod mounts;
 mod native;
 mod request;
 mod subscription;
+mod wake;
 use lifecycle::*;
 use mounts::*;
 pub use request::native_mutating;
@@ -42,11 +43,7 @@ const RECENT_REQUEST_KEYS: usize = 4_096;
 const MAX_IDENTIFIER_BYTES: usize = 128;
 const DEFAULT_DEADLINE_MS: u64 = 15_000;
 const MAX_DEADLINE_MS: u64 = 900_000;
-const MONITOR_IDLE_TICK: Duration = Duration::from_millis(500);
-const WATCH_POLL_TIMEOUT: Timespec = Timespec {
-    tv_sec: 0,
-    tv_nsec: 500_000_000,
-};
+const MONITOR_MIN_WAIT: Duration = Duration::from_millis(5);
 
 #[derive(Clone, Debug, Args)]
 pub struct ServeArgs {
@@ -65,12 +62,46 @@ pub struct ServeArgs {
 #[derive(Clone)]
 struct ActiveRequest {
     cancelled: Arc<AtomicBool>,
+    wake: Option<Arc<wake::Wake>>,
     deadline: Option<Arc<Deadline>>,
     deadline_exceeded: Arc<AtomicBool>,
     cancel_on_deadline: bool,
     standing: bool,
     chooser_watch: bool,
     authority_owned: bool,
+}
+
+impl ActiveRequest {
+    fn cancel(&self) {
+        self.cancelled.store(true, Ordering::Relaxed);
+        if let Some(wake) = &self.wake {
+            wake.notify();
+        }
+    }
+}
+
+type Requests = HashMap<RequestKey, ActiveRequest>;
+
+struct Active {
+    requests: Mutex<Requests>,
+    changed: wake::Wake,
+}
+
+impl Active {
+    fn new() -> io::Result<Arc<Self>> {
+        Ok(Arc::new(Self {
+            requests: Mutex::new(HashMap::new()),
+            changed: wake::Wake::new()?,
+        }))
+    }
+
+    fn lock(&self) -> std::sync::MutexGuard<'_, Requests> {
+        lock(&self.requests)
+    }
+
+    fn changed(&self) {
+        self.changed.notify();
+    }
 }
 
 struct Deadline {
@@ -216,7 +247,7 @@ pub fn run(options: ServeArgs, output: Arc<fileblade_output::Output>) -> AppResu
         ));
     }
     let output = Arc::new(Output::Stdio(output));
-    let _signals = input::InputSignals::install()?;
+    let signals = input::InputSignals::install()?;
     let parent = getppid();
     set_parent_process_death_signal(Some(Signal::TERM)).map_err(|error| {
         AppError::command(format!(
@@ -243,10 +274,10 @@ pub fn run(options: ServeArgs, output: Arc<fileblade_output::Output>) -> AppResu
         });
         recovered
     };
-    let active = Arc::new(Mutex::new(HashMap::<RequestKey, ActiveRequest>::new()));
+    let active = Active::new()?;
     let stopping = Arc::new(AtomicBool::new(false));
     let deadline_monitor = monitor_deadlines(Arc::clone(&active), Arc::clone(&stopping));
-    let mut reader = BufReader::new(input::InterruptibleStdin);
+    let mut reader = BufReader::new(input::InterruptibleStdin::new(&signals));
     let mut workers = Vec::new();
     let mut seen = RecentKeys::default();
 
@@ -361,7 +392,7 @@ fn process_line(
     line: &[u8],
     max_concurrency: usize,
     output: &Arc<Output>,
-    active: &Arc<Mutex<HashMap<RequestKey, ActiveRequest>>>,
+    active: &Arc<Active>,
     seen: &mut RecentKeys,
     workers: &mut Vec<JoinHandle<()>>,
     operations: Option<&Arc<Operations>>,

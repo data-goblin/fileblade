@@ -1,3 +1,4 @@
+use super::wake::{Stop, wait};
 use super::*;
 use crate::mounts::mountinfo::{MOUNTINFO_PATH, MountTable};
 use std::fs::File;
@@ -10,17 +11,17 @@ const SETTLE_DELAY: Duration = Duration::from_millis(180);
 pub(super) fn watch_mounts(
     key: &RequestKey,
     generation: Value,
-    cancelled: &AtomicBool,
+    stop: &Stop,
     deadline_exceeded: &AtomicBool,
     output: &Output,
 ) {
-    let result = mount_events(key, &generation, cancelled, output);
+    let result = mount_events(key, &generation, stop, output);
     let frame = closing_frame(
         key,
         generation,
         "mounts",
         result,
-        cancelled,
+        &stop.cancelled,
         deadline_exceeded,
     );
     let _ = emit(output, &frame);
@@ -55,7 +56,7 @@ fn device_watches(descriptor: &std::os::fd::OwnedFd) -> Vec<String> {
 pub(super) fn mount_events(
     key: &RequestKey,
     generation: &Value,
-    cancelled: &AtomicBool,
+    stop: &Stop,
     output: &Output,
 ) -> AppResult<()> {
     let mut file = File::open(MOUNTINFO_PATH)
@@ -78,20 +79,16 @@ pub(super) fn mount_events(
         }),
     )?;
     let mut storage = [MaybeUninit::<u8>::uninit(); 16 * 1024];
-    while !cancelled.load(Ordering::Relaxed) {
+    while !stop.requested() {
         let mut fds = [
             PollFd::new(&file, PollFlags::PRI),
             PollFd::new(&descriptor, PollFlags::IN),
+            PollFd::from_borrowed_fd(stop.wake.fd(), PollFlags::IN),
         ];
-        match poll(&mut fds, Some(&WATCH_POLL_TIMEOUT)) {
-            Ok(0) => continue,
-            Ok(_) => (),
-            Err(Errno::INTR) => continue,
-            Err(error) => {
-                return Err(AppError::command(format!(
-                    "mount subscription failed: {error}"
-                )));
-            }
+        wait(&mut fds, None)
+            .map_err(|error| AppError::command(format!("mount subscription failed: {error}")))?;
+        if fds[0].revents().is_empty() && fds[1].revents().is_empty() {
+            continue;
         }
         let mut reader = inotify::Reader::new(&descriptor, &mut storage);
         while reader.next().is_ok() {}
