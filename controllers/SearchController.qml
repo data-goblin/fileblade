@@ -22,6 +22,7 @@ Item {
   property int walked: 0
   property int indexed: 0
   property bool partial: false
+  property string continuedFrom: ""
   property bool truncated: false
   property bool sessionFresh: true
   property string listFile: ""
@@ -109,7 +110,7 @@ Item {
   Timer {
     interval: 80
     repeat: true
-    running: root.spinning
+    running: root.spinning && service.open
     onTriggered: {
       root.spinnerIndex = (root.spinnerIndex + 1) % root.spinnerFrames.length
       root.spinnerGlyph = root.spinnerFrames[root.spinnerIndex]
@@ -449,7 +450,13 @@ Item {
     gitRepositoryCount = service.gitEnabled ? Math.max(0, Number(response.git_repositories) || 0) : 0
     error = response.ok ? "" : String(response.error || "Search failed")
     busy = false
-    if (partial && response.ok) continueTimer.restart()
+    var progressMark = [response.walked, response.indexed, (response.entries || []).length].join(":")
+    if (partial && response.ok && progressMark !== continuedFrom) {
+      continuedFrom = progressMark
+      continueTimer.restart()
+    } else if (partial) {
+      partial = false
+    }
   }
 
   function rerunSearch() {
@@ -497,6 +504,7 @@ Item {
 
   onQueryChanged: {
     loadedLimit = pageSize
+    continuedFrom = ""
     if (query.trim() === "") historyIndex = -1
     if (quickNavActive) {
       quickDebounce.restart()
@@ -534,6 +542,9 @@ Item {
 
   Connections {
     target: root.service
+    function onOpenChanged() {
+      if (root.service.open && root.partial) continueTimer.restart()
+    }
     function onTreeStructureRevisionChanged() {
       if (!root.deep && !root.quickNavActive && root.query.trim() !== "") shallowDebounce.restart()
     }
@@ -569,7 +580,7 @@ Item {
   Timer {
     id: continueTimer
     interval: 600
-    onTriggered: if (root.partial && !root.quickNavActive && root.query.trim() !== "" && !root.activeSearchRequestId) root.runSearch()
+    onTriggered: if (service.open && root.partial && !root.quickNavActive && root.query.trim() !== "" && !root.activeSearchRequestId) root.runSearch()
   }
 
   Timer {
