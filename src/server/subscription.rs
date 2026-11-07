@@ -276,6 +276,12 @@ pub(super) fn filesystem_events(
                         "overflow": flags.contains(ReadFlags::QUEUE_OVERFLOW),
                     }),
                 )?;
+                if flags.contains(ReadFlags::IGNORED) {
+                    watches.remove(&event.wd());
+                    if watches.is_empty() {
+                        return Err(AppError::command("every watched path was removed"));
+                    }
+                }
             }
             Err(Errno::AGAIN) => {
                 let mut fds = [

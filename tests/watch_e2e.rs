@@ -121,3 +121,25 @@ fn a_subscription_with_no_watchable_path_fails_with_the_first_error() {
     );
     resident.finish();
 }
+
+#[test]
+fn a_subscription_closes_once_every_watched_directory_is_removed() {
+    let temporary = tempdir().unwrap();
+    let watched = temporary.path().join("store");
+    fs::create_dir(&watched).unwrap();
+    let mut resident = Resident::start(1);
+    resident.send(json!({
+        "v": 1, "type": "subscribe", "id": "watch-3", "generation": 1,
+        "topic": "filesystem", "paths": [watched]
+    }));
+    let subscribed = resident.receive_where(|frame| frame["id"] == "watch-3");
+    assert_eq!(subscribed["type"], "subscribed", "{subscribed}");
+    fs::remove_dir(&watched).unwrap();
+    let closed = resident.response("watch-3");
+    assert_eq!(closed["ok"], false, "{closed}");
+    assert_eq!(
+        closed["error"], "every watched path was removed",
+        "{closed}"
+    );
+    resident.finish();
+}
