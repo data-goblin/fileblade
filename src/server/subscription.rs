@@ -23,10 +23,10 @@ pub(super) fn start_subscription(
             ),
         );
     }
-    let paths = if topic == "mounts" {
-        Vec::new()
+    let request = if topic == "mounts" {
+        WatchRequest::default()
     } else {
-        match watch_paths(object) {
+        match watch_request(object) {
             Ok(value) => value,
             Err(error) => return emit(output, &error_frame(object, &error.to_string())),
         }
@@ -78,7 +78,6 @@ pub(super) fn start_subscription(
     active.changed();
     seen.remember(key.clone());
     let generation = object.get("generation").cloned().unwrap_or(Value::Null);
-    let include_writes = object.get("includeWrites").and_then(Value::as_bool) == Some(true);
     let output = Arc::clone(output);
     let active = Arc::clone(active);
     let stop = Stop {
@@ -92,8 +91,7 @@ pub(super) fn start_subscription(
             watch_filesystem(
                 &key,
                 generation,
-                &paths,
-                include_writes,
+                &request,
                 &stop,
                 &deadline_exceeded,
                 &output,
@@ -103,6 +101,58 @@ pub(super) fn start_subscription(
         active.changed();
     }));
     Ok(())
+}
+
+#[derive(Default)]
+pub(super) struct WatchRequest {
+    paths: Vec<PathBuf>,
+    names: HashMap<PathBuf, HashSet<OsString>>,
+    include_writes: bool,
+}
+
+pub(super) fn watch_request(object: &Map<String, Value>) -> AppResult<WatchRequest> {
+    let paths = watch_paths(object)?;
+    let names = watch_names(object, &paths)?;
+    Ok(WatchRequest {
+        paths,
+        names,
+        include_writes: object.get("includeWrites").and_then(Value::as_bool) == Some(true),
+    })
+}
+
+fn watch_names(
+    object: &Map<String, Value>,
+    paths: &[PathBuf],
+) -> AppResult<HashMap<PathBuf, HashSet<OsString>>> {
+    let invalid =
+        || AppError::invalid("filesystem subscription names must map watched paths to child names");
+    let Some(value) = object.get("names") else {
+        return Ok(HashMap::new());
+    };
+    let entries = value.as_object().ok_or_else(invalid)?;
+    let mut names = HashMap::with_capacity(entries.len());
+    let mut total = 0usize;
+    for (raw, children) in entries {
+        let path = crate::common::parse_path(raw)?;
+        if !paths.contains(&path) {
+            return Err(invalid());
+        }
+        let children = children.as_array().ok_or_else(invalid)?;
+        total += children.len();
+        if children.is_empty() || total > MAX_WATCH_NAMES {
+            return Err(invalid());
+        }
+        let mut set = HashSet::with_capacity(children.len());
+        for child in children {
+            let name = child.as_str().ok_or_else(invalid)?;
+            if name.is_empty() || name == "." || name == ".." || name.contains(['/', '\0']) {
+                return Err(invalid());
+            }
+            set.insert(OsString::from(name));
+        }
+        names.insert(path, set);
+    }
+    Ok(names)
 }
 
 pub(super) fn watch_paths(object: &Map<String, Value>) -> AppResult<Vec<PathBuf>> {
@@ -132,13 +182,12 @@ pub(super) fn watch_paths(object: &Map<String, Value>) -> AppResult<Vec<PathBuf>
 pub(super) fn watch_filesystem(
     key: &RequestKey,
     generation: Value,
-    paths: &[PathBuf],
-    include_writes: bool,
+    request: &WatchRequest,
     stop: &Stop,
     deadline_exceeded: &AtomicBool,
     output: &Output,
 ) {
-    let result = filesystem_events(key, &generation, paths, include_writes, stop, output);
+    let result = filesystem_events(key, &generation, request, stop, output);
     let frame = closing_frame(
         key,
         generation,
@@ -153,11 +202,11 @@ pub(super) fn watch_filesystem(
 pub(super) fn filesystem_events(
     key: &RequestKey,
     generation: &Value,
-    paths: &[PathBuf],
-    include_writes: bool,
+    request: &WatchRequest,
     stop: &Stop,
     output: &Output,
 ) -> AppResult<()> {
+    let paths = &request.paths;
     let descriptor =
         inotify::init(CreateFlags::CLOEXEC | CreateFlags::NONBLOCK).map_err(|error| {
             AppError::command(format!("could not start filesystem subscription: {error}"))
@@ -173,10 +222,11 @@ pub(super) fn filesystem_events(
         | WatchFlags::DONT_FOLLOW
         | WatchFlags::EXCL_UNLINK
         | WatchFlags::ONLYDIR;
-    if include_writes {
+    if request.include_writes {
         flags |= WatchFlags::MODIFY;
     }
     let mut watches = HashMap::new();
+    let mut filters: HashMap<_, Option<HashSet<OsString>>> = HashMap::new();
     let mut skipped = Vec::new();
     for path in paths {
         let target = match std::fs::symlink_metadata(path) {
@@ -199,6 +249,16 @@ pub(super) fn filesystem_events(
         };
         match inotify::add_watch(&descriptor, &target, flags) {
             Ok(watch) => {
+                let wanted = request.names.get(path).cloned();
+                let merged = match (filters.remove(&watch), wanted) {
+                    (None, wanted) => wanted,
+                    (Some(Some(mut current)), Some(wanted)) => {
+                        current.extend(wanted);
+                        Some(current)
+                    }
+                    _ => None,
+                };
+                filters.insert(watch, merged);
                 watches.insert(watch, path.clone());
             }
             Err(error) => skipped.push(json!({
@@ -258,24 +318,31 @@ pub(super) fn filesystem_events(
                 } else {
                     crate::listing::invalidate_within(&path);
                 }
-                emit(
-                    output,
-                    &json!({
-                        "v": VERSION,
-                        "type": "event",
-                        "id": key.id,
-                        "generation": generation,
-                        "topic": "filesystem",
-                        "path": crate::common::path_text(&path),
-                        "root": crate::common::path_text(root),
-                        "name": crate::common::display_path(Path::new(&name)),
-                        "name_bytes": BASE64_STANDARD.encode(name.as_bytes()),
-                        "events": event_names(flags),
-                        "cookie": event.cookie(),
-                        "directory": flags.contains(ReadFlags::ISDIR),
-                        "overflow": flags.contains(ReadFlags::QUEUE_OVERFLOW),
-                    }),
-                )?;
+                let wanted = name.is_empty()
+                    || filters
+                        .get(&event.wd())
+                        .and_then(Option::as_ref)
+                        .is_none_or(|names| names.contains(&name));
+                if wanted {
+                    emit(
+                        output,
+                        &json!({
+                            "v": VERSION,
+                            "type": "event",
+                            "id": key.id,
+                            "generation": generation,
+                            "topic": "filesystem",
+                            "path": crate::common::path_text(&path),
+                            "root": crate::common::path_text(root),
+                            "name": crate::common::display_path(Path::new(&name)),
+                            "name_bytes": BASE64_STANDARD.encode(name.as_bytes()),
+                            "events": event_names(flags),
+                            "cookie": event.cookie(),
+                            "directory": flags.contains(ReadFlags::ISDIR),
+                            "overflow": flags.contains(ReadFlags::QUEUE_OVERFLOW),
+                        }),
+                    )?;
+                }
                 if flags.contains(ReadFlags::IGNORED) {
                     watches.remove(&event.wd());
                     if watches.is_empty() {

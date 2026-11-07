@@ -143,3 +143,32 @@ fn a_subscription_closes_once_every_watched_directory_is_removed() {
     );
     resident.finish();
 }
+
+#[test]
+fn a_subscription_with_names_reports_only_those_children() {
+    let temporary = tempdir().unwrap();
+    let home = temporary.path().join("home");
+    fs::create_dir(&home).unwrap();
+    let mut resident = Resident::start(1);
+    resident.send(json!({
+        "v": 1, "type": "subscribe", "id": "watch-names", "generation": 1,
+        "topic": "filesystem", "paths": [home],
+        "names": {home.to_string_lossy(): [".claude.json"]}
+    }));
+    let subscribed = resident.receive_where(|frame| frame["id"] == "watch-names");
+    assert_eq!(subscribed["type"], "subscribed", "{subscribed}");
+    fs::write(home.join(".bash_history"), "ls").unwrap();
+    fs::write(home.join(".claude.json"), "{}").unwrap();
+    let event = resident.receive_where(|frame| frame["type"] == "event");
+    assert_eq!(event["name"], ".claude.json", "{event}");
+    resident.send(json!({
+        "v": 1, "type": "subscribe", "id": "watch-bad", "generation": 1,
+        "topic": "filesystem", "paths": [home],
+        "names": {home.to_string_lossy(): ["nested/file"]}
+    }));
+    let refused = resident.receive_where(|frame| frame["id"] == "watch-bad");
+    assert_eq!(refused["ok"], false, "{refused}");
+    resident.send(json!({"v": 1, "type": "cancel", "id": "watch-names", "generation": 1}));
+    assert_eq!(resident.response("watch-names")["cancelled"], true);
+    resident.finish();
+}
