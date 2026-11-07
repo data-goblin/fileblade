@@ -5,7 +5,7 @@ use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -16,7 +16,7 @@ pub mod owner;
 mod supervisor;
 
 const MAX_DETACHED_CHILDREN: usize = 64;
-static DETACHED_REAPER: Mutex<Option<mpsc::SyncSender<Child>>> = Mutex::new(None);
+const DETACHED_WAITER_STACK: usize = 64 * 1024;
 static DETACHED_CHILDREN: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Clone)]
@@ -149,7 +149,6 @@ impl CommandSpec {
     }
 
     pub fn spawn_detached(&self) -> AppResult<u32> {
-        let reaper = detached_reaper()?;
         reserve_detached_child()?;
         let mut command = self.command();
         command
@@ -167,16 +166,33 @@ impl CommandSpec {
             }
         };
         let pid = child.id();
-        if let Err(error) = reaper.try_send(child) {
-            let (mut child, message) = match error {
-                mpsc::TrySendError::Full(child) => (child, "detached child reaper is saturated"),
-                mpsc::TrySendError::Disconnected(child) => {
-                    (child, "detached child reaper is unavailable")
+        let waiter = Arc::new(Mutex::new(Some(child)));
+        let waited = Arc::clone(&waiter);
+        let spawned = thread::Builder::new()
+            .name("fileblade-child-waiter".to_string())
+            .stack_size(DETACHED_WAITER_STACK)
+            .spawn(move || {
+                if let Some(mut child) = waited
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .take()
+                {
+                    let _ = child.wait();
+                    release_detached_child();
                 }
-            };
-            terminate_group(&mut child);
-            release_detached_child();
-            return Err(AppError::command(message));
+            });
+        if let Err(error) = spawned {
+            if let Some(mut child) = waiter
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .take()
+            {
+                terminate_group(&mut child);
+                release_detached_child();
+            }
+            return Err(AppError::command(format!(
+                "could not watch detached child: {error}"
+            )));
         }
         Ok(pid)
     }
@@ -211,55 +227,6 @@ fn reserve_detached_child() -> AppResult<()> {
 
 fn release_detached_child() {
     DETACHED_CHILDREN.fetch_sub(1, Ordering::AcqRel);
-}
-
-fn detached_reaper() -> AppResult<mpsc::SyncSender<Child>> {
-    let mut reaper = DETACHED_REAPER
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    if let Some(sender) = reaper.as_ref() {
-        return Ok(sender.clone());
-    }
-    let (sender, receiver) = mpsc::sync_channel(MAX_DETACHED_CHILDREN);
-    thread::Builder::new()
-        .name("fileblade-child-reaper".to_string())
-        .spawn(move || reap_detached(receiver))
-        .map_err(|error| AppError::command(format!("could not start child reaper: {error}")))?;
-    *reaper = Some(sender.clone());
-    Ok(sender)
-}
-
-fn reap_detached(receiver: mpsc::Receiver<Child>) {
-    let mut children = Vec::new();
-    let mut disconnected = false;
-    loop {
-        if disconnected {
-            thread::sleep(Duration::from_millis(20));
-        } else {
-            match receiver.recv_timeout(Duration::from_millis(20)) {
-                Ok(child) => children.push(child),
-                Err(mpsc::RecvTimeoutError::Timeout) => {}
-                Err(mpsc::RecvTimeoutError::Disconnected) => disconnected = true,
-            }
-            while let Ok(child) = receiver.try_recv() {
-                children.push(child);
-            }
-        }
-        let mut index = 0;
-        while index < children.len() {
-            match children[index].try_wait() {
-                Ok(None) => index += 1,
-                Ok(Some(_)) | Err(_) => {
-                    let mut child = children.swap_remove(index);
-                    let _ = child.wait();
-                    release_detached_child();
-                }
-            }
-        }
-        if disconnected && children.is_empty() {
-            return;
-        }
-    }
 }
 
 pub fn which(name: &str) -> Option<PathBuf> {
