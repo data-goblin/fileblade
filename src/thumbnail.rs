@@ -73,6 +73,9 @@ pub fn render(raw_path: &str, output: &Path, width: u32, height: u32) -> AppResu
     let rendered = render_encoded(raw_path, width, height, None)?;
     secure::write_private_atomic(output, &rendered.bytes)
         .map_err(|error| AppError::Invalid(error.to_string()))?;
+    if let Some(directory) = output.parent() {
+        crate::thumbnail_cache::schedule(directory.to_path_buf());
+    }
     Ok(rendered_value(output, rendered, false))
 }
 
@@ -381,6 +384,9 @@ fn render_in_child(
         }
         secure::write_private_atomic(output, &bytes)
             .map_err(|error| AppError::Invalid(error.to_string()))?;
+        if let Some(directory) = output.parent() {
+            crate::thumbnail_cache::schedule(directory.to_path_buf());
+        }
         if let Some(object) = value.as_object_mut() {
             object.remove("png_base64");
         }

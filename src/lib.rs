@@ -43,6 +43,7 @@ pub mod secure;
 pub mod server;
 pub mod shell_init;
 pub mod thumbnail;
+pub mod thumbnail_cache;
 pub mod trash;
 pub mod updates;
 mod visibility;
