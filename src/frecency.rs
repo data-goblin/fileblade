@@ -53,7 +53,15 @@ fn save(mut entries: Vec<Entry>) -> std::io::Result<()> {
     write_private_atomic(&path(), &serde_json::to_vec(&entries)?)
 }
 
+fn lock() -> std::io::Result<crate::secure::LockedFile> {
+    crate::secure::open_record_lock(&path().with_extension("lock"))
+}
+
 pub fn visit(paths: &[String]) -> Value {
+    let _lock = match lock() {
+        Ok(lock) => lock,
+        Err(error) => return json!({"ok": false, "error": error.to_string()}),
+    };
     let mut entries = load();
     let now = now();
     for raw in paths {
@@ -83,7 +91,11 @@ pub fn remap(mappings: &[(String, String)]) {
     if mappings.is_empty() {
         return;
     }
+    let Ok(_lock) = lock() else {
+        return;
+    };
     let mut entries = load();
+    let mut changed = false;
     for entry in &mut entries {
         let Ok(mut path) = parse_path(&entry.path) else {
             continue;
@@ -101,9 +113,15 @@ pub fn remap(mappings: &[(String, String)]) {
                 };
             }
         }
-        entry.path = path_text(&path);
+        let remapped = path_text(&path);
+        if remapped != entry.path {
+            entry.path = remapped;
+            changed = true;
+        }
     }
-    let _ = save(entries);
+    if changed {
+        let _ = save(entries);
+    }
 }
 
 pub fn remap_from(result: &Value) {
