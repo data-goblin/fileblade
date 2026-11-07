@@ -316,6 +316,11 @@ keeps the bars visible. The choice survives a shell restart.
 78. **E-09-12** When the search field is empty, the `Aa`, `.*`, and `fzf` chips
     sit flush with its right edge; they step left only while the `×` clear
     button is showing.
+78b. **E-09-13** A deep search that is still indexing keeps filling in results
+    while the blade is open. If I close the blade, it pauses and picks up again
+    when I reopen it. A search that returns the same capped results twice, such
+    as a very broad `scope:everywhere` query, stops its spinner and does not run
+    again until I change the query.
 
 ## 10. Quick navigation
 
@@ -457,6 +462,10 @@ Dialog keyboard regressions: `tests/vm/trash-dialog-focus.sh`.
      their original locations, so other desktop tools can restore them.
 124. **E-14-12** In the Trash view, `j` and `k` move the selection down and up, and
      `g` or `Shift+G` jump to the first or last item.
+124b. **E-14-13** With FileBlade idle, the Trash view lists again only when an
+     item enters or leaves a Trash store, not when an expired-item cleanup finds
+     nothing to remove. If the Trash folders disappear and come back, the view
+     catches up on its own within half a minute.
 
 ## 15. Undo and redo
 
