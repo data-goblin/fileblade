@@ -18,9 +18,9 @@ TestCase {
       requests.push({ id: id, name: name, args: args.slice(), generation: generation, callback: callback, options: options })
       return id
     }
-    function backendSubscribe(paths, generation, event, ready, closed, includeWrites) {
+    function backendSubscribe(paths, generation, event, ready, closed, includeWrites, names) {
       var id = "watch-" + subscriptions.length
-      subscriptions.push({ id: id, paths: paths, generation: generation, event: event, ready: ready, closed: closed, includeWrites: includeWrites === true })
+      subscriptions.push({ id: id, paths: paths, generation: generation, event: event, ready: ready, closed: closed, includeWrites: includeWrites === true, names: names || ({}) })
       return id
     }
     function cancelBackendRequest(id, generation, discardCallbacks) { cancelled.push({ id: id, generation: generation, discardCallbacks: !!discardCallbacks }) }
@@ -212,6 +212,22 @@ TestCase {
     finish(2, rows("complete", ["/project/one"])); finish(3, rows("user"))
     compare(subscriptions.length, 1)
     compare(inventory.watchError, "")
+  }
+
+  function test_a_lane_watches_only_the_files_it_reads_in_a_shared_parent() {
+    inventory.attach(observer()); start()
+    finish(0, rows("project"))
+    var user = rows("user", ["/home/me", "/home/me/.claude"])
+    user.watchNames = { "/home/me": [".claude.json"], "/elsewhere": ["x"], "/home/me/.claude": ["ok", "bad/name"] }
+    finish(1, user)
+    compare(subscriptions.length, 1)
+    compare(JSON.stringify(subscriptions[0].names), JSON.stringify({ "/home/me": [".claude.json"] }))
+    inventory.refresh(); start()
+    var renamed = rows("user", ["/home/me", "/home/me/.claude"])
+    renamed.watchNames = { "/home/me": [".claude.json", ".mcp.json"] }
+    finish(2, rows("project")); finish(3, renamed)
+    compare(subscriptions.length, 2)
+    compare(subscriptions[1].names["/home/me"], [".claude.json", ".mcp.json"])
   }
 
   function test_payload_and_metrics_are_bounded_across_lanes() {

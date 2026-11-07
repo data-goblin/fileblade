@@ -99,13 +99,28 @@ Item {
       rows.push(row)
     }
     items = rows
-    startWatch(response.watchPaths, response.watchTruncated === true)
+    startWatch(response.watchPaths, response.watchTruncated === true, response.watchNames)
     if (typeof owner.startUsageWatch === "function") owner.startUsageWatch(response.usageWatchPaths)
   }
 
-  function startWatch(raw, capped) {
+  function watchNamesFor(paths, raw) {
+    var names = {}
+    if (!raw || typeof raw !== "object") return names
+    for (var index = 0; index < paths.length; index++) {
+      var wanted = raw[paths[index]]
+      if (!Array.isArray(wanted)) continue
+      var valid = wanted.length > 0 && wanted.length <= 64 && wanted.every(function(name) {
+        return typeof name === "string" && name !== "" && name !== "." && name !== ".." && name.indexOf("/") < 0
+      })
+      if (valid) names[paths[index]] = wanted.slice()
+    }
+    return names
+  }
+
+  function startWatch(raw, capped, rawNames) {
     var paths = Array.isArray(raw) ? raw.filter(function(path) { return typeof path === "string" && path !== "" }).slice(0, 512) : []
-    var fingerprint = JSON.stringify(paths)
+    var names = watchNamesFor(paths, rawNames)
+    var fingerprint = JSON.stringify([paths, names])
     var limited = capped || (Array.isArray(raw) && raw.length > 512)
     if (watch && fingerprint === watchFingerprint) {
       watchLimited = limited
@@ -138,7 +153,7 @@ Item {
       lane.watchFailures++
       laneRetry.interval = Math.min(60000, 2000 * Math.pow(2, Math.min(5, lane.watchFailures)))
       laneRetry.restart()
-    })
+    }, false, names)
   }
 
   property int watchFailures: 0

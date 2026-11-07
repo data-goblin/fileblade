@@ -5,6 +5,7 @@ QtObject {
 
   property var service: null
   property var watchPaths: []
+  property var watchNames: ({})
   property var extensionDirectories: []
   property int generation: 0
   property var providers: []
@@ -181,7 +182,7 @@ QtObject {
       catalog.watchFailures++
       recovery.interval = Math.min(60000, minimumIntervalMs * Math.pow(2, Math.min(5, catalog.watchFailures)))
       recovery.restart()
-    })
+    }, false, watchNames)
     return watchRequestId !== ""
   }
 

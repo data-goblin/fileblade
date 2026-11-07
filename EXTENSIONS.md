@@ -349,7 +349,13 @@ changes, so a selection change never blanks the user-level rows. Set
 `exactProject: false` for helpers without `--exact`. Responses use
 `schemaVersion: 1`, `ok`, `items`, `project`, and `truncated`; `itemsKey`
 selects another row-array field. `watchPaths` supplies at most 512
-directories. The core modules collect a bounded
+directories. An optional `watchNames` object maps a watched directory to the
+child names that matter in it, at most 64 per directory; the inventory passes
+it to the subscription and the backend then reports only events for those
+children. A directory without an entry reports every child. The core modules
+watch the parent of a single file this way, so a lane that reads
+`~/.claude.json` does not rescan for every other change in the home directory.
+The core modules collect a bounded
 watch plan alongside discovery, including existing parents of missing sources;
 callers record each source and visited directory. A subscription is reconciled
 after installation, and watch failures or incomplete coverage remain visible.
