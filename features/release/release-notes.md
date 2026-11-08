@@ -2,7 +2,17 @@ This file was written by an agent.
 
 # FileBlade release notes
 
-## 0.3.6 (unreleased)
+## 0.3.6
+
+- An open Trash view no longer lists the artifact bin over and over. Each listing set the bin's permissions to the mode they already had, the Trash view took that as a change and listed again, about six times a second (#44).
+- An idle FileBlade wakes about 0.2 times a second instead of about 90. The backend sleeps until an event, a cancel or the next deadline, so cancelling a request and quitting both finish in a few milliseconds (#45).
+- The usage store keeps one `sqlite3` session per database instead of starting a process for every statement, and opens the database again when another program replaces its file (#45).
+- The thumbnail cache stays under 256 MB. Above that, FileBlade removes the least recently used thumbnails in its own cache folder until 192 MB remain, and it removes temporary files left behind for a day (#45).
+- Each usage ingest drops failure records that matched no skill or MCP call within 30 days (#45).
+- The Trash view ignores lock files and attribute-only changes in its stores, and a failed Trash, bar or chooser watch retries after 1, 2 and 4 seconds, up to 30 (#45).
+- The Branches pane reloads when another tool creates or deletes a branch, and a deep search pauses while its blade is hidden and stops repeating once a rerun finds nothing new (#45).
+- A request no longer fails with `server concurrency limit reached` right after the one before it finished (#43).
+- `ACKNOWLEDGEMENTS.md` credits the people who sent code, ideas and bug reports (#46).
 
 ## 0.3.5
 
