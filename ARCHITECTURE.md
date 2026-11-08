@@ -90,7 +90,9 @@ request:     { v: 1, type: request, id, generation, command, arguments: [...], d
 response:    { v: 1, type: response, id, generation, ok, late, payload }
 progress:    streamed while a long operation runs (copy, move, deep search)
 subscribe:   a watch the backend keeps open; it emits `event` frames until cancelled
-             topic `filesystem`: an inotify watch on a bounded list of paths
+             topic `filesystem`: an inotify watch on a bounded list of paths; optional `names`
+                                 maps a watched path to the child names it reports; the watch
+                                 closes with an error once every watched path is gone
              topic `mounts`: POLLPRI on /proc/self/mountinfo plus inotify on /dev/disk/by-id
                              and /run/media; each frame carries the whole volume list and a
                              fingerprint of the mount table, so a tmpfs or bind mount still emits

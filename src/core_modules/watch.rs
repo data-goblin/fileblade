@@ -1,6 +1,7 @@
 use crate::common::path_text;
 use serde_json::{Map, Value, json};
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
@@ -12,8 +13,8 @@ const MAX_WALK_UP: usize = 64;
 
 #[derive(Default)]
 pub struct WatchPlan {
-    paths: HashSet<PathBuf>,
-    candidates: HashSet<PathBuf>,
+    entries: HashMap<PathBuf, Option<BTreeSet<String>>>,
+    candidates: HashSet<(PathBuf, bool)>,
     truncated: bool,
 }
 
@@ -27,7 +28,7 @@ impl WatchPlan {
     }
 
     pub fn paths(&self) -> Vec<PathBuf> {
-        let mut paths: Vec<PathBuf> = self.paths.iter().cloned().collect();
+        let mut paths: Vec<PathBuf> = self.entries.keys().cloned().collect();
         paths.sort_by(|left, right| {
             left.as_os_str()
                 .as_bytes()
@@ -36,20 +37,44 @@ impl WatchPlan {
         paths
     }
 
-    pub fn directory(&mut self, path: &Path) {
-        if !path.is_absolute() || self.candidates.contains(path) {
-            return;
+    pub fn names(&self, path: &Path) -> Option<&BTreeSet<String>> {
+        self.entries.get(path).and_then(Option::as_ref)
+    }
+
+    fn insert(&mut self, directory: PathBuf, child: Option<&OsStr>) {
+        let wanted = child.map(|name| name.to_str().map(str::to_string));
+        let entry = self
+            .entries
+            .entry(directory)
+            .or_insert_with(|| Some(BTreeSet::new()));
+        match (entry.as_mut(), wanted) {
+            (Some(names), Some(Some(name))) => {
+                names.insert(name);
+            }
+            (Some(_), _) => *entry = None,
+            (None, _) => {}
         }
-        if self.paths.len() >= MAX_WATCH_PATHS || self.candidates.len() >= MAX_WATCH_CANDIDATES {
+    }
+
+    fn admit(&mut self, path: &Path, whole: bool) -> bool {
+        if !path.is_absolute() || self.candidates.contains(&(path.to_path_buf(), whole)) {
+            return false;
+        }
+        if self.entries.len() >= MAX_WATCH_PATHS || self.candidates.len() >= MAX_WATCH_CANDIDATES {
             self.truncated = true;
-            return;
+            return false;
         }
-        self.candidates.insert(path.to_path_buf());
+        self.candidates.insert((path.to_path_buf(), whole));
+        true
+    }
+
+    fn nearest(&mut self, path: &Path, child: Option<&OsStr>) {
         let mut current = path.to_path_buf();
+        let mut wanted = child.map(OsStr::to_os_string);
         for _ in 0..MAX_WALK_UP {
             if current.is_dir() {
                 let resolved = std::fs::canonicalize(&current).unwrap_or(current);
-                self.paths.insert(resolved);
+                self.insert(resolved, wanted.as_deref());
                 return;
             }
             let Some(parent) = current.parent() else {
@@ -58,42 +83,63 @@ impl WatchPlan {
             if parent == current {
                 return;
             }
+            wanted = current.file_name().map(OsStr::to_os_string);
             current = parent.to_path_buf();
         }
     }
 
-    pub fn watch_path(&mut self, path: &Path, directory: bool) {
-        if let Some(parent) = path.parent() {
-            self.directory(parent);
+    pub fn directory(&mut self, path: &Path) {
+        if self.admit(path, true) {
+            self.nearest(path, None);
         }
+    }
+
+    fn child(&mut self, path: &Path) {
+        let (Some(parent), Some(name)) = (path.parent(), path.file_name()) else {
+            return;
+        };
+        if self.admit(path, false) {
+            self.nearest(parent, Some(name));
+        }
+    }
+
+    pub fn watch_path(&mut self, path: &Path, directory: bool) {
+        self.child(path);
         if directory {
             self.directory(path);
             return;
         }
         if std::fs::symlink_metadata(path).is_ok_and(|metadata| metadata.is_symlink())
             && let Ok(resolved) = std::fs::canonicalize(path)
-            && let Some(parent) = resolved.parent()
         {
-            self.directory(parent);
+            self.child(&resolved);
         }
     }
 
     pub fn finish(&mut self, document: &mut Map<String, Value>) {
         let mut encoded = Vec::new();
+        let mut names = Map::new();
         let mut size = 2;
         for path in self.paths() {
             let text = path_text(&path);
             let mut wire = String::new();
             super::canonical::escape_ascii(&text, &mut wire);
-            let cost = wire.len() + 1;
+            let children = self.names(&path).cloned().unwrap_or_default();
+            let cost = wire.len() + 1 + children.iter().map(|name| name.len() + 3).sum::<usize>();
             if size + cost > MAX_WATCH_BYTES {
                 self.truncated = true;
                 break;
             }
             size += cost;
+            if !children.is_empty() {
+                names.insert(text.clone(), json!(children));
+            }
             encoded.push(Value::from(text));
         }
         document.insert("watchPaths".to_string(), Value::Array(encoded));
+        if !names.is_empty() {
+            document.insert("watchNames".to_string(), Value::Object(names));
+        }
         document.insert("watchTruncated".to_string(), json!(self.truncated));
     }
 }

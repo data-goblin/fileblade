@@ -194,6 +194,10 @@ pub fn sweep_idle() -> bool {
     slots.len() != before
 }
 
+pub fn has_slots() -> bool {
+    !lock(registry()).is_empty()
+}
+
 fn evict(slots: &mut HashMap<IndexKey, Slot>, key: &IndexKey) {
     if let Some(slot) = slots.remove(key) {
         slot.abort();

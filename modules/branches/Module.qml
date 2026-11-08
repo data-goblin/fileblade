@@ -37,6 +37,7 @@ FocusScope {
   property bool busy: false
   property bool switching: false
   property int generation: 0
+  property int placesRefsCount: -1
   property string requestId: ""
   property string query: ""
   property bool caseSensitive: false
@@ -78,6 +79,7 @@ FocusScope {
 
   function requestPlaces() {
     var serial = ++generation
+    placesRefsCount = Number(files.gitRefsEventCount || 0)
     busy = true
     requestId = files.backendRequest("git-places", ["--path", anchorPath], serial, function(response) {
       if (serial !== module.generation) return
@@ -272,7 +274,16 @@ FocusScope {
   Connections {
     target: module.files
     ignoreUnknownSignals: true
-    function onGitMetadataRefreshCountChanged() { module.refresh() }
+    function onGitMetadataRefreshCountChanged() {
+      var unchanged = module.files.gitMetadataNoopCount
+      var refs = module.files.gitRefsEventCount
+      Qt.callLater(function() {
+        var noop = unchanged !== undefined && module.files.gitMetadataNoopCount !== unchanged
+        if (noop && refs === module.placesRefsCount) return
+        module.refresh()
+      })
+    }
+    function onGitRefsEventCountChanged() { module.refresh() }
   }
 
   Loader {

@@ -52,8 +52,26 @@ pub fn path() -> PathBuf {
     crate::paths::state_dir().join("audit.jsonl")
 }
 
+pub fn changed_nothing(command: &str, value: &Value) -> bool {
+    if value.get("ok").and_then(Value::as_bool) != Some(true) {
+        return false;
+    }
+    let empty = |key: &str| value[key].as_array().is_none_or(Vec::is_empty);
+    let zero = |key: &str| value[key].as_u64() == Some(0);
+    match command {
+        "trash-prune" => zero("eligible") && zero("completed") && zero("failed"),
+        "recover" => empty("restored") && empty("removed") && empty("conflicts") && empty("errors"),
+        _ => false,
+    }
+}
+
 pub fn record(event: &Event<'_>) -> io::Result<()> {
     if !is_audited(event.command) {
+        return Ok(());
+    }
+    if let Ok(value) = event.outcome
+        && changed_nothing(event.command, value)
+    {
         return Ok(());
     }
     let (ok, error, excerpt) = match event.outcome {

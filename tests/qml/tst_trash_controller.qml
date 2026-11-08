@@ -32,7 +32,13 @@ TestCase {
       pendingCallback = null
       callback(response)
     }
-    function backendSubscribe() { return "" }
+    property var watch: null
+    property int subscriptions: 0
+    function backendSubscribe(paths, generation, eventCallback, readyCallback, closedCallback) {
+      subscriptions++
+      watch = { event: eventCallback, ready: readyCallback, closed: closedCallback }
+      return "watch-" + subscriptions
+    }
     function cancelBackendRequest() { return true }
     function artifactTrashHandler() { return null }
     function markTrashCleared() {}
@@ -84,8 +90,9 @@ TestCase {
     fakeService.pendingCallback = null
     controller.listRequestId = ""
     controller.operationRequestId = ""
-    controller.busy = false
-    controller.operationBusy = false
+    controller.watchFailures = 0
+    controller.watchFingerprint = ""
+    fakeService.subscriptions = 0
     controller.noticeDuration = 3000
     controller.clearNotice()
     controller.presented = []
@@ -135,6 +142,34 @@ TestCase {
     history.operationCompleted({ operation: "undo", ok: true })
     fakeService.reply({ ok: true, entries: [] })
     compare(controller.count, 0)
+  }
+
+  function test_watch_ignores_its_own_lock_and_attribute_events() {
+    controller.applyList({ ok: true, entries: [], watch_paths: ["/home/test/.local/share/Trash/files"] })
+    var watch = fakeService.watch
+    requests = []
+    watch.event({ name: "", events: ["attrib"] })
+    watch.event({ name: ".mutation.lock", events: ["close_write"] })
+    wait(250)
+    compare(requests.length, 0)
+    watch.event({ name: "a.txt", events: ["moved_to"] })
+    tryCompare(requests, "length", 1, 1000)
+    compare(requests[0].name, "trash-list")
+  }
+
+  function test_failed_watch_backs_off_and_resyncs_once_it_is_back() {
+    controller.applyList({ ok: true, entries: [], watch_paths: ["/home/test/.local/share/Trash/files"] })
+    var subscriptions = fakeService.subscriptions
+    fakeService.watch.closed({ ok: false, error: "could not watch" })
+    compare(controller.watchFailures, 1)
+    fakeService.watch.closed({ ok: false, error: "could not watch" })
+    compare(controller.watchFailures, 2)
+    tryCompare(fakeService, "subscriptions", subscriptions + 1, 3000)
+    requests = []
+    fakeService.watch.ready({ ok: true })
+    compare(controller.watchFailures, 0)
+    compare(requests.length, 1)
+    compare(requests[0].name, "trash-list")
   }
 
   function test_restore_notice_is_concise_and_expires() {

@@ -46,13 +46,7 @@ pub fn ensure_private_directory(path: &Path) -> io::Result<OwnedFd> {
         current = next;
     }
     verify_owner_and_kind(&current, EntryKind::Directory)?;
-    if rustix::fs::fstat(&current)
-        .map_err(io::Error::from)?
-        .st_mode
-        & 0o7777
-        != PRIVATE_DIRECTORY_MODE
-    {
-        fchmod(&current, Mode::from_raw_mode(PRIVATE_DIRECTORY_MODE)).map_err(io::Error::from)?;
+    if ensure_mode(&current, PRIVATE_DIRECTORY_MODE)? {
         fsync(&current).map_err(io::Error::from)?;
     }
     verify_private_fd(&current, EntryKind::Directory, PRIVATE_DIRECTORY_MODE)?;
@@ -112,6 +106,14 @@ pub fn verify_private_file(path: &Path) -> io::Result<()> {
     verify_private_fd(&fd, EntryKind::File, PRIVATE_FILE_MODE)
 }
 
+pub fn ensure_mode(fd: impl AsFd, mode: u32) -> io::Result<bool> {
+    if fstat(&fd).map_err(io::Error::from)?.st_mode & 0o7777 == mode {
+        return Ok(false);
+    }
+    fchmod(&fd, Mode::from_raw_mode(mode)).map_err(io::Error::from)?;
+    Ok(true)
+}
+
 pub fn open_private_lock(path: &Path) -> io::Result<LockedFile> {
     private_lock(path, false)?.ok_or_else(|| io::Error::other("lock unavailable"))
 }
@@ -136,7 +138,7 @@ fn private_lock(path: &Path, nonblocking: bool) -> io::Result<Option<LockedFile>
     )
     .map_err(io::Error::from)?;
     verify_owner_and_kind(&fd, EntryKind::File)?;
-    fchmod(&fd, Mode::from_raw_mode(PRIVATE_FILE_MODE)).map_err(io::Error::from)?;
+    ensure_mode(&fd, PRIVATE_FILE_MODE)?;
     verify_private_fd(&fd, EntryKind::File, PRIVATE_FILE_MODE)?;
     let operation = if nonblocking {
         FlockOperation::NonBlockingLockExclusive

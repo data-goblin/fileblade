@@ -7,30 +7,35 @@ pub(super) fn release_freed_memory() {
     }
 }
 
-pub(super) fn monitor_deadlines(
-    active: Arc<Mutex<HashMap<RequestKey, ActiveRequest>>>,
-    stopping: Arc<AtomicBool>,
-) -> JoinHandle<()> {
+pub(super) fn monitor_deadlines(active: Arc<Active>, stopping: Arc<AtomicBool>) -> JoinHandle<()> {
     thread::spawn(move || {
         let mut idle_since = None;
         let mut last_sweep: Option<Instant> = None;
         let mut armed = false;
-        while !stopping.load(Ordering::Relaxed) {
+        loop {
+            active.changed.clear();
+            if stopping.load(Ordering::Acquire) {
+                break;
+            }
             let now = Instant::now();
             let mut busy = false;
-            for request in lock(&active).values() {
+            let mut next_deadline: Option<Instant> = None;
+            for request in active.lock().values() {
                 busy |= !request.standing;
-                if request
-                    .deadline
-                    .as_ref()
-                    .is_some_and(|deadline| deadline.expired(now))
-                {
+                let Some(deadline) = request.deadline.as_ref() else {
+                    continue;
+                };
+                if deadline.expired(now) {
                     request.deadline_exceeded.store(true, Ordering::Relaxed);
                     if request.cancel_on_deadline {
-                        request.cancelled.store(true, Ordering::Relaxed);
+                        request.cancel();
                     }
+                } else if !request.deadline_exceeded.load(Ordering::Relaxed) {
+                    let at = deadline.next();
+                    next_deadline = Some(next_deadline.map_or(at, |current| current.min(at)));
                 }
             }
+            let mut next_sweep = None;
             if busy {
                 idle_since = None;
                 armed = true;
@@ -44,34 +49,46 @@ pub(super) fn monitor_deadlines(
                     armed = false;
                     last_sweep = Some(now);
                 }
+                let settled = since + IDLE_TRIM_DELAY;
+                next_sweep = if armed {
+                    Some(settled)
+                } else if crate::index::has_slots() {
+                    Some(settled.max(last_sweep.map_or(settled, |at| at + IDLE_SWEEP_INTERVAL)))
+                } else {
+                    None
+                };
             }
-            let next_deadline = lock(&active)
-                .values()
-                .filter_map(|request| request.deadline.as_ref().map(|deadline| deadline.next()))
-                .min();
-            let wait = next_deadline
-                .map(|at| at.saturating_duration_since(Instant::now()))
-                .unwrap_or(MONITOR_IDLE_TICK)
-                .clamp(Duration::from_millis(5), MONITOR_IDLE_TICK);
-            thread::sleep(wait);
+            let timeout = [next_deadline, next_sweep]
+                .into_iter()
+                .flatten()
+                .min()
+                .map(|at| {
+                    at.saturating_duration_since(Instant::now())
+                        .max(MONITOR_MIN_WAIT)
+                });
+            let mut descriptors = [PollFd::from_borrowed_fd(active.changed.fd(), PollFlags::IN)];
+            if wake::wait(&mut descriptors, timeout).is_err() {
+                thread::sleep(MONITOR_MIN_WAIT);
+            }
         }
     })
 }
 
 pub(super) fn shutdown(
-    active: &Arc<Mutex<HashMap<RequestKey, ActiveRequest>>>,
+    active: &Arc<Active>,
     stopping: &Arc<AtomicBool>,
     workers: Vec<JoinHandle<()>>,
     monitor: JoinHandle<()>,
 ) {
-    for request in lock(active).values() {
-        request.cancelled.store(true, Ordering::Relaxed);
+    for request in active.lock().values() {
+        request.cancel();
     }
     for worker in workers {
         let _ = worker.join();
     }
     crate::hyprland::restore_owned_borders();
-    stopping.store(true, Ordering::Relaxed);
+    stopping.store(true, Ordering::Release);
+    active.changed();
     let _ = monitor.join();
 }
 

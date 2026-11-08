@@ -118,8 +118,9 @@ pub fn record_parent(path: &Path) -> io::Result<crate::secure::ResolvedParent> {
                         "record directory is owned by another user",
                     ));
                 }
-                rustix::fs::fchmod(&directory, rustix::fs::Mode::from_raw_mode(0o700))?;
-                rustix::fs::fsync(&directory)?;
+                if crate::secure::ensure_mode(&directory, 0o700)? {
+                    rustix::fs::fsync(&directory)?;
+                }
             }
             directory
         }

@@ -1,10 +1,20 @@
-use crate::command::{CommandSpec, which};
+use crate::command::which;
+use rustix::event::{PollFd, PollFlags, poll};
+use rustix::fs::{OFlags, Timespec, fcntl_getfl, fcntl_setfl};
+use rustix::io::Errno;
 use serde::de::{MapAccess, Visitor};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Write as _;
-use std::path::PathBuf;
-use std::time::Duration;
+use std::io::Read;
+use std::os::fd::AsFd;
+use std::os::unix::process::CommandExt;
+use std::path::{Path, PathBuf};
+use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError};
+use std::thread;
+use std::time::{Duration, Instant};
 
 pub const PROGRAM: &str = "sqlite3";
 pub const TIMEOUT: Duration = Duration::from_secs(15);
@@ -202,6 +212,200 @@ pub struct Sql {
     busy: u64,
 }
 
+type Slot = Arc<Mutex<Option<Session>>>;
+
+fn sessions() -> &'static Mutex<HashMap<(PathBuf, bool), Slot>> {
+    static SESSIONS: OnceLock<Mutex<HashMap<(PathBuf, bool), Slot>>> = OnceLock::new();
+    SESSIONS.get_or_init(Mutex::default)
+}
+
+fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
+    mutex.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+type Zone = (Option<std::ffi::OsString>, Option<PathBuf>);
+
+type Identity = Option<(u64, u64)>;
+
+fn identity(path: &Path) -> Identity {
+    use std::os::unix::fs::MetadataExt;
+    std::fs::metadata(path)
+        .ok()
+        .map(|metadata| (metadata.dev(), metadata.ino()))
+}
+
+fn zone() -> Zone {
+    (
+        std::env::var_os("TZ"),
+        std::fs::read_link("/etc/localtime").ok(),
+    )
+}
+
+struct Session {
+    zone: Zone,
+    identity: Identity,
+    child: Child,
+    input: ChildStdin,
+    output: ChildStdout,
+    errors: Arc<Mutex<Vec<u8>>>,
+    collector: Option<thread::JoinHandle<()>>,
+    serial: u64,
+}
+
+impl Session {
+    fn spawn(program: &Path, path: &Path, readonly: bool) -> Result<Self> {
+        let mut command = Command::new(program);
+        command.args(["-batch", "-bail", "-json"]);
+        if readonly {
+            command.arg("-readonly");
+        }
+        command
+            .arg(path)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .process_group(0);
+        let mut child = command
+            .spawn()
+            .map_err(|error| Error::new(format!("usage store: {error}")))?;
+        let (Some(input), Some(output), Some(mut stderr)) =
+            (child.stdin.take(), child.stdout.take(), child.stderr.take())
+        else {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(Error::new("usage store has no pipes"));
+        };
+        for descriptor in [input.as_fd(), output.as_fd()] {
+            fcntl_getfl(descriptor)
+                .and_then(|flags| fcntl_setfl(descriptor, flags | OFlags::NONBLOCK))
+                .map_err(std::io::Error::from)?;
+        }
+        let errors = Arc::new(Mutex::new(Vec::new()));
+        let collected = Arc::clone(&errors);
+        let collector = thread::Builder::new()
+            .name("fileblade-usage-stderr".to_string())
+            .stack_size(64 * 1024)
+            .spawn(move || {
+                let mut chunk = [0u8; 4096];
+                while let Ok(count) = stderr.read(&mut chunk) {
+                    if count == 0 {
+                        break;
+                    }
+                    let mut buffer = lock(&collected);
+                    let room = STDERR_LIMIT.saturating_sub(buffer.len());
+                    buffer.extend_from_slice(&chunk[..count.min(room)]);
+                }
+            })?;
+        Ok(Self {
+            zone: zone(),
+            identity: identity(path),
+            child,
+            input,
+            output,
+            errors,
+            collector: Some(collector),
+            serial: 0,
+        })
+    }
+
+    fn reusable(&mut self, path: &Path) -> bool {
+        let current = identity(path);
+        if self.identity.is_none() {
+            self.identity = current;
+        }
+        self.zone == zone() && self.identity == current && matches!(self.child.try_wait(), Ok(None))
+    }
+
+    fn stop(mut self) {
+        let _ = self.child.kill();
+        let _ = self.child.wait();
+    }
+
+    fn failure(mut self) -> Error {
+        drop(self.input);
+        let _ = self.child.wait();
+        if let Some(collector) = self.collector.take() {
+            let _ = collector.join();
+        }
+        let message = String::from_utf8_lossy(&lock(&self.errors))
+            .trim()
+            .to_string();
+        Error::new(if message.is_empty() {
+            "usage store refused the statement".to_string()
+        } else {
+            message
+        })
+    }
+
+    fn exchange(&mut self, body: &[u8], marker: &[u8], deadline: Instant) -> Result<Exchange> {
+        let mut written = 0usize;
+        let mut stdout = Vec::new();
+        let mut chunk = vec![0u8; 64 * 1024];
+        loop {
+            if let Some(end) = finished(&stdout, marker) {
+                stdout.truncate(end);
+                return Ok(Exchange::Answer(stdout));
+            }
+            if stdout.len() > STDOUT_LIMIT {
+                return Ok(Exchange::TooLarge);
+            }
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            if remaining.is_zero() {
+                return Ok(Exchange::TimedOut);
+            }
+            let wants_input = written < body.len();
+            let mut descriptors = vec![PollFd::new(&self.output, PollFlags::IN)];
+            if wants_input {
+                descriptors.push(PollFd::new(&self.input, PollFlags::OUT));
+            }
+            let timeout = Timespec {
+                tv_sec: remaining.as_secs() as i64,
+                tv_nsec: i64::from(remaining.subsec_nanos()),
+            };
+            match poll(&mut descriptors, Some(&timeout)) {
+                Ok(_) | Err(Errno::INTR) => {}
+                Err(error) => return Err(Error::from(std::io::Error::from(error))),
+            }
+            let readable = !descriptors[0].revents().is_empty();
+            let writable = wants_input && !descriptors[1].revents().is_empty();
+            if writable {
+                match rustix::io::write(&self.input, &body[written..]) {
+                    Ok(count) => written += count,
+                    Err(Errno::AGAIN | Errno::INTR) => {}
+                    Err(_) => return Ok(Exchange::Closed),
+                }
+            }
+            if readable {
+                match rustix::io::read(&self.output, &mut chunk) {
+                    Ok(0) => return Ok(Exchange::Closed),
+                    Ok(count) => stdout.extend_from_slice(&chunk[..count]),
+                    Err(Errno::AGAIN | Errno::INTR) => {}
+                    Err(_) => return Ok(Exchange::Closed),
+                }
+            }
+        }
+    }
+}
+
+enum Exchange {
+    Answer(Vec<u8>),
+    Closed,
+    TimedOut,
+    TooLarge,
+}
+
+fn finished(stdout: &[u8], marker: &[u8]) -> Option<usize> {
+    if stdout.len() < marker.len() + 1 || !stdout.ends_with(b"\n") {
+        return None;
+    }
+    let line = &stdout[..stdout.len() - 1];
+    if !line.ends_with(marker) {
+        return None;
+    }
+    let start = line.len() - marker.len();
+    (start == 0 || line[start - 1] == b'\n').then_some(start)
+}
+
 impl Sql {
     pub fn open(path: impl Into<PathBuf>) -> Result<Self> {
         Self::locate(path, false)
@@ -252,33 +456,54 @@ impl Sql {
     }
 
     fn invoke(&self, script: &str) -> Result<Vec<u8>> {
-        let mut arguments: Vec<&str> = vec!["-batch", "-bail", "-json"];
-        if self.readonly {
-            arguments.push("-readonly");
-        }
-        let body = format!(".timeout {}\n{script}\n", self.busy);
-        let path = self.path.as_os_str();
-        let spec = CommandSpec::new(&self.program)
-            .args(arguments)
-            .args([path])
-            .timeout(self.timeout)
-            .limits(STDOUT_LIMIT, STDERR_LIMIT)
-            .stdin(body.into_bytes());
-        let output = spec
-            .run()
-            .map_err(|error| Error::new(format!("usage store: {error}")))?;
-        if !output.status.success() {
-            let message = String::from_utf8_lossy(&output.stderr);
-            let message = message.trim();
-            return Err(Error::new(if message.is_empty() {
-                "usage store refused the statement".to_string()
+        let deadline = Instant::now() + self.timeout;
+        let slot = Arc::clone(
+            lock(sessions())
+                .entry((self.path.clone(), self.readonly))
+                .or_default(),
+        );
+        let mut guard = lock(&slot);
+        let reusable = guard.take().and_then(|mut session| {
+            if session.reusable(&self.path) {
+                Some(session)
             } else {
-                message.to_string()
-            }));
+                session.stop();
+                None
+            }
+        });
+        let session = match reusable {
+            Some(session) => guard.insert(session),
+            None => guard.insert(Session::spawn(&self.program, &self.path, self.readonly)?),
+        };
+        session.serial += 1;
+        lock(&session.errors).clear();
+        let marker = format!("fileblade-usage-end-{}", session.serial);
+        let terminator = if script.trim_end().ends_with(';') {
+            ""
+        } else {
+            ";"
+        };
+        let body = format!(
+            ".timeout {}\n{script}{terminator}\n.print {marker}\n",
+            self.busy
+        );
+        let exchange = session.exchange(body.as_bytes(), marker.as_bytes(), deadline)?;
+        if let Exchange::Answer(stdout) = exchange {
+            return Ok(stdout);
         }
-        if output.stdout_truncated {
-            return Err(Error::new("usage store answer is too large"));
-        }
-        Ok(output.stdout)
+        let Some(session) = guard.take() else {
+            return Err(Error::new("usage store session vanished"));
+        };
+        Err(match exchange {
+            Exchange::Closed => session.failure(),
+            Exchange::TimedOut => {
+                session.stop();
+                Error::new("usage store timed out")
+            }
+            Exchange::TooLarge | Exchange::Answer(_) => {
+                session.stop();
+                Error::new("usage store answer is too large")
+            }
+        })
     }
 }

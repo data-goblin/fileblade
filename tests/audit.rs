@@ -123,6 +123,23 @@ fn audit_log_records_mutations_privately_and_reads_back_filtered() {
     assert!(future["entries"].as_array().unwrap().is_empty());
     let last = audit::read(1, "", "");
     assert_eq!(last["entries"][0]["command"], "helper-write");
+    let idle_prune = Ok(
+        json!({"ok": true, "operation": "trash-prune", "eligible": 0, "completed": 0, "failed": 0}),
+    );
+    let idle_recover = Ok(
+        json!({"ok": true, "operation": "recover", "restored": [], "removed": [], "conflicts": [], "errors": []}),
+    );
+    let pruned = Ok(
+        json!({"ok": true, "operation": "trash-prune", "eligible": 2, "completed": 2, "failed": 0}),
+    );
+    let days = vec!["--days".to_string(), "7".to_string()];
+    audit::record(&event("trash-prune", &days, &idle_prune)).unwrap();
+    audit::record(&event("recover", &[], &idle_recover)).unwrap();
+    audit::record(&event("trash-prune", &days, &pruned)).unwrap();
+    let maintenance = audit::read(50, "", "");
+    let entries = maintenance["entries"].as_array().unwrap();
+    assert_eq!(entries.len(), 7, "{maintenance}");
+    assert_eq!(entries[6]["result"]["completed"], 2);
 }
 
 #[test]

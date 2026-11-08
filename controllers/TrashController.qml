@@ -8,8 +8,8 @@ Item {
 
   required property var service
   property alias model: trashModel
-  property bool busy: false
-  property bool operationBusy: false
+  readonly property bool busy: listRequestId !== ""
+  readonly property bool operationBusy: operationRequestId !== ""
   property string error: ""
   property string notice: ""
   property string operationLabel: ""
@@ -29,6 +29,7 @@ Item {
   property int watchGeneration: 0
   property string watchFingerprint: ""
   property var watchPaths: []
+  property int watchFailures: 0
   property bool retentionQuiet: false
   property int noticeDuration: 3000
   property var presented: []
@@ -84,14 +85,12 @@ Item {
       return listRequestId
     }
     listDirty = false
-    busy = true
     error = ""
     listGeneration++
     var requestGeneration = listGeneration
     listRequestId = service.backendRequest("trash-list", ["--limit", "1000"], requestGeneration, function(response) {
       if (requestGeneration !== controller.listGeneration) return
       controller.listRequestId = ""
-      controller.busy = false
       controller.applyList(response || {})
       if (controller.listDirty) Qt.callLater(controller.refresh)
     }, null, 30000)
@@ -221,14 +220,29 @@ Item {
     if (watchPaths.length === 0) return
     var requestGeneration = watchGeneration
     watchRequestId = service.backendSubscribe(watchPaths, requestGeneration, function(event) {
-      if (requestGeneration !== controller.watchGeneration) return
+      if (requestGeneration !== controller.watchGeneration || !controller.listingEvent(event)) return
       trashRefresh.restart()
-    }, null, function(response) {
+    }, function() {
+      if (requestGeneration !== controller.watchGeneration) return
+      if (controller.watchFailures > 0) controller.refresh()
+      controller.watchFailures = 0
+    }, function(response) {
       if (requestGeneration !== controller.watchGeneration) return
       controller.watchRequestId = ""
       if (response && response.cancelled) return
+      controller.watchFailures++
+      watchRestart.interval = Math.min(30000, 1000 * Math.pow(2, controller.watchFailures - 1))
       watchRestart.restart()
     })
+  }
+
+  function listingEvent(event) {
+    var name = String(event && event.name || "")
+    if (/\.lock$/.test(name)) return false
+    var events = event && Array.isArray(event.events) ? event.events : []
+    for (var index = 0; index < events.length; index++)
+      if (events[index] !== "attrib") return true
+    return events.length === 0
   }
 
   function restore(id, destination, recreateParent) {
@@ -276,7 +290,6 @@ Item {
 
   function run(command, arguments, label, quiet) {
     if (operationRequestId) return "busy"
-    operationBusy = true
     operationLabel = String(label || "Trash operation")
     error = ""
     clearNotice()
@@ -287,7 +300,6 @@ Item {
     operationRequestId = service.backendRequest(command, arguments, requestGeneration, function(response) {
       if (requestGeneration !== controller.operationGeneration) return
       controller.operationRequestId = ""
-      controller.operationBusy = false
       controller.progress = null
       if (response && response.ok) {
         var changed = Math.max(0, Number(response.completed) || 0)

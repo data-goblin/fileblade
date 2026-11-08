@@ -11,6 +11,7 @@ Item {
   property int generation: 0
   property string watchId: ""
   property string error: ""
+  property int failures: 0
 
   property var sessionComponent: null
 
@@ -38,7 +39,14 @@ Item {
     watchId = service.backendRequest("chooser", ["watch", "--revision", String(revision)], current, function(response) {
       if (current !== manager.generation) return
       manager.watchId = ""
-      if (!response || !response.ok) { manager.error = String(response && response.error || "Chooser authority unavailable"); retry.restart(); return }
+      if (!response || !response.ok) {
+        manager.error = String(response && response.error || "Chooser authority unavailable")
+        manager.failures++
+        retry.interval = Math.min(30000, 1000 * Math.pow(2, manager.failures - 1))
+        retry.restart()
+        return
+      }
+      manager.failures = 0
       manager.error = ""
       manager.revision = response.revision
       manager.present(response.offers)

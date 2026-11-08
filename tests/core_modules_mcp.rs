@@ -712,6 +712,15 @@ fn watch_paths_cover_missing_sources_symlink_targets_and_nested_plugins() {
         .collect();
     assert!(watched.contains(&case.project.to_string_lossy().into_owned()));
     assert!(watched.contains(&case.home.to_string_lossy().into_owned()));
+    let home_names = document["watchNames"][case.home.to_string_lossy().as_ref()]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    assert!(
+        home_names.contains(&json!(".claude.json")),
+        "{home_names:?}"
+    );
+    assert!(!home_names.contains(&json!(".bash_history")));
 
     let source = case.project.join(".mcp.json");
     let target = case.base.join("vault").join("config.json");

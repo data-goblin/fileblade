@@ -45,6 +45,7 @@ const RETENTION: &str =
 const FAILURE: &str =
     "CREATE TABLE failure (call TEXT PRIMARY KEY, at INTEGER NOT NULL) WITHOUT ROWID";
 const FAILURE_AGENT: &str = "ALTER TABLE failure ADD COLUMN agent TEXT NOT NULL DEFAULT 'claude'";
+const UNMATCHED_FAILURE_AGE_MILLISECONDS: i64 = 30 * 24 * 60 * 60 * 1000;
 const FORGOTTEN: &str = "CREATE TABLE forgotten (identity BLOB PRIMARY KEY) WITHOUT ROWID";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -893,6 +894,14 @@ impl Retention {
     }
 }
 
+fn unmatched_failure_cutoff() -> i64 {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| i64::try_from(elapsed.as_millis()).unwrap_or(i64::MAX))
+        .unwrap_or(0);
+    now.saturating_sub(UNMATCHED_FAILURE_AGE_MILLISECONDS)
+}
+
 fn append_batch(
     script: &mut String,
     retention: &Retention,
@@ -950,6 +959,10 @@ fn append_batch(
             "UPDATE event SET failed = 1 WHERE (agent, call) IN (SELECT agent, call FROM failure);\n\
              DELETE FROM failure WHERE EXISTS (SELECT 1 FROM event WHERE event.agent = failure.agent AND event.call = failure.call);\n",
         );
+        script.push_str(&format!(
+            "DELETE FROM failure WHERE at < {};\n",
+            literal(&Bound::Integer(unmatched_failure_cutoff()))
+        ));
     }
     if covered {
         script.push_str(&format!(

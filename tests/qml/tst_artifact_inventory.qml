@@ -18,9 +18,9 @@ TestCase {
       requests.push({ id: id, name: name, args: args.slice(), generation: generation, callback: callback, options: options })
       return id
     }
-    function backendSubscribe(paths, generation, event, ready, closed, includeWrites) {
+    function backendSubscribe(paths, generation, event, ready, closed, includeWrites, names) {
       var id = "watch-" + subscriptions.length
-      subscriptions.push({ id: id, paths: paths, generation: generation, event: event, ready: ready, closed: closed, includeWrites: includeWrites === true })
+      subscriptions.push({ id: id, paths: paths, generation: generation, event: event, ready: ready, closed: closed, includeWrites: includeWrites === true, names: names || ({}) })
       return id
     }
     function cancelBackendRequest(id, generation, discardCallbacks) { cancelled.push({ id: id, generation: generation, discardCallbacks: !!discardCallbacks }) }
@@ -214,6 +214,22 @@ TestCase {
     compare(inventory.watchError, "")
   }
 
+  function test_a_lane_watches_only_the_files_it_reads_in_a_shared_parent() {
+    inventory.attach(observer()); start()
+    finish(0, rows("project"))
+    var user = rows("user", ["/home/me", "/home/me/.claude"])
+    user.watchNames = { "/home/me": [".claude.json"], "/elsewhere": ["x"], "/home/me/.claude": ["ok", "bad/name"] }
+    finish(1, user)
+    compare(subscriptions.length, 1)
+    compare(JSON.stringify(subscriptions[0].names), JSON.stringify({ "/home/me": [".claude.json"] }))
+    inventory.refresh(); start()
+    var renamed = rows("user", ["/home/me", "/home/me/.claude"])
+    renamed.watchNames = { "/home/me": [".claude.json", ".mcp.json"] }
+    finish(2, rows("project")); finish(3, renamed)
+    compare(subscriptions.length, 2)
+    compare(subscriptions[1].names["/home/me"], [".claude.json", ".mcp.json"])
+  }
+
   function test_payload_and_metrics_are_bounded_across_lanes() {
     inventory.attach(observer()); inventory.maximumItems = 2; start()
     finish(0, { ok: true, schemaVersion: 1, items: [
@@ -359,7 +375,12 @@ TestCase {
     usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
     usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
     compare(requests.length, before)
-    tryVerify(function() { return requests.length >= before + 2 }, inventory.usageChangeDelayMs + 2000)
+    wait(inventory.usageEventDelayMs / 2)
+    usage.event({ events: ["modify"], path: "/home/me/.claude/projects/x/s.jsonl" })
+    compare(requests.length, before)
+    tryVerify(function() { return requests.length >= before + 2 }, inventory.usageEventDelayMs + 1000)
+    wait(inventory.usageEventDelayMs / 2)
+    compare(requests.length, before + 2)
     compare([scopeOf(before), scopeOf(before + 1)].sort(), ["project", "user"])
     var again = rows("row", ["/plugins/inventory/skills"])
     again.usageWatchPaths = usage.paths
@@ -370,6 +391,18 @@ TestCase {
     inventory.refresh(); start()
     finish(requests.length - 2, again); finish(requests.length - 1, again)
     compare(usageSubscriptions().length, 2)
+  }
+
+  function test_usage_still_reconciles_on_a_timer_while_the_transcript_watch_runs() {
+    inventory.attach(observer()); start()
+    var listing = rows("row", [])
+    listing.usageWatchPaths = ["/home/me/.claude/projects"]
+    finish(0, listing); finish(1, listing)
+    compare(usageSubscriptions().length, 1)
+    verify(inventory.usageWatch !== null)
+    var before = requests.length
+    inventory.usagePollIntervalMs = 200
+    tryVerify(function() { return requests.length >= before + 2 }, 1500)
   }
 
   function test_the_transcript_watch_stops_with_the_last_view() {

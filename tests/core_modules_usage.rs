@@ -609,6 +609,31 @@ fn failures_survive_newest_first_ingest_across_transcripts() {
 }
 
 #[test]
+fn unmatched_failures_older_than_thirty_days_are_pruned() {
+    use_utc();
+    let fixture = Fixture::new();
+    let day = fixture.day;
+    let items = vec![alpha()];
+    fixture.transcript(
+        "session.jsonl",
+        &[
+            failed(day - chrono::Duration::days(40), "stale"),
+            failed(day, "recent"),
+            skill_call(day, "used", "alpha"),
+        ],
+    );
+    fixture.counts(&items);
+    let calls: Vec<String> = fixture
+        .open_store()
+        .query("SELECT call FROM failure ORDER BY call")
+        .expect("failures")
+        .iter()
+        .map(|row| row.text(0))
+        .collect();
+    assert_eq!(calls, ["recent"]);
+}
+
+#[test]
 fn oversized_records_do_not_hide_the_next_event() {
     use_utc();
     use std::io::Write;

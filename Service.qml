@@ -68,6 +68,17 @@ Item {
       ? [bladeHost.configHome, bladeHost.configHome + "/fileblade",
          bladeHost.configHome + "/fileblade/extensions", bladeHost.configDir]
       : [service.home + "/.config/omarchy", service.home + "/.config/omarchy/plugins"]
+    watchNames: {
+      var names = {}
+      if (backendClient.nativeAuthority) {
+        names[bladeHost.configHome] = ["fileblade"]
+        names[bladeHost.configHome + "/fileblade"] = ["extensions"]
+        names[bladeHost.configDir] = ["settings.json"]
+      } else {
+        names[service.home + "/.config/omarchy"] = ["plugins", "shell.json"]
+      }
+      return names
+    }
     onRefreshed: bladeHost.registry.rescan()
   }
 
@@ -118,8 +129,8 @@ Item {
   function cancelBackendRequest(id, generation, discardCallbacks) {
     return backendClient.cancel(id, generation, discardCallbacks)
   }
-  function backendSubscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites) {
-    return backendClient.subscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites)
+  function backendSubscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites, names) {
+    return backendClient.subscribe(paths, generation, eventCallback, readyCallback, closedCallback, includeWrites, names)
   }
 
   function backendSubscribeTopic(topic, paths, generation, eventCallback, readyCallback, closedCallback) {
@@ -433,6 +444,7 @@ Item {
   property alias activeGitMetadataGeneration: treeController.activeGitMetadataGeneration
   property alias gitMetadataRefreshCount: treeController.gitMetadataRefreshCount
   property alias gitMetadataNoopCount: treeController.gitMetadataNoopCount
+  property alias gitRefsEventCount: treeController.gitRefsEventCount
   property alias lastGitMetadataPathCount: treeController.lastGitMetadataPathCount
   property alias lastGitMetadataRepositoryCount: treeController.lastGitMetadataRepositoryCount
   property alias lastGitMetadataReason: treeController.lastGitMetadataReason
