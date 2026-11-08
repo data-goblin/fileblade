@@ -12,8 +12,11 @@ pub(super) fn monitor_deadlines(active: Arc<Active>, stopping: Arc<AtomicBool>) 
         let mut idle_since = None;
         let mut last_sweep: Option<Instant> = None;
         let mut armed = false;
-        while !stopping.load(Ordering::Relaxed) {
+        loop {
             active.changed.clear();
+            if stopping.load(Ordering::Acquire) {
+                break;
+            }
             let now = Instant::now();
             let mut busy = false;
             let mut next_deadline: Option<Instant> = None;
@@ -84,7 +87,7 @@ pub(super) fn shutdown(
         let _ = worker.join();
     }
     crate::hyprland::restore_owned_borders();
-    stopping.store(true, Ordering::Relaxed);
+    stopping.store(true, Ordering::Release);
     active.changed();
     let _ = monitor.join();
 }
