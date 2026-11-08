@@ -215,6 +215,7 @@ Please check the below for details which are agent-written, but I've tried to ke
 - **Security:** See [SECURITY.md](SECURITY.md)
 - **Contributions:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Extensions:** See [EXTENSIONS.md](EXTENSIONS.md)
+- **Acknowledgements:** See [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md)
 
 ## License
 
