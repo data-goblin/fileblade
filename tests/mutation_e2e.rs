@@ -1,7 +1,7 @@
 use fileblade::secure;
 use serde_json::{Value, json};
 use std::fs;
-use std::os::unix::fs::{PermissionsExt, symlink};
+use std::os::unix::fs::{MetadataExt, PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::AtomicBool;
@@ -406,6 +406,39 @@ fn satellite_trash_is_listed_centrally_and_pruned_by_age() {
     assert_eq!(
         backend(temporary.path(), &["trash-list", "--limit", "100"])["count"],
         0
+    );
+}
+
+#[test]
+fn trash_list_leaves_a_private_artifact_bin_unchanged() {
+    let temporary = tempdir().unwrap();
+    let bin = temporary.path().join("data/fileblade/bin");
+    fs::create_dir_all(bin.join("notes")).unwrap();
+    for path in [
+        temporary.path().join("data/fileblade"),
+        bin.clone(),
+        bin.join("notes"),
+    ] {
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let changed = |path: &Path| {
+        let metadata = fs::metadata(path).unwrap();
+        (metadata.ctime(), metadata.ctime_nsec())
+    };
+    let before = changed(&bin);
+    std::thread::sleep(std::time::Duration::from_millis(20));
+    for _ in 0..3 {
+        let listed = backend(temporary.path(), &["trash-list", "--limit", "10"]);
+        assert_eq!(listed["ok"], true, "{listed}");
+    }
+    assert_eq!(changed(&bin), before);
+
+    fs::set_permissions(&bin, fs::Permissions::from_mode(0o750)).unwrap();
+    let listed = backend(temporary.path(), &["trash-list", "--limit", "10"]);
+    assert_eq!(listed["ok"], true, "{listed}");
+    assert_eq!(
+        fs::metadata(&bin).unwrap().permissions().mode() & 0o7777,
+        0o700
     );
 }
 
