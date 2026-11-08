@@ -46,7 +46,12 @@ pub fn ensure_private_directory(path: &Path) -> io::Result<OwnedFd> {
         current = next;
     }
     verify_owner_and_kind(&current, EntryKind::Directory)?;
-    if rustix::fs::fstat(&current).map_err(io::Error::from)?.st_mode & 0o7777 != PRIVATE_DIRECTORY_MODE {
+    if rustix::fs::fstat(&current)
+        .map_err(io::Error::from)?
+        .st_mode
+        & 0o7777
+        != PRIVATE_DIRECTORY_MODE
+    {
         fchmod(&current, Mode::from_raw_mode(PRIVATE_DIRECTORY_MODE)).map_err(io::Error::from)?;
         fsync(&current).map_err(io::Error::from)?;
     }
