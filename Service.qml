@@ -444,6 +444,7 @@ Item {
   property alias activeGitMetadataGeneration: treeController.activeGitMetadataGeneration
   property alias gitMetadataRefreshCount: treeController.gitMetadataRefreshCount
   property alias gitMetadataNoopCount: treeController.gitMetadataNoopCount
+  property alias gitRefsEventCount: treeController.gitRefsEventCount
   property alias lastGitMetadataPathCount: treeController.lastGitMetadataPathCount
   property alias lastGitMetadataRepositoryCount: treeController.lastGitMetadataRepositoryCount
   property alias lastGitMetadataReason: treeController.lastGitMetadataReason

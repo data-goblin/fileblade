@@ -43,6 +43,7 @@ TestCase {
     property bool autoHideSearch: false
     property int gitMetadataRefreshCount: 0
     property int gitMetadataNoopCount: 0
+    property int gitRefsEventCount: 0
     property var installedAgents: []
     property var history: null
     property var keybindings: ({ plan: KeyBindings.compile({}) })
@@ -279,6 +280,15 @@ TestCase {
     files.gitMetadataNoopCount++
     wait(300)
     compare(requests.length, count)
+  }
+
+  function test_a_ref_change_reloads_places_when_the_tree_metadata_is_unchanged() {
+    load(places)
+    var count = requests.length
+    files.gitRefsEventCount++
+    files.gitMetadataRefreshCount++
+    files.gitMetadataNoopCount++
+    tryVerify(function() { return requests.length > count }, 1000)
   }
 
   function test_git_refresh_and_errors_reload() {

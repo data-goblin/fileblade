@@ -279,6 +279,7 @@ FocusScope {
         module.refresh()
       })
     }
+    function onGitRefsEventCountChanged() { module.refresh() }
   }
 
   Loader {

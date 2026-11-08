@@ -127,6 +127,7 @@ Item {
   property int activeGitMetadataGeneration: -1
   property int gitMetadataRefreshCount: 0
   property int gitMetadataNoopCount: 0
+  property int gitRefsEventCount: 0
   property var dirtyGitRepositories: ({})
   property var gitMetadataRowFingerprints: ({})
   property var lastGitMetadataPayload: null

@@ -68,6 +68,13 @@ Item {
     return gitDecorationEntries.indexOf(relative) >= 0
   }
 
+  function gitRefsEntry(changedPath, gitDirectory) {
+    var relative = PathText.relative(changedPath, gitDirectory)
+    if (relative.length > 5 && relative.slice(-5) === ".lock") return false
+    return relative === "HEAD" || relative === "packed-refs" || relative === "refs"
+      || relative.indexOf("refs/") === 0 || relative.indexOf("logs/refs/") === 0
+  }
+
   function filesystemEventContext(changedPath) {
     var repoRoots = Object.keys(gitRepoDirectories)
     var worktreeRoot = ""
@@ -79,7 +86,8 @@ Item {
           gitDirectory: true,
           repoRoot: repoRoot,
           relevant: true,
-          matters: gitDirectoryEntryMatters(changedPath, gitDir)
+          matters: gitDirectoryEntryMatters(changedPath, gitDir),
+          refs: gitRefsEntry(changedPath, gitDir)
         }
       if (pathInside(changedPath, repoRoot) && repoRoot.length > worktreeRoot.length)
         worktreeRoot = repoRoot
@@ -113,6 +121,7 @@ Item {
     if (!changedPath) return
     var context = filesystemEventContext(changedPath)
     if (context.gitDirectory && context.matters) {
+      if (context.refs) service.gitRefsEventCount++
       enqueueExpandedRepositoryRows(context.repoRoot)
       lastFilesystemEventPath = changedPath
       scheduleGitMetadataRefresh("git-event", context.repoRoot)
