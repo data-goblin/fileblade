@@ -54,7 +54,7 @@ Item {
   property var usageWatchPaths: []
   readonly property int usageChangeDelayMs: 100
   readonly property int usageEventDelayMs: 2000
-  readonly property int usagePollIntervalMs: 60000
+  property int usagePollIntervalMs: 60000
 
   signal mutationFinished(string method, var response, string project)
 
@@ -327,7 +327,7 @@ Item {
     id: usagePoll
     interval: inventory.usagePollIntervalMs
     repeat: true
-    running: inventory.ready && inventory.usageWatchPaths.length > 0 && inventory.usageWatch === null
+    running: inventory.ready && inventory.usageWatchPaths.length > 0
     onTriggered: inventory.refreshUsage()
   }
   Timer { id: activityRetry; interval: 500; onTriggered: inventory.requestActivity() }

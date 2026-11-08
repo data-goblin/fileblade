@@ -393,6 +393,18 @@ TestCase {
     compare(usageSubscriptions().length, 2)
   }
 
+  function test_usage_still_reconciles_on_a_timer_while_the_transcript_watch_runs() {
+    inventory.attach(observer()); start()
+    var listing = rows("row", [])
+    listing.usageWatchPaths = ["/home/me/.claude/projects"]
+    finish(0, listing); finish(1, listing)
+    compare(usageSubscriptions().length, 1)
+    verify(inventory.usageWatch !== null)
+    var before = requests.length
+    inventory.usagePollIntervalMs = 200
+    tryVerify(function() { return requests.length >= before + 2 }, 1500)
+  }
+
   function test_the_transcript_watch_stops_with_the_last_view() {
     var view = observer()
     inventory.attach(view); start()
