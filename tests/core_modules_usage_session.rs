@@ -35,3 +35,30 @@ fn one_store_session_answers_scripts_reports_errors_and_recovers() {
             .is_empty()
     );
 }
+
+#[test]
+fn a_store_replaced_at_the_same_path_is_read_from_its_new_file() {
+    let temporary = tempdir().unwrap();
+    let path = temporary.path().join("opencode.db");
+    let replacement = temporary.path().join("opencode.db.new");
+    Sql::open(&path)
+        .unwrap()
+        .execute("CREATE TABLE item (name TEXT);\nINSERT INTO item VALUES ('old')")
+        .unwrap();
+    Sql::open(&replacement)
+        .unwrap()
+        .execute("CREATE TABLE item (name TEXT);\nINSERT INTO item VALUES ('new')")
+        .unwrap();
+    let reader = Sql::open_readonly(&path).unwrap();
+    let names = |database: &Sql| {
+        database
+            .query("SELECT name FROM item")
+            .unwrap()
+            .iter()
+            .map(|row| row.text(0).to_string())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(names(&reader), ["old"]);
+    std::fs::rename(&replacement, &path).unwrap();
+    assert_eq!(names(&reader), ["new"]);
+}

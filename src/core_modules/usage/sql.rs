@@ -225,6 +225,15 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 
 type Zone = (Option<std::ffi::OsString>, Option<PathBuf>);
 
+type Identity = Option<(u64, u64)>;
+
+fn identity(path: &Path) -> Identity {
+    use std::os::unix::fs::MetadataExt;
+    std::fs::metadata(path)
+        .ok()
+        .map(|metadata| (metadata.dev(), metadata.ino()))
+}
+
 fn zone() -> Zone {
     (
         std::env::var_os("TZ"),
@@ -234,6 +243,7 @@ fn zone() -> Zone {
 
 struct Session {
     zone: Zone,
+    identity: Identity,
     child: Child,
     input: ChildStdin,
     output: ChildStdout,
@@ -288,6 +298,7 @@ impl Session {
             })?;
         Ok(Self {
             zone: zone(),
+            identity: identity(path),
             child,
             input,
             output,
@@ -297,8 +308,12 @@ impl Session {
         })
     }
 
-    fn reusable(&mut self) -> bool {
-        self.zone == zone() && matches!(self.child.try_wait(), Ok(None))
+    fn reusable(&mut self, path: &Path) -> bool {
+        let current = identity(path);
+        if self.identity.is_none() {
+            self.identity = current;
+        }
+        self.zone == zone() && self.identity == current && matches!(self.child.try_wait(), Ok(None))
     }
 
     fn stop(mut self) {
@@ -449,7 +464,7 @@ impl Sql {
         );
         let mut guard = lock(&slot);
         let reusable = guard.take().and_then(|mut session| {
-            if session.reusable() {
+            if session.reusable(&self.path) {
                 Some(session)
             } else {
                 session.stop();
