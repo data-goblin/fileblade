@@ -30,6 +30,13 @@ pub fn cache_dir() -> PathBuf {
     xdg_home("XDG_CACHE_HOME", "~/.cache").join("fileblade/thumbnails")
 }
 
+fn schedule_eviction(output: &Path) {
+    let directory = cache_dir();
+    if output.parent() == Some(directory.as_path()) {
+        crate::thumbnail_cache::schedule(directory);
+    }
+}
+
 pub fn cache_path(key: &str) -> PathBuf {
     cache_dir().join(format!("{}.png", digest(key)))
 }
@@ -73,9 +80,7 @@ pub fn render(raw_path: &str, output: &Path, width: u32, height: u32) -> AppResu
     let rendered = render_encoded(raw_path, width, height, None)?;
     secure::write_private_atomic(output, &rendered.bytes)
         .map_err(|error| AppError::Invalid(error.to_string()))?;
-    if let Some(directory) = output.parent() {
-        crate::thumbnail_cache::schedule(directory.to_path_buf());
-    }
+    schedule_eviction(output);
     Ok(rendered_value(output, rendered, false))
 }
 
@@ -384,9 +389,7 @@ fn render_in_child(
         }
         secure::write_private_atomic(output, &bytes)
             .map_err(|error| AppError::Invalid(error.to_string()))?;
-        if let Some(directory) = output.parent() {
-            crate::thumbnail_cache::schedule(directory.to_path_buf());
-        }
+        schedule_eviction(output);
         if let Some(object) = value.as_object_mut() {
             object.remove("png_base64");
         }

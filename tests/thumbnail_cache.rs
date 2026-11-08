@@ -1,4 +1,6 @@
-use fileblade::thumbnail_cache::{Eviction, evict};
+use fileblade::thumbnail;
+use fileblade::thumbnail_cache::{CAPACITY_BYTES, Eviction, evict};
+use image::{ImageBuffer, Rgba};
 use std::fs::{File, FileTimes};
 use std::time::{Duration, SystemTime};
 use tempfile::tempdir;
@@ -59,4 +61,26 @@ fn the_thumbnail_cache_drops_the_least_recently_used_entries_past_its_cap() {
     assert!(recent.exists() && newest.exists());
     assert!(directory.join("keep-me.txt").exists());
     assert!(!abandoned.exists());
+}
+
+#[test]
+fn rendering_outside_the_thumbnail_cache_leaves_that_directory_alone() {
+    let temporary = tempdir().unwrap();
+    let directory = temporary.path().join("pictures");
+    std::fs::create_dir(&directory).unwrap();
+    let neighbour = directory.join(format!("{:032x}.png", 7));
+    File::create(&neighbour)
+        .unwrap()
+        .set_len(CAPACITY_BYTES + 1024 * 1024)
+        .unwrap();
+    let source = temporary.path().join("source.png");
+    ImageBuffer::from_pixel(8, 8, Rgba([10u8, 20, 30, 255]))
+        .save(&source)
+        .unwrap();
+    let output = directory.join("rendered.png");
+    let value = thumbnail::render(source.to_str().unwrap(), &output, 64, 64).unwrap();
+    assert_eq!(value["ok"], true, "{value}");
+    std::thread::sleep(Duration::from_secs(2));
+    assert!(neighbour.exists());
+    assert!(output.exists());
 }
