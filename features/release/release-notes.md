@@ -4,6 +4,8 @@ This file was written by an agent.
 
 ## 0.3.7 (unreleased)
 
+- Copying a folder of many small files onto a real disk is fast again. Each copied file was flushed to disk on its own, so 3000 files on btrfs took over 20 seconds; the copy is now flushed once before it appears at the destination.
+
 ## 0.3.6
 
 - An open Trash view no longer lists the artifact bin over and over. Each listing set the bin's permissions to the mode they already had, the Trash view took that as a change and listed again, about six times a second (#44).

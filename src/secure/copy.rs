@@ -89,6 +89,7 @@ pub(super) fn copy_from_parent_noreplace(
         cancelled,
         progress,
     )
+    .and_then(|()| rustix::fs::syncfs(&partial_directory).map_err(io::Error::from))
     .and_then(|()| {
         renameat_with(
             &partial_directory,
@@ -253,8 +254,7 @@ pub(super) fn copy_regular(
         before.mode,
         (before.atime, before.atime_nsec),
         (before.mtime, before.mtime_nsec),
-    )?;
-    destination_file.sync_all()
+    )
 }
 
 pub(super) fn copy_directory(
@@ -324,8 +324,7 @@ pub(super) fn copy_directory(
         before.mode,
         (before.atime, before.atime_nsec),
         (before.mtime, before.mtime_nsec),
-    )?;
-    destination_file.sync_all()
+    )
 }
 
 pub(super) fn copy_xattrs(source: &File, destination: &File) {
