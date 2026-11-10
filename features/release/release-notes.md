@@ -2,6 +2,8 @@ This file was written by an agent.
 
 # FileBlade release notes
 
+## 0.3.7 (unreleased)
+
 ## 0.3.6
 
 - An open Trash view no longer lists the artifact bin over and over. Each listing set the bin's permissions to the mode they already had, the Trash view took that as a change and listed again, about six times a second (#44).
